@@ -10,15 +10,15 @@ app.use(express.urlencoded({ extended: true }));
 
 
 if (process.env.SERVICE_ACCOUNT_KEY) {
-  
+
     const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         storageBucket: "cashma-8adfb.appspot.com"
     });
 } else {
-    
-    const serviceAccount = require('./serviceAccountKey.json'); 
+
+    const serviceAccount = require('./serviceAccountKey.json');
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         storageBucket: "cashma-8adfb.appspot.com"
@@ -26,7 +26,7 @@ if (process.env.SERVICE_ACCOUNT_KEY) {
 }
 
 const db = admin.firestore();
-const authAdmin = admin.auth(); 
+const authAdmin = admin.auth();
 
 async function authenticateAndAuthorize(req, res, next) {
     const authHeader = req.headers.authorization;
@@ -42,8 +42,8 @@ async function authenticateAndAuthorize(req, res, next) {
         const decodedToken = await authAdmin.verifyIdToken(idToken);
         req.user = decodedToken;
 
-       
-        const userDoc = await db.collection('users').doc(req.user.uid).get(); 
+
+        const userDoc = await db.collection('users').doc(req.user.uid).get();
 
         if (!userDoc.exists) {
             console.warn(`Authorization failed: User ${req.user.uid} not found in 'users' collection.`);
@@ -53,7 +53,7 @@ async function authenticateAndAuthorize(req, res, next) {
         const userData = userDoc.data();
         req.user.role = userData.role;
 
-        
+
         if (userData.role !== 'owner') {
             console.warn(`Authorization failed: User ${req.user.uid} has role '${userData.role}', not 'owner'.`);
             return res.status(403).json({ error: 'Forbidden: Only restaurant owners can perform this action.' });
@@ -77,13 +77,13 @@ app.get(/^(?!\/api).*/, (req, res) => {
 
 app.post('/api/users/upsert', async (req, res) => {
     try {
-        const { uid, displayName, email, role } = req.body; 
+        const { uid, displayName, email, role } = req.body;
         if (!uid || !email) {
             return res.status(400).json({ error: 'UID and email are required.' });
         }
 
-        const userDocRefInUsers = db.collection('users').doc(uid); 
-        const userDocRefInInvited = db.collection('invited').doc(uid); 
+        const userDocRefInUsers = db.collection('users').doc(uid);
+        const userDocRefInInvited = db.collection('invited').doc(uid);
 
         const existingUserInUsers = await userDocRefInUsers.get();
         const existingUserInInvited = await userDocRefInInvited.get();
@@ -92,7 +92,7 @@ app.post('/api/users/upsert', async (req, res) => {
         let finalRole = null;
         let message = '';
 
-        if (role === 'owner') { 
+        if (role === 'owner') {
             finalCollection = 'users';
             finalRole = 'owner';
 
@@ -108,19 +108,17 @@ app.post('/api/users/upsert', async (req, res) => {
                 email: email,
                 role: finalRole,
                 lastLogin: admin.firestore.FieldValue.serverTimestamp(),
-               
-                createdAt: existingUserInUsers.exists ? existingUserInUsers.data().createdAt : admin.firestore.FieldValue.serverTimestamp() 
+
+                createdAt: existingUserInUsers.exists ? existingUserInUsers.data().createdAt : admin.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
             message += `User upserted successfully in 'users' with role 'owner'.`;
             console.log(`User ${uid} upserted as owner.`);
 
-        } else { 
+        } else {
             finalCollection = 'invited';
             finalRole = 'customer';
 
             if (existingUserInUsers.exists && existingUserInUsers.data().role === 'owner') {
-             
-            
                 console.warn(`Attempt to upsert owner ${uid} as customer. Ignoring role change.`);
                 return res.status(200).json({ message: 'Owner user already exists, ignored customer upsert.', user: existingUserInUsers.data() });
             }
@@ -150,11 +148,11 @@ app.get('/api/users/:uid/role', async (req, res) => {
     try {
         const { uid } = req.params;
 
-       
+
         const ownerDoc = await db.collection('users').doc(uid).get();
         if (ownerDoc.exists && ownerDoc.data().role === 'owner') {
-    return res.status(200).json({ role: 'owner' }); 
-}
+            return res.status(200).json({ role: 'owner' });
+        }
 
         const invitedDoc = await db.collection('invited').doc(uid).get();
         if (invitedDoc.exists && invitedDoc.data().role === 'customer') {
@@ -174,33 +172,74 @@ app.get('/api/users/:uid/role', async (req, res) => {
 
 app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
     try {
-        const { userId, name, description, district, whatsapp, photoUrl } = req.body;
-        
+        const {
+            userId,
+            name,
+            description,
+            district,
+            whatsapp,
+            photoUrl,
+            logoUrl = null,
+            ruc = null,
+            yape = null,
+            phone = null,
+            hasDelivery = false,
+            hasLocalService = false,
+            schedule = {},
+            location
+        } = req.body;
+
         // Verifica que el userId del body coincida con el UID del token
         if (req.user.uid !== userId) {
-             return res.status(403).json({ error: 'Forbidden: Token UID does not match request userId.' });
+            return res.status(403).json({ error: 'Forbidden: Token UID does not match request userId.' });
         }
         if (!name) {
             return res.status(400).json({ error: 'Restaurant Name is required.' });
         }
 
         // Primero, verifica si ya tiene un restaurante para evitar duplicados
-        const existingRestaurantSnapshot = await db.collection('restaurants').where('ownerId', '==', userId).limit(1).get();
+        const existingRestaurantSnapshot = await db
+            .collection('restaurants')
+            .where('ownerId', '==', userId)
+            .limit(1)
+            .get();
         if (!existingRestaurantSnapshot.empty) {
             return res.status(409).json({ error: 'This user already owns a restaurant.' });
         }
 
         const restaurantData = {
-            ownerId: userId, name, description, district, whatsapp, photoUrl,
+            ownerId: userId,
+            name,
+            description,
+            district,
+            whatsapp,
+            photoUrl,
+            logoUrl,
+            ruc,
+            yape,
+            phone,
+            hasDelivery,
+            hasLocalService,
+            location,
+            schedule: {
+                monday: schedule.monday || { from: null, to: null },
+                tuesday: schedule.tuesday || { from: null, to: null },
+                wednesday: schedule.wednesday || { from: null, to: null },
+                thursday: schedule.thursday || { from: null, to: null },
+                friday: schedule.friday || { from: null, to: null },
+                saturday: schedule.saturday || { from: null, to: null },
+                sunday: schedule.sunday || { from: null, to: null },
+            },
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         };
+
         const restaurantRef = await db.collection('restaurants').add(restaurantData);
 
-        // *** IMPORTANTE: ELIMINADO: Ya NO HACES set({role: 'owner'}) aquí. ***
-        // Esto se hará desde el frontend en handleRestaurantRegistration
-        // llamando a /api/users/upsert con role: 'owner' después de que esta ruta tenga éxito.
-
-        res.status(201).json({ message: 'Restaurant successfully registered.', restaurantId: restaurantRef.id, data: restaurantData });
+        res.status(201).json({
+            message: 'Restaurant successfully registered.',
+            restaurantId: restaurantRef.id,
+            data: restaurantData
+        });
     } catch (error) {
         console.error('Error registering restaurant:', error);
         if (error.message === 'This user already owns a restaurant.') {
@@ -215,7 +254,7 @@ app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
 app.get('/api/restaurants/user/:userId', authenticateAndAuthorize, async (req, res) => {
     try {
         const { userId } = req.params;
-        
+
         if (req.user.uid !== userId) {
             return res.status(403).json({ error: 'Forbidden: You can only query your own restaurant.' });
         }
@@ -265,7 +304,7 @@ app.get('/api/restaurants-paginated', async (req, res) => {
                 query = query.startAfter(lastDocRef);
             }
         }
-        
+
         const snapshot = await query.limit(parseInt(limit)).get();
         const restaurants = [];
 
@@ -281,12 +320,12 @@ app.get('/api/restaurants-paginated', async (req, res) => {
                 const dishesSnapshot = await db.collection('dishes')
                     .where('cardId', '==', cardDoc.id)
                     .get();
-                
+
                 dishesSnapshot.forEach(dishDoc => {
                     totalLikes += (dishDoc.data().likesCount || 0);
                 });
             }
-            
+
             restaurantData.totalLikes = totalLikes;
             return restaurantData;
         });
@@ -294,9 +333,9 @@ app.get('/api/restaurants-paginated', async (req, res) => {
         const restaurantsWithLikes = await Promise.all(restaurantPromises);
 
         const lastVisible = snapshot.docs[snapshot.docs.length - 1];
-        res.status(200).json({ 
+        res.status(200).json({
             restaurants: restaurantsWithLikes,
-            lastDocId: lastVisible ? lastVisible.id : null 
+            lastDocId: lastVisible ? lastVisible.id : null
         });
     } catch (error) {
         console.error('Error fetching paginated restaurants with likes:', error);
@@ -319,16 +358,16 @@ app.get('/api/restaurants/:restaurantId/menu', async (req, res) => {
                 .where('cardId', '==', card.id)
                 .where('isActive', '==', true)
                 .orderBy('createdAt', 'asc').get();
-            
+
             dishesSnapshot.forEach(dishDoc => {
                 const dishData = dishDoc.data();
-                card.dishes.push({ 
-                    id: dishDoc.id, 
+                card.dishes.push({
+                    id: dishDoc.id,
                     name: dishData.name,
                     price: dishData.price,
                     photoUrl: dishData.photoUrl,
                     isActive: dishData.isActive,
-                    likesCount: dishData.likesCount || 0 
+                    likesCount: dishData.likesCount || 0
                 });
             });
             menuData.push(card);
@@ -345,8 +384,8 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
     try {
         const { restaurantId } = req.params;
         const { name, description, district, whatsapp, photoUrl } = req.body;
-        
-       
+
+
         const restaurantDoc = await db.collection('restaurants').doc(restaurantId).get();
         if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
             return res.status(403).json({ error: 'Forbidden: You do not own this restaurant.' });
@@ -356,7 +395,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
             return res.status(400).json({ error: 'All fields are required.' });
         }
         const restaurantRef = db.collection('restaurants').doc(restaurantId);
-        const oldData = restaurantDoc.data(); 
+        const oldData = restaurantDoc.data();
         const oldPhotoUrl = oldData.photoUrl;
         const updatedData = { name, description, district, whatsapp, photoUrl: photoUrl || oldPhotoUrl };
         await restaurantRef.update(updatedData);
@@ -382,7 +421,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
 app.post('/api/cards', authenticateAndAuthorize, async (req, res) => {
     try {
         const { restaurantId, name } = req.body;
-        
+
         const restaurantDoc = await db.collection('restaurants').doc(restaurantId).get();
         if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
             return res.status(403).json({ error: 'Forbidden: You do not own this restaurant.' });
@@ -407,7 +446,7 @@ app.post('/api/cards', authenticateAndAuthorize, async (req, res) => {
 app.get('/api/restaurants/:restaurantId/cards', authenticateAndAuthorize, async (req, res) => {
     try {
         const { restaurantId } = req.params;
-        
+
         const restaurantDoc = await db.collection('restaurants').doc(restaurantId).get();
         if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
             return res.status(403).json({ error: 'Forbidden: You do not own this restaurant.' });
@@ -429,7 +468,7 @@ app.put('/api/cards/:cardId/toggle', authenticateAndAuthorize, async (req, res) 
     try {
         const { cardId } = req.params;
         const { isActive } = req.body;
-        
+
         const cardDoc = await db.collection('cards').doc(cardId).get();
         if (!cardDoc.exists) {
             return res.status(404).json({ error: 'Card not found.' });
@@ -452,8 +491,8 @@ app.put('/api/cards/:cardId', authenticateAndAuthorize, async (req, res) => {
     try {
         const { cardId } = req.params;
         const { name } = req.body;
-        
-        
+
+
         const cardDoc = await db.collection('cards').doc(cardId).get();
         if (!cardDoc.exists) {
             return res.status(404).json({ error: 'Card not found.' });
@@ -478,8 +517,8 @@ app.put('/api/cards/:cardId', authenticateAndAuthorize, async (req, res) => {
 app.delete('/api/cards/:cardId', authenticateAndAuthorize, async (req, res) => {
     try {
         const { cardId } = req.params;
-        
-       
+
+
         const cardDoc = await db.collection('cards').doc(cardId).get();
         if (!cardDoc.exists) {
             return res.status(404).json({ error: 'Card not found.' });
@@ -519,7 +558,7 @@ app.delete('/api/cards/:cardId', authenticateAndAuthorize, async (req, res) => {
 app.post('/api/dishes', authenticateAndAuthorize, async (req, res) => {
     try {
         const { cardId, name, price, photoUrl } = req.body;
-     
+
         const cardDoc = await db.collection('cards').doc(cardId).get();
         if (!cardDoc.exists) {
             return res.status(404).json({ error: 'Card not found.' });
@@ -550,7 +589,7 @@ app.post('/api/dishes', authenticateAndAuthorize, async (req, res) => {
 app.get('/api/cards/:cardId/dishes', authenticateAndAuthorize, async (req, res) => {
     try {
         const { cardId } = req.params;
-       
+
         const cardDoc = await db.collection('cards').doc(cardId).get();
         if (!cardDoc.exists) {
             return res.status(404).json({ error: 'Card not found.' });
@@ -565,13 +604,13 @@ app.get('/api/cards/:cardId/dishes', authenticateAndAuthorize, async (req, res) 
         const dishes = [];
         snapshot.forEach(doc => {
             const dishData = doc.data();
-            dishes.push({ 
-                id: doc.id, 
+            dishes.push({
+                id: doc.id,
                 name: dishData.name,
                 price: dishData.price,
                 photoUrl: dishData.photoUrl,
                 isActive: dishData.isActive,
-                likesCount: dishData.likesCount || 0 
+                likesCount: dishData.likesCount || 0
             });
         });
         res.status(200).json(dishes);
@@ -585,14 +624,14 @@ app.put('/api/dishes/:dishId', authenticateAndAuthorize, async (req, res) => {
     try {
         const { dishId } = req.params;
         const { name, price, photoUrl } = req.body;
-     
+
         const dishDoc = await db.collection('dishes').doc(dishId).get();
         if (!dishDoc.exists) {
             return res.status(404).json({ error: 'Dish not found.' });
         }
         const cardIdOfDish = dishDoc.data().cardId;
         const cardDoc = await db.collection('cards').doc(cardIdOfDish).get();
-        if (!cardDoc.exists) { 
+        if (!cardDoc.exists) {
             return res.status(500).json({ error: 'Associated card not found.' });
         }
         const restaurantIdOfCard = cardDoc.data().restaurantId;
@@ -629,8 +668,8 @@ app.put('/api/dishes/:dishId/toggle', authenticateAndAuthorize, async (req, res)
     try {
         const { dishId } = req.params;
         const { isActive } = req.body;
-        
-      
+
+
         const dishDoc = await db.collection('dishes').doc(dishId).get();
         if (!dishDoc.exists) {
             return res.status(404).json({ error: 'Dish not found.' });
@@ -657,15 +696,15 @@ app.put('/api/dishes/:dishId/toggle', authenticateAndAuthorize, async (req, res)
 app.delete('/api/dishes/:dishId', authenticateAndAuthorize, async (req, res) => {
     try {
         const { dishId } = req.params;
-        
-     
+
+
         const dishDoc = await db.collection('dishes').doc(dishId).get();
         if (!dishDoc.exists) {
             return res.status(404).json({ error: 'Dish not found.' });
         }
         const cardIdOfDish = dishDoc.data().cardId;
         const cardDoc = await db.collection('cards').doc(cardIdOfDish).get();
-        if (!cardDoc.exists) { 
+        if (!cardDoc.exists) {
             return res.status(500).json({ error: 'Associated card not found.' });
         }
         const restaurantIdOfCard = cardDoc.data().restaurantId;
@@ -675,7 +714,7 @@ app.delete('/api/dishes/:dishId', authenticateAndAuthorize, async (req, res) => 
         }
 
         const dishRef = db.collection('dishes').doc(dishId);
-        const photoUrl = dishDoc.data().photoUrl; 
+        const photoUrl = dishDoc.data().photoUrl;
         if (photoUrl) {
             try {
                 const filePath = decodeURIComponent(photoUrl.split('/o/')[1].split('?alt=media')[0]);
@@ -713,13 +752,13 @@ app.post('/api/dishes/:dishId/like', async (req, res) => {
         console.error('Error verifying Firebase ID token for like operation:', error.message);
         return res.status(401).json({ error: 'Unauthorized: Invalid token for like operation.' });
     }
-    
+
     if (!['like', 'unlike'].includes(action)) {
         return res.status(400).json({ error: 'Invalid action. Must be "like" or "unlike".' });
     }
 
     const dishRef = db.collection('dishes').doc(dishId);
-   
+
     const userFavoriteRef = db.collection('invited').doc(currentUserUid).collection('favorites').doc(dishId);
 
     try {
