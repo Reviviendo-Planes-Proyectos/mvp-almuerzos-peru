@@ -55,6 +55,13 @@ body {
   height: 40px;
   font-family: "Nunito", sans-serif;
 }
+
+.header-button--alt {
+  background-color: var(--brand-dark);
+  color: var(--white);
+  font-weight: bold;
+}
+
 .hero-section {
   background-color: var(--brand-yellow);
   text-align: center;
