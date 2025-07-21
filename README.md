@@ -1,93 +1,129 @@
+# Almuerzos Perú 🍽️
+
+Aplicación web para gestión de menús de restaurante con sistema de autenticación y gestión de favoritos.
+
 # ALMUERZOS-PERU
 
+Dashboard Vercel: 
+https://vercel.com/almuerzos-perus-projects/app-almuerzos-peru
 
+<img width="1302" height="602" alt="image" src="https://github.com/user-attachments/assets/558810c4-f591-4a6e-98a6-6a9b89be55e0" />
 
-## Getting started
+Pagina Web desplegada:
+https://app-almuerzos-peru.vercel.app/
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+<img width="1366" height="790" alt="image" src="https://github.com/user-attachments/assets/3b2b64ed-a99b-4df8-8158-03b7dac7714d" />
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Descripción
 
-## Add your files
+Almuerzos Perú es una aplicación web que permite a los usuarios:
+- Ver el menú del restaurante
+- Autenticarse con Firebase Authentication
+- Gestionar platos favoritos
+- Dashboard para administradores
+- Sistema de gestión de menús
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Tecnologías Utilizadas
+
+- **Backend**: Node.js + Express
+- **Base de Datos**: Firebase Firestore
+- **Autenticación**: Firebase Authentication
+- **Frontend**: HTML, CSS, JavaScript
+- **Despliegue**: Vercel
+
+## Requisitos Previos
+
+- Node.js (versión 14 o superior)
+- npm o yarn
+- Cuenta de Firebase con proyecto configurado
+
+## Instalación
+
+1. **Clonar el repositorio**
+```bash
+git clone https://github.com/Reviviendo-Planes-Proyectos/mvp-almuerzos-peru.git
+cd almuerzos-peru
+```
+
+2. **Instalar dependencias**
+```bash
+npm install
+```
+
+3.  **Configurar variables de entorno en Vercel**
+   - Agregar `SERVICE_ACCOUNT_KEY` con el contenido del archivo JSON
+   - Crear archivo **serviceAccountKey.json** en la raiz del proyecto
+   - Agregar contenido del archivo
+
+## Cómo Levantar el Proyecto
+
+### Desarrollo Local
+
+1. **Ejecutar el servidor**
+```bash
+npm start
+```
+
+2. **Acceder a la aplicación**
+   - Abrir el navegador en: `http://localhost:3000`
+   - La aplicación estará disponible en el puerto 3000 (o el puerto configurado en PORT)
+
+### Estructura de Archivos
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/YordySilva23/almuerzos-peru.git
-git branch -M main
-git push -uf origin main
+├── server.js              # Servidor principal Express
+├── package.json           # Dependencias y scripts
+├── serviceAccountKey.json # Credenciales de Firebase (no incluir en git)
+├── vercel.json           # Configuración de despliegue
+└── public/               # Archivos estáticos
+    ├── index.html        # Página principal
+    ├── login.html        # Página de login
+    ├── menu.html         # Página del menú
+    ├── dashboard.html    # Panel de administración
+    ├── favorites.html    # Página de favoritos
+    ├── css/             # Hojas de estilo
+    ├── js/              # Scripts JavaScript
+    └── images/          # Imágenes del proyecto
 ```
 
-## Integrate with your tools
+## Scripts Disponibles
 
-- [ ] [Set up project integrations](https://gitlab.com/YordySilva23/almuerzos-peru/-/settings/integrations)
+```bash
+npm start    # Inicia el servidor en modo producción
+```
 
-## Collaborate with your team
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## Funcionalidades
 
-## Test and Deploy
+- **Autenticación**: Sistema completo de login/registro con Firebase Auth
+- **Menú**: Visualización de platos disponibles
+- **Favoritos**: Los usuarios pueden marcar platos como favoritos
+- **Dashboard**: Panel administrativo para gestión
+- **Responsive**: Diseño adaptable a diferentes dispositivos
 
-Use the built-in continuous integration in GitLab.
+## API Endpoints
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+- `GET /` - Página principal
+- `GET /menu` - Página del menú
+- `GET /login` - Página de autenticación
+- `GET /dashboard` - Panel de administración
+- `GET /favorites` - Página de favoritos
+- API endpoints adicionales para operaciones CRUD (requieren autenticación)
 
-***
+## Contribuir
 
-# Editing this README
+1. Fork el proyecto
+2. Crear una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
+3. Commit tus cambios (`git commit -m 'Agregar nueva funcionalidad'`)
+4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
+5. Abrir un Pull Request
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## Soporte
 
-## Suggestions for a good README
+Si tienes problemas o preguntas:
+- Crear un issue en el repositorio
+- Contactar al equipo de desarrollo
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+## Licencia
 
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+Este proyecto está bajo la Licencia ISC.
