@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi perfil - Almuerzos Perú</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="css/dashboard.css" />
+  </head>
+  <body>
+    <div id="toast-notification" class="toast">
+      <span id="toast-message"></span>
+    </div>
+
+    <div
+      id="loading-overlay"
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      "
+    >
+      <p style="font-weight: 700; font-size: 1.25rem">Cargando Dashboard...</p>
+    </div>
+    <div id="main-content">
+      <section id="cards-section">
+        <header class="main-header">
+          <a href="index.html">
+            <img style="width: 250px" src="images/logo.png" />
+          </a>
+          <button class="logout-button" onclick="logout()">
+            Cerrar sesión
+          </button>
+        </header>
+
+        <div class="container">
+          <div
+            id="restaurant-banner"
+            class="restaurant-banner"
+            style="background-size: cover; background-position: center"
+          >
+            <h2 id="restaurant-name">Cargando...</h2>
+            <button
+              class="edit-restaurant-btn"
+              onclick="openEditRestaurantModal()"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                ></path>
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <div style="text-align: center; margin: 2rem 0">
+            <button class="primary-button" onclick="openModal('newCardModal')">
+              Nueva carta +
+            </button>
+          </div>
+
+          <div id="cards-list">
+            <p id="loading-cards-message">Cargando cartas...</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="dishes-section">
+        <div class="container">
+          <div class="dishes-header">
+            <button class="back-button" onclick="showCards()">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="3"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M19 12H5"></path>
+                <path d="M12 19l-7-7 7-7"></path>
+              </svg>
+            </button>
+            <button id="delete-card-button" class="delete-button">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path
+                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                ></path>
+              </svg>
+            </button>
+          </div>
+
+          <div class="dish-list-container">
+            <input type="text" id="card-name-input" class="card-name-input" />
+
+            <div style="text-align: center; margin-bottom: 1.5rem">
+              <button
+                class="primary-button"
+                onclick="openModal('newDishModal')"
+              >
+                Nuevo plato +
+              </button>
+            </div>
+
+            <div id="dishes-list"></div>
+
+            <div style="text-align: center; margin-top: 2rem">
+              <button
+                id="save-card-changes-btn"
+                class="primary-button dark-button"
+                style="width: 100%"
+                disabled
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- Modal: Nueva Carta -->
+    <div id="newCardModal" class="modal-backdrop" onclick="closeModal(event)">
+      <div class="modal-content">
+        <button class="modal-close-btn" onclick="closeModal(event)">
+          &times;
+        </button>
+        <h2>Nueva carta</h2>
+        <form id="new-card-form">
+          <div class="modal-form-group">
+            <input
+              type="text"
+              name="cardName"
+              placeholder="Nombre de la carta"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="primary-button dark-button"
+            style="width: 100%; margin-top: 1rem"
+          >
+            Agregar Carta
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal: Nuevo Plato -->
+    <div id="newDishModal" class="modal-backdrop" onclick="closeModal(event)">
+      <div class="modal-content">
+        <button class="modal-close-btn" onclick="closeModal(event)">
+          &times;
+        </button>
+        <h2>Nuevo plato</h2>
+        <!-- Reemplaza el <form> dentro del div#newDishModal con esto -->
+        <form id="new-dish-form">
+          <div class="modal-form-group">
+            <!-- Este es el cargador de imagen interactivo -->
+            <label
+              id="image-upload-box"
+              class="image-upload-box"
+              for="dish-image-input"
+            >
+              <img
+                id="dish-image-preview"
+                src=""
+                alt="Previsualización del plato"
+                style="
+                  display: none;
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 0.5rem;
+                "
+              />
+
+              <!-- Este es el contenedor que se muestra por defecto -->
+              <div
+                id="image-upload-placeholder"
+                style="
+                  display: flex;
+                  align-items: center;
+                  gap: 1rem;
+                  width: 100%;
+                "
+              >
+                <div class="icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                </div>
+                <span>Foto del plato</span>
+              </div>
+            </label>
+            <!-- El input de archivo real está oculto -->
+            <input
+              type="file"
+              id="dish-image-input"
+              name="dishImage"
+              accept="image/png, image/jpeg"
+              style="display: none"
+            />
+          </div>
+          <div class="modal-form-group">
+            <input
+              type="text"
+              name="dishName"
+              placeholder="Nombre del plato"
+              required
+            />
+          </div>
+          <div class="modal-form-group">
+            <input
+              type="number"
+              step="0.01"
+              name="dishPrice"
+              placeholder="Precio del plato (S/.)"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="primary-button dark-button"
+            style="width: 100%; margin-top: 1rem"
+          >
+            Agregar plato
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div id="editDishModal" class="modal-backdrop" onclick="closeModal(event)">
+      <div class="modal-content">
+        <button id="open-delete-dish-alert-btn" class="delete-icon">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path
+              d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+            ></path>
+          </svg>
+        </button>
+        <button class="modal-close-btn" onclick="closeModal(event)">
+          &times;
+        </button>
+        <!-- Aquí podría ir un futuro botón de eliminar plato -->
+        <h2>Editar plato</h2>
+        <form id="edit-dish-form">
+          <div class="modal-form-group">
+            <label
+              id="edit-image-upload-box"
+              class="image-upload-box"
+              for="edit-dish-image-input"
+            >
+              <img
+                id="edit-dish-image-preview"
+                src=""
+                alt="Previsualización del plato"
+                style="
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 0.25rem;
+                "
+              />
+              <div class="edit-image-overlay">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  ></path>
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  ></path>
+                </svg>
+              </div>
+            </label>
+            <input
+              type="file"
+              id="edit-dish-image-input"
+              name="dishImage"
+              accept="image/png, image/jpeg"
+              style="display: none"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-dish-name">Nombre del plato</label>
+            <input type="text" id="edit-dish-name" name="dishName" required />
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-dish-price">Precio del plato (S/.)</label>
+            <input
+              type="number"
+              step="0.01"
+              id="edit-dish-price"
+              name="dishPrice"
+              required
+            />
+          </div>
+          <button
+            type="submit"
+            class="primary-button dark-button"
+            style="width: 100%; margin-top: 1rem"
+          >
+            Guardar cambios
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Alerta: Eliminar Carta -->
+    <div
+      id="deleteCardAlert"
+      class="modal-backdrop"
+      onclick="closeModal(event)"
+    >
+      <div class="modal-content alert-modal">
+        <button class="modal-close-btn" onclick="closeModal(event)">
+          &times;
+        </button>
+        <h2>¿Segur@ quieres eliminar esta carta?</h2>
+        <p style="margin-bottom: 1.5rem; color: var(--gray-text)">
+          Esta acción no se puede deshacer. Se eliminarán todos los platos de
+          esta carta.
+        </p>
+        <button
+          id="confirm-delete-card-btn"
+          class="primary-button delete-confirm-btn"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <!-- Añade este nuevo modal en dashboard.html -->
+
+    <!-- Modal: Editar Restaurante -->
+    <div
+      id="editRestaurantModal"
+      class="modal-backdrop"
+      onclick="closeModal(event)"
+    >
+      <div class="modal-content">
+        <button class="modal-close-btn" onclick="closeModal(event)">
+          &times;
+        </button>
+        <h2>Editar restaurante</h2>
+        <form id="edit-restaurant-form">
+          <div class="modal-form-group">
+            <label
+              id="edit-restaurant-image-box"
+              class="image-upload-box"
+              for="edit-restaurant-image-input"
+            >
+              <img
+                id="edit-restaurant-image-preview"
+                src=""
+                alt="Previsualización del local"
+                style="
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 0.25rem;
+                "
+              />
+              <div class="edit-image-overlay">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  ></path>
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  ></path>
+                </svg>
+              </div>
+            </label>
+            <input
+              type="file"
+              id="edit-restaurant-image-input"
+              accept="image/png, image/jpeg"
+              style="display: none"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-restaurant-name">Nombre del restaurante</label>
+            <input
+              type="text"
+              id="edit-restaurant-name"
+              name="restaurantName"
+              required
+            />
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-restaurant-description">Descripción</label>
+            <textarea
+              id="edit-restaurant-description"
+              name="restaurantDescription"
+              rows="3"
+              maxlength="300"
+              required
+            ></textarea>
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-restaurant-district">Distrito</label>
+            <select
+              id="edit-restaurant-district"
+              name="restaurantDistrict"
+              required
+            >
+              <option>Ate</option>
+              <option>Barranco</option>
+              <option>Breña</option>
+              <option>Carabayllo</option>
+              <option>Cercado de Lima</option>
+              <option>Chaclacayo</option>
+              <option>Chorrillos</option>
+              <option>Cieneguilla</option>
+              <option>Comas</option>
+              <option>El Agustino</option>
+              <option>Independencia</option>
+              <option>Jesús María</option>
+              <option>La Molina</option>
+              <option>La Victoria</option>
+              <option>Lince</option>
+              <option>Los Olivos</option>
+              <option>Lurigancho (Chosica)</option>
+              <option>Lurín</option>
+              <option>Magdalena del Mar</option>
+              <option>Pueblo Libre</option>
+              <option>Miraflores</option>
+              <option>Pachacámac</option>
+              <option>Puente Piedra</option>
+              <option>Rímac</option>
+              <option>San Bartolo</option>
+              <option>San Borja</option>
+              <option>San Isidro</option>
+              <option>San Juan de Lurigancho</option>
+              <option>San Juan de miraflores</option>
+              <option>San Luis</option>
+              <option>San Martín de Porres</option>
+              <option>San Miguel</option>
+              <option>Santa Anita</option>
+              <option>Santa María del Mar</option>
+              <option>Santa Rosa</option>
+              <option>Santiago de Surco</option>
+              <option>Surquillo</option>
+              <option>Villa El Salvador</option>
+              <option>Villa María del Triunfo</option>
+              <option>Bellavista</option>
+              <option>Callao</option>
+              <option>Carmen de la Legua Reynoso</option>
+              <option>La Perla</option>
+              <option>La Punta</option>
+              <option>Mi Perú</option>
+              <option>Ventanilla</option>
+            </select>
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-restaurant-whatsapp">Whatsapp</label>
+            <input
+              type="tel"
+              id="edit-restaurant-whatsapp"
+              name="restaurantWhatsapp"
+              required
+              title="El número debe contener 9 dígitos."
+            />
+          </div>
+          <button
+            type="submit"
+            class="primary-button dark-button"
+            style="width: 100%; margin-top: 1rem"
+          >
+            Guardar cambios
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="deleteDishAlert"
+      class="modal-backdrop"
+      onclick="closeModal(event)"
+    >
+      <div class="modal-content alert-modal">
+        <button class="modal-close-btn" onclick="closeModal(event)">
+          &times;
+        </button>
+        <h2>¿Segur@ quieres eliminar este plato?</h2>
+        <button
+          id="confirm-delete-dish-btn"
+          class="primary-button delete-confirm-btn"
+        >
+          Eliminar
+        </button>
+      </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="js/dashboard.js"></script>
+  </body>
+</html>

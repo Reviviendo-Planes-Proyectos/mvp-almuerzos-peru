@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Almuerzos Perú</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+ 
+.toast {
+    visibility: hidden; /* Hidden by default */
+    min-width: 250px;
+    margin-left: -125px; /* Centered */
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 16px;
+    position: fixed;
+    z-index: 10000;
+    left: 50%;
+    bottom: 30px; 
+    font-size: 17px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.5s, visibility 0.5s;
+}
+
+.toast.show {
+    visibility: visible; 
+    opacity: 1;
+}
+
+
+.toast.info { background-color: #2196F3; } 
+.toast.success { background-color: #4CAF50; }
+.toast.error { background-color: #f44336; }
+.toast.warning { background-color: #ff9800; } 
+
+
+
+
+.cont-but{
+ background-color: #ffffff;
+              border-radius: 10px;
+              padding-right: 15px;
+              padding-left: 15px;
+              display: flex;
+              align-items: center;
+}
+
+.cont-com{
+background-color: #ffffff;
+              border-radius: 10px;
+              padding-right: 15px;
+              margin-right: 10px;
+              padding-left: 15px;
+              display: flex;
+              align-items: center;
+}
+
+.cont-gen{
+   display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: row;
+}
+
+@media (max-width: 767px) {
+  .cont-gen{
+    flex-direction: column;
+  }
+  .cont-but{
+    width: 100%;
+    margin-top: 30px;
+  }
+  .cont-com{
+    width: 100%;
+  }
+  .header-button{
+    width: 100%;
+  }
+}
+
+
+    </style>
+  </head>
+  <body>
+    <header class="main-header">
+      <div class="container header-content">
+        <a href="index.html">
+          <img
+            style="width: 250px"
+            src="images/logo.png"
+            alt="Almuerzos Perú Logo"
+          />
+        </a>
+
+        <div class="cont-gen"
+         
+        >
+          <div class="cont-com"
+           
+          >
+            <img style="width: 25px" src="images/login.svg" alt="Login Icon" />
+            <button id="my-account-btn" class="header-button">
+              Soy Comensal
+            </button>
+            <span id="favorites-count-display" style="display: none">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="feather feather-heart"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                ></path>
+              </svg>
+              <span id="favorites-counter">0</span>
+            </span>
+            <span
+              id="logout-text"
+              style="
+                display: none;
+                margin-left: 10px;
+                cursor: pointer;
+                color: #555;
+                font-size: 0.9em;
+              "
+              >(Cerrar Sesión)</span
+            >
+          </div>
+
+          <div class="cont-but"
+           
+          >
+            <img
+              style="width: 25px"
+              src="images/restaurant.png"
+              alt="Restaurant Icon"
+            />
+            <button id="my-restaurant-btn" class="header-button">
+              Mi Restaurante
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="hero-section">
+      <h2>Tu restaurante favorito</h2>
+      <p>Sin salir de casa 🏠</p>
+    </div>
+
+    <main class="main-content container">
+      <div class="zone-selector">
+        <h3>Restaurantes en:</h3>
+        <select id="district-filter">
+          <option value="Todos">Todos los Distritos</option>
+          <option>Ate</option>
+          <option>Barranco</option>
+          <option>Breña</option>
+          <option>Carabayllo</option>
+          <option>Cercado de Lima</option>
+          <option>Chaclacayo</option>
+          <option>Chorrillos</option>
+          <option>Cieneguilla</option>
+          <option>Comas</option>
+          <option>El Agustino</option>
+          <option>Independencia</option>
+          <option>Jesús María</option>
+          <option>La Molina</option>
+          <option>La Victoria</option>
+          <option>Lince</option>
+          <option>Los Olivos</option>
+          <option>Lurigancho (Chosica)</option>
+          <option>Lurín</option>
+          <option>Magdalena del Mar</option>
+          <option>Pueblo Libre</option>
+          <option>Miraflores</option>
+          <option>Pachacámac</option>
+          <option>Puente Piedra</option>
+          <option>Rímac</option>
+          <option>San Bartolo</option>
+          <option>San Borja</option>
+          <option>San Isidro</option>
+          <option>San Juan de Lurigancho</option>
+          <option>San Juan de Miraflores</option>
+          <option>San Luis</option>
+          <option>San Martín de Porres</option>
+          <option>San Miguel</option>
+          <option>Santa Anita</option>
+          <option>Santa María del Mar</option>
+          <option>Santa Rosa</option>
+          <option>Santiago de Surco</option>
+          <option>Surquillo</option>
+          <option>Villa El Salvador</option>
+          <option>Villa María del Triunfo</option>
+          <option>Bellavista</option>
+          <option>Callao</option>
+          <option>Carmen de la Legua Reynoso</option>
+          <option>La Perla</option>
+          <option>La Punta</option>
+          <option>Mi Perú</option>
+          <option>Ventanilla</option>
+        </select>
+      </div>
+
+      <div id="restaurants-list" class="restaurant-grid">
+        <p style="text-align: center; grid-column: 1 / -1">
+          Cargando restaurantes...
+        </p>
+      </div>
+
+      <div class="see-more-container">
+        <button id="load-more-btn" class="see-more-button">Ver más</button>
+      </div>
+
+      <div id="toast-notification" class="toast"></div>
+    </main>
+
+    <div id="login-modal-overlay" class="login-modal-overlay">
+      <div class="login-modal-content">
+        <button class="login-modal-close-btn" id="login-modal-close-btn">
+          &times;
+        </button>
+        <h2>¡Bienvenido!</h2>
+        <p>
+          Únete para poder ver las cartas completas de nuestros restaurantes
+          selectos.
+        </p>
+        <button id="google-login-btn">
+          <img
+            src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+            alt="Google icon"
+          />
+          Unirse con Google
+        </button>
+      </div>
+    </div>
+    <div id="toast-notification" class="toast"></div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
+    <script src="js/index.js"></script>
+  </body>
+</html>
