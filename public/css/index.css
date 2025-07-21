@@ -362,3 +362,24 @@ body {
   stroke: currentColor;
   stroke-width: 1.5;
 }
+
+
+.restaurant-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.restaurant-title h4 {
+  margin: 0; /* elimina espacios indeseados */
+  font-size: 16px; /* ajusta según tu diseño */
+}
+
+.restaurant-likes-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: red;
+  font-size: 14px;
+}
+
