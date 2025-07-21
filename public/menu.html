@@ -40,19 +40,55 @@
             alt="Almuerzos Perú"
           />
         </a>
-        <button id="my-restaurant-btn" class="header-button">
-          Mi Restaurante
-        </button>
-        <div style="background-color: #ffffff; visibility: hidden; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; display: flex; align-items: center;">
-          <img style="width: 25px;" src="images/login.svg" alt="Login Icon"> 
-          <button id="my-account-btn" class="header-button" >
-            Soy comenzal
-          </button>
-          <span id="favorites-count-display" style="display: none; margin-left: 10px; cursor: pointer; color: #E91E63; font-weight: bold; font-size: 1.1em; gap: 5px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+        
+        <div class="cont-gen">
+          <div class="cont-com">
+            <img style="width: 25px" src="images/login.svg" alt="Login Icon" />
+            <button id="my-account-btn" class="header-button">
+              Soy Comensal
+            </button>
+            <span id="favorites-count-display" style="display: none">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="feather feather-heart"
+              >
+                <path
+                  d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
+                ></path>
+              </svg>
               <span id="favorites-counter">0</span>
-          </span>
-          <span id="logout-text" style="display: none; margin-left: 10px; cursor: pointer; color: #555; font-size: 0.9em;">(Cerrar Sesión)</span>
+            </span>
+            <span
+              id="logout-text"
+              style="
+                display: none;
+                margin-left: 10px;
+                cursor: pointer;
+                color: #555;
+                font-size: 0.9em;
+              "
+              >(Cerrar Sesión)</span
+            >
+          </div>
+
+          <div class="cont-but">
+            <img
+              style="width: 25px"
+              src="images/restauranteb.png"
+              alt="Restaurant Icon"
+            />
+            <button id="my-restaurant-btn" class="header-button header-button--alt">
+              Mi Restaurante
+            </button>
+          </div>
         </div>
       </div>
     </header>

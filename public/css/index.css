@@ -54,6 +54,10 @@ body {
   transition: background-color 0.3s;
   height: 40px;
   font-family: "Nunito", sans-serif;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-button--alt {
@@ -238,9 +242,12 @@ body {
     align-items: center;
   }
   .header-button {
-    width: 80%;
-    margin-top: 20px;
-    height: 50px;
+    width: auto;
+    flex-grow: 0;
+    margin-top: 0;
+    height: 40px;
+    font-size: 16px;
+    padding: 0.5rem 0.75rem;
   }
 }
 .login-modal-overlay {
