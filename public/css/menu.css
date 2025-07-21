@@ -50,14 +50,12 @@ body {
   font-weight: bold;
   padding: 0.5rem 1rem;
   border: none;
-  font-size: 1rem;
+  font-size: 20px;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: background-color 0.3s;
   height: 40px;
   font-family: "Nunito", sans-serif;
-  white-space: nowrap;
   text-align: center;
   display: flex;
   align-items: center;
