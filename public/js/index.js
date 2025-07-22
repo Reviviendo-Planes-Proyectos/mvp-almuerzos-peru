@@ -330,7 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
              </div>
 
 
-               <p>${restaurant.description}</p>
+               <p>${restaurant.description.length > 30 ? restaurant.description.substring(0, 30) + '...' : restaurant.description}</p>
                <a href="/menu.html?restaurantId=${restaurant.id}" class="card-button">Ver menú</a>
                 </div>
 

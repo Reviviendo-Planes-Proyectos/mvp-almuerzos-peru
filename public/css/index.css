@@ -86,7 +86,8 @@ body {
   margin-bottom: 2rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 2rem; /* Aumentar el espaciado entre elementos */
+  padding: 0.5rem; /* Agregar padding alrededor de todo el contenedor */
 }
 .zone-selector h3 {
   font-size: 1.25rem;
@@ -394,5 +395,28 @@ body {
   .zone-selector h3, #district-filter {
     width: 48%;
     margin: 0;
+  }
+}
+
+@media (max-width: 640px) {}
+  /* Ajuste para el botón de cuenta de usuario */
+  #my-account-btn { 
+    position: relative; 
+    top: 3px; 
+  } 
+  
+
+@media (max-width: 480px) {
+  .cont-gen {
+    gap: 5px; /* Reducir el espacio entre botones */
+  }
+  
+  .cont-com, .cont-but {
+    padding: 6px 8px; /* Reducir aún más el padding */
+  }
+  
+  .header-button {
+    font-size: 12px; /* Reducir más el tamaño de fuente */
+    padding: 0.5rem 0.5rem; /* Reducir el padding del botón */
   }
 }
