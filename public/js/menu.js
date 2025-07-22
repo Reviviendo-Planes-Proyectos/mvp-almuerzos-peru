@@ -121,11 +121,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = generateWhatsAppMessage();
 
     if (message) {
-      const encodedMessage = encodeURIComponent(message);
-      window.open(
-        `https://wa.me/${currentRestaurant.whatsapp}?text=${encodedMessage}`,
-        "_blank"
-      );
+      const encoded = encodeURIComponent(message);
+      const link = `https://api.whatsapp.com/send?phone=${currentRestaurant.whatsapp}&text=${encoded}`;
+      window.open(link, "_blank");
     }
   }
 
@@ -134,8 +132,14 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Por favor, agrega algunos platos a tu pedido.", "warning");
       return "";
     }
-    let message = `¡Hola! Me gustaría hacer un pedido para *${currentRestaurant.name}*:\n\n`;
+
+    let message = `¡Hola, *${currentRestaurant.name}*! 👋\n`;
     let total = 0;
+
+    message += `\nSoy *${auth.currentUser.displayName}*, los estoy contactando desde *Almuerzos Perú* y me gustaria hacer el siguiente pedido:`;
+
+    message += `\n\n🛒 *Pedido:* \n\n`;
+
     for (const dishId in shoppingCart) {
       const quantity = shoppingCart[dishId];
       let dishFound = null;
@@ -145,14 +149,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dishFound) break;
       }
       if (dishFound) {
-        message += `${quantity}x *${
+        message += `  • ${quantity} ${
           dishFound.name
-        }* - S/.${dishFound.price.toFixed(2)}\n`;
+        } - S/.${dishFound.price.toFixed(2)}\n`;
         total += quantity * dishFound.price;
       }
     }
-    message += `\n*Total: S/.${total.toFixed(2)}*`;
-    message += `\n\n¡Gracias!`;
+    message += `\n💵 *Total a pagar*: S/.${total.toFixed(2)}`;
+    message += `\n\nQuedo atento(a) a su confirmación.`;
+    message += `\n\n¡Muchas gracias!`;
     return message;
   }
 
