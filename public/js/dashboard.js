@@ -12,6 +12,8 @@ let currentUser = null;
 let currentRestaurant = null;
 let currentCardId = null;
 let compressedDishImageFile = null;
+let compressedRestaurantImageFile = null;
+let compressedRestaurantLogoFile = null;
 let editingDish = null;
 let originalCardName = "";
 function checkAuthStatus() {
@@ -61,91 +63,91 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function loadDashboardData() {
-    if (!currentUser) return;
-    const loadingOverlay = document.getElementById("loading-overlay");
-    const mainContent = document.getElementById("main-content");
-    try {
-        // *** CAMBIO CRÍTICO: Enviar el ID Token ***
-        const idToken = await currentUser.getIdToken(); 
-        
-        const restaurantResponse = await fetch(
-            `/api/restaurants/user/${currentUser.uid}`, {
-                headers: {
-                    'Authorization': `Bearer ${idToken}`
-                }
-            }
-        );
-        if (!restaurantResponse.ok) {
-            // Manejar errores 403 (Forbidden) específicamente
-            if (restaurantResponse.status === 403) {
-                console.error("Acceso denegado: El usuario no es un dueño o su token no coincide.");
-                alert("No tienes los permisos necesarios para acceder al dashboard. Serás redirigido.");
-                window.location.replace("/index.html"); // Redirige a la página principal
-                return; // Importante para detener la ejecución
-            }
-            if (restaurantResponse.status === 404) {
-                // Si es 404, significa que es dueño pero no tiene restaurante, redirige a registrar
-                window.location.href = "/login.html?action=register";
-                return;
-            }
-            throw new Error(`Error ${restaurantResponse.status}: ${restaurantResponse.statusText}`);
-        }
-        currentRestaurant = await restaurantResponse.json();
-        const banner = document.getElementById("restaurant-banner");
-        document.getElementById("restaurant-name").textContent =
-            currentRestaurant.name;
-        if (currentRestaurant.photoUrl && banner) {
-            banner.style.backgroundImage = `url('${currentRestaurant.photoUrl}')`;
-        } else if (banner) {
-            banner.style.backgroundImage = `url('https://placehold.co/600x150/333/FFF?text=${encodeURIComponent(
-                currentRestaurant.name
-            )}')`;
-        }
-        await loadRestaurantCards(); // Llama a la siguiente función de carga
-        if (loadingOverlay) loadingOverlay.style.display = "none";
-        if (mainContent) mainContent.style.display = "block";
-    } catch (error) {
-        console.error("Error cargando el dashboard:", error);
-        if (loadingOverlay) {
-            loadingOverlay.innerHTML =
-                '<p style="text-align: center; color: red; font-weight: 700;">Error de conexión o permisos.<br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos de dueño.</p>';
-        }
+  if (!currentUser) return;
+  const loadingOverlay = document.getElementById("loading-overlay");
+  const mainContent = document.getElementById("main-content");
+  try {
+    // *** CAMBIO CRÍTICO: Enviar el ID Token ***
+    const idToken = await currentUser.getIdToken();
+
+    const restaurantResponse = await fetch(
+      `/api/restaurants/user/${currentUser.uid}`, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      }
     }
+    );
+    if (!restaurantResponse.ok) {
+      // Manejar errores 403 (Forbidden) específicamente
+      if (restaurantResponse.status === 403) {
+        console.error("Acceso denegado: El usuario no es un dueño o su token no coincide.");
+        alert("No tienes los permisos necesarios para acceder al dashboard. Serás redirigido.");
+        window.location.replace("/index.html"); // Redirige a la página principal
+        return; // Importante para detener la ejecución
+      }
+      if (restaurantResponse.status === 404) {
+        // Si es 404, significa que es dueño pero no tiene restaurante, redirige a registrar
+        window.location.href = "/login.html?action=register";
+        return;
+      }
+      throw new Error(`Error ${restaurantResponse.status}: ${restaurantResponse.statusText}`);
+    }
+    currentRestaurant = await restaurantResponse.json();
+    const banner = document.getElementById("restaurant-banner");
+    document.getElementById("restaurant-name").textContent =
+      currentRestaurant.name;
+    if (currentRestaurant.photoUrl && banner) {
+      banner.style.backgroundImage = `url('${currentRestaurant.photoUrl}')`;
+    } else if (banner) {
+      banner.style.backgroundImage = `url('https://placehold.co/600x150/333/FFF?text=${encodeURIComponent(
+        currentRestaurant.name
+      )}')`;
+    }
+    await loadRestaurantCards(); // Llama a la siguiente función de carga
+    if (loadingOverlay) loadingOverlay.style.display = "none";
+    if (mainContent) mainContent.style.display = "block";
+  } catch (error) {
+    console.error("Error cargando el dashboard:", error);
+    if (loadingOverlay) {
+      loadingOverlay.innerHTML =
+        '<p style="text-align: center; color: red; font-weight: 700;">Error de conexión o permisos.<br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos de dueño.</p>';
+    }
+  }
 }
 
 
 
 async function loadRestaurantCards() {
-    if (!currentRestaurant) return;
-    const cardsListDiv = document.getElementById("cards-list");
-    const loadingMessage = document.getElementById("loading-cards-message");
-    try {
-        // *** CAMBIO CRÍTICO: Enviar el ID Token ***
-        const idToken = await currentUser.getIdToken();
-        const cardsResponse = await fetch(
-            `/api/restaurants/${currentRestaurant.id}/cards`, {
-                headers: {
-                    'Authorization': `Bearer ${idToken}`
-                }
-            }
-        );
-        if (!cardsResponse.ok) {
-            if (cardsResponse.status === 403) {
-                 showToast("Permisos insuficientes para cargar cartas.", "error");
-            }
-            throw new Error(`Error ${cardsResponse.status}: ${cardsResponse.statusText}`);
-        }
-        const cards = await cardsResponse.json();
-        if (loadingMessage) loadingMessage.style.display = "none";
-        cardsListDiv.innerHTML = "";
-        if (cards.length === 0) {
-            cardsListDiv.innerHTML =
-                '<p style="text-align: center;">Aún no tienes ninguna carta. ¡Crea una!</p>';
-        } else {
-            cards.forEach((card) => {
-                const cardElement = document.createElement("div");
-                cardElement.className = "list-item";
-                cardElement.innerHTML = `
+  if (!currentRestaurant) return;
+  const cardsListDiv = document.getElementById("cards-list");
+  const loadingMessage = document.getElementById("loading-cards-message");
+  try {
+    // *** CAMBIO CRÍTICO: Enviar el ID Token ***
+    const idToken = await currentUser.getIdToken();
+    const cardsResponse = await fetch(
+      `/api/restaurants/${currentRestaurant.id}/cards`, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      }
+    }
+    );
+    if (!cardsResponse.ok) {
+      if (cardsResponse.status === 403) {
+        showToast("Permisos insuficientes para cargar cartas.", "error");
+      }
+      throw new Error(`Error ${cardsResponse.status}: ${cardsResponse.statusText}`);
+    }
+    const cards = await cardsResponse.json();
+    if (loadingMessage) loadingMessage.style.display = "none";
+    cardsListDiv.innerHTML = "";
+    if (cards.length === 0) {
+      cardsListDiv.innerHTML =
+        '<p style="text-align: center;">Aún no tienes ninguna carta. ¡Crea una!</p>';
+    } else {
+      cards.forEach((card) => {
+        const cardElement = document.createElement("div");
+        cardElement.className = "list-item";
+        cardElement.innerHTML = `
                         <div class="item-details" onclick="showDishes('${card.id}', '${card.name}')">
                             <h3  style="margin-right: 20px;">${card.name}</h3>
                             <p>Ver platos</p>
@@ -155,54 +157,54 @@ async function loadRestaurantCards() {
                             <span class="slider"></span>
                         </label>
                     `;
-                cardsListDiv.appendChild(cardElement);
-            });
-            document.querySelectorAll(".card-toggle").forEach((toggle) => {
-                toggle.addEventListener("change", handleToggleCard);
-            });
-        }
-    } catch (error) {
-        console.error("Error cargando las cartas:", error);
-        cardsListDiv.innerHTML =
-            '<p style="text-align: center; color: red;"><strong>Error al cargar las cartas.</strong><br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos.</p>';
+        cardsListDiv.appendChild(cardElement);
+      });
+      document.querySelectorAll(".card-toggle").forEach((toggle) => {
+        toggle.addEventListener("change", handleToggleCard);
+      });
     }
+  } catch (error) {
+    console.error("Error cargando las cartas:", error);
+    cardsListDiv.innerHTML =
+      '<p style="text-align: center; color: red;"><strong>Error al cargar las cartas.</strong><br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos.</p>';
+  }
 }
 
 
 
 async function loadDishes(cardId) {
-    currentCardId = cardId;
-    const dishesListDiv = document.getElementById('dishes-list');
-    dishesListDiv.innerHTML = '<p>Cargando platos...</p>';
-    
-    try {
-        // *** CAMBIO CRÍTICO: Enviar el ID Token ***
-        const idToken = await currentUser.getIdToken();
-        const response = await fetch(`/api/cards/${cardId}/dishes`, {
-            headers: {
-                'Authorization': `Bearer ${idToken}`
-            }
-        });
-        if (!response.ok) {
-            if (response.status === 403) {
-                 showToast("Permisos insuficientes para cargar platos.", "error");
-            }
-            throw new Error('Error en la respuesta del servidor al cargar platos.');
-        }
-        
-        const dishes = await response.json();
-        dishesListDiv.innerHTML = ''; 
+  currentCardId = cardId;
+  const dishesListDiv = document.getElementById('dishes-list');
+  dishesListDiv.innerHTML = '<p>Cargando platos...</p>';
 
-        if (dishes.length === 0) {
-            dishesListDiv.innerHTML = '<p style="text-align: center;">No hay platos en esta carta. ¡Añade uno!</p>';
-        } else {
-            dishes.forEach(dish => {
-                const dishElement = document.createElement('div');
-                dishElement.className = 'list-item dish-list-item';
-                
-                const imageUrl = dish.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=${encodeURIComponent(dish.name.substring(0,4))}`;
+  try {
+    // *** CAMBIO CRÍTICO: Enviar el ID Token ***
+    const idToken = await currentUser.getIdToken();
+    const response = await fetch(`/api/cards/${cardId}/dishes`, {
+      headers: {
+        'Authorization': `Bearer ${idToken}`
+      }
+    });
+    if (!response.ok) {
+      if (response.status === 403) {
+        showToast("Permisos insuficientes para cargar platos.", "error");
+      }
+      throw new Error('Error en la respuesta del servidor al cargar platos.');
+    }
 
-                dishElement.innerHTML = `
+    const dishes = await response.json();
+    dishesListDiv.innerHTML = '';
+
+    if (dishes.length === 0) {
+      dishesListDiv.innerHTML = '<p style="text-align: center;">No hay platos en esta carta. ¡Añade uno!</p>';
+    } else {
+      dishes.forEach(dish => {
+        const dishElement = document.createElement('div');
+        dishElement.className = 'list-item dish-list-item';
+
+        const imageUrl = dish.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=${encodeURIComponent(dish.name.substring(0, 4))}`;
+
+        dishElement.innerHTML = `
     <div class="item-details">
         <img src="${imageUrl}" alt="Foto de ${dish.name}" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
         <div>
@@ -222,18 +224,18 @@ async function loadDishes(cardId) {
         <span class="slider"></span>
     </label>
 `;
-                dishElement.querySelector('.edit-dish-btn').addEventListener('click', () => openEditDishModal(dish));
-                dishesListDiv.appendChild(dishElement);
-            });
-            
-            document.querySelectorAll('.dish-toggle').forEach(toggle => {
-                toggle.addEventListener('change', handleToggleDish);
-            });
-        }
-    } catch (error) {
-        console.error("Error cargando los platos:", error);
-        dishesListDiv.innerHTML = '<p style="text-align: center; color: red;">Error al cargar los platos.</p>';
+        dishElement.querySelector('.edit-dish-btn').addEventListener('click', () => openEditDishModal(dish));
+        dishesListDiv.appendChild(dishElement);
+      });
+
+      document.querySelectorAll('.dish-toggle').forEach(toggle => {
+        toggle.addEventListener('change', handleToggleDish);
+      });
     }
+  } catch (error) {
+    console.error("Error cargando los platos:", error);
+    dishesListDiv.innerHTML = '<p style="text-align: center; color: red;">Error al cargar los platos.</p>';
+  }
 }
 
 
@@ -249,14 +251,14 @@ async function handleUpdateCardName() {
 
 
     const idToken = await currentUser.getIdToken(); // Get token
-        const response = await fetch(`/api/cards/${currentCardId}`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                'Authorization': `Bearer ${idToken}` // Add token
-            },
-            body: JSON.stringify({ name: newName }),
-        });
+    const response = await fetch(`/api/cards/${currentCardId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${idToken}` // Add token
+      },
+      body: JSON.stringify({ name: newName }),
+    });
     if (!response.ok) throw new Error("Error del servidor al actualizar.");
     originalCardName = newName;
     showToast("Nombre de la carta actualizado con éxito.");
@@ -280,18 +282,18 @@ async function handleCreateCard(event) {
   try {
 
     const idToken = await currentUser.getIdToken(); // Get token
-        const response = await fetch("/api/cards", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                'Authorization': `Bearer ${idToken}` // Add token
-            },
-            body: JSON.stringify({
-                restaurantId: currentRestaurant.id,
-                name: cardName,
-            }),
-        });
-    
+    const response = await fetch("/api/cards", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${idToken}` // Add token
+      },
+      body: JSON.stringify({
+        restaurantId: currentRestaurant.id,
+        name: cardName,
+      }),
+    });
+
     if (response.ok) {
       form.reset();
       closeModal(null, "newCardModal");
@@ -321,7 +323,7 @@ async function handleCreateDish(event) {
   submitButton.textContent = "Subiendo imagen...";
   try {
     const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
-    const idToken = await currentUser.getIdToken(); 
+    const idToken = await currentUser.getIdToken();
     const storageRef = firebase
       .storage()
       .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
@@ -336,14 +338,14 @@ async function handleCreateDish(event) {
     };
 
 
-     const response = await fetch("/api/dishes", {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                'Authorization': `Bearer ${idToken}` // Add token
-            },
-            body: JSON.stringify(dishData),
-        });
+    const response = await fetch("/api/dishes", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${idToken}` // Add token
+      },
+      body: JSON.stringify(dishData),
+    });
     if (!response.ok) {
       throw new Error("Error al guardar los datos del plato.");
     }
@@ -381,15 +383,15 @@ async function handleToggleDish(event) {
   const dishId = event.target.dataset.id;
   const isActive = event.target.checked;
   try {
-    const idToken = await currentUser.getIdToken(); 
-        await fetch(`/api/dishes/${dishId}/toggle`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                'Authorization': `Bearer ${idToken}` // Add token
-            },
-            body: JSON.stringify({ isActive }),
-        });
+    const idToken = await currentUser.getIdToken();
+    await fetch(`/api/dishes/${dishId}/toggle`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${idToken}` // Add token
+      },
+      body: JSON.stringify({ isActive }),
+    });
   } catch (error) {
     console.error("Error al actualizar el plato:", error);
     alert("No se pudo actualizar el estado del plato.");
@@ -399,13 +401,13 @@ async function handleToggleDish(event) {
 async function handleDeleteCard() {
   if (!currentCardId) return;
   try {
-   const idToken = await currentUser.getIdToken(); 
-        const response = await fetch(`/api/cards/${currentCardId}`, {
-            method: "DELETE",
-            headers: { 
-                'Authorization': `Bearer ${idToken}` // Add token
-            }
-        });
+    const idToken = await currentUser.getIdToken();
+    const response = await fetch(`/api/cards/${currentCardId}`, {
+      method: "DELETE",
+      headers: {
+        'Authorization': `Bearer ${idToken}` // Add token
+      }
+    });
     if (response.ok) {
       closeModal(null, "deleteCardAlert");
       showToast("Carta eliminada con éxito.");
@@ -559,38 +561,90 @@ function compressImage(file, quality = 0.7, maxWidth = 800) {
 }
 function openEditRestaurantModal() {
   if (!currentRestaurant) return;
-  document.getElementById("edit-restaurant-name").value =
-    currentRestaurant.name;
-  document.getElementById("edit-restaurant-description").value =
-    currentRestaurant.description;
-  document.getElementById("edit-restaurant-district").value =
-    currentRestaurant.district;
-  document.getElementById("edit-restaurant-whatsapp").value =
-    currentRestaurant.whatsapp;
-  document.getElementById("edit-restaurant-image-preview").src =
-    currentRestaurant.photoUrl ||
-    `https://placehold.co/120x120/E2E8F0/4A5568?text=Local`;
+
+  // Campos básicos
+  document.getElementById("edit-restaurant-name").value = currentRestaurant.name;
+  document.getElementById("edit-restaurant-description").value = currentRestaurant.description;
+  document.getElementById("edit-restaurant-district").value = currentRestaurant.district;
+  document.getElementById("edit-restaurant-whatsapp").value = currentRestaurant.whatsapp;
+  document.getElementById("edit-restaurant-image-preview").src = currentRestaurant.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Local`;
+  document.getElementById("edit-restaurant-logo-preview").src = currentRestaurant.logoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Logo`;
+
+  // Nuevos campos
+  document.getElementById("edit-restaurant-ruc").value = currentRestaurant.ruc || "";
+  document.getElementById("edit-restaurant-yape").value = currentRestaurant.yape || "";
+  document.getElementById("edit-restaurant-phone").value = currentRestaurant.phone || "";
+  document.getElementById("edit-restaurant-location").value = currentRestaurant.location || "";
+  document.getElementById("edit-restaurant-delivery").checked = currentRestaurant.hasDelivery || false;
+  document.getElementById("edit-restaurant-localService").checked = currentRestaurant.hasLocalService || false;
+
+  // Horarios
+  const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  days.forEach(day => {
+    if (currentRestaurant.schedule && currentRestaurant.schedule[day]) {
+      document.getElementById(`edit-${day}-from`).value = currentRestaurant.schedule[day].from || "";
+      document.getElementById(`edit-${day}-to`).value = currentRestaurant.schedule[day].to || "";
+    }
+  });
+
   compressedRestaurantImageFile = null;
   document.getElementById("edit-restaurant-image-input").value = "";
   openModal("editRestaurantModal");
 }
+function syncScheduleWithMonday() {
+  const mondayFromValue = document.getElementById('edit-monday-from').value;
+  const mondayToValue = document.getElementById('edit-monday-to').value;
+
+  if (!mondayFromValue || !mondayToValue) {
+    alert('Por favor, completa primero el horario del Lunes');
+    return;
+  }
+
+  const days = ['tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  days.forEach(day => {
+    document.getElementById(`edit-${day}-from`).value = mondayFromValue;
+    document.getElementById(`edit-${day}-to`).value = mondayToValue;
+  });
+}
+
 function setupEditRestaurantImageUploader() {
+  // Configurar el uploader de la imagen del local
   const imageInput = document.getElementById("edit-restaurant-image-input");
   const imageBox = document.getElementById("edit-restaurant-image-box");
   const preview = document.getElementById("edit-restaurant-image-preview");
-  if (!imageInput || !imageBox || !preview) return;
-  imageInput.onchange = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      alert("La imagen es demasiado grande (máx 3MB).");
-      return;
-    }
-    compressImage(file).then((compressedFile) => {
-      compressedRestaurantImageFile = compressedFile;
-      preview.src = URL.createObjectURL(compressedFile);
-    });
-  };
+  if (imageInput && imageBox && preview) {
+    imageInput.onchange = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 3 * 1024 * 1024) {
+        alert("La imagen es demasiado grande (máx 3MB).");
+        return;
+      }
+      compressImage(file).then((compressedFile) => {
+        compressedRestaurantImageFile = compressedFile;
+        preview.src = URL.createObjectURL(compressedFile);
+      });
+    };
+  }
+
+  // Configurar el uploader del logo
+  const logoInput = document.getElementById("edit-restaurant-logo-input");
+  const logoBox = document.getElementById("edit-restaurant-logo-box");
+  const logoPreview = document.getElementById("edit-restaurant-logo-preview");
+  if (logoInput && logoBox && logoPreview) {
+    logoInput.onchange = (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.size > 3 * 1024 * 1024) {
+        alert("El logo es demasiado grande (máx 3MB).");
+        return;
+      }
+      compressImage(file).then((compressedFile) => {
+        compressedRestaurantLogoFile = compressedFile;
+        logoPreview.src = URL.createObjectURL(compressedFile);
+      });
+    };
+  }
 }
 async function handleUpdateRestaurant(event) {
   event.preventDefault();
@@ -600,35 +654,62 @@ async function handleUpdateRestaurant(event) {
   submitButton.disabled = !0;
   submitButton.textContent = "Guardando...";
   let photoUrl = currentRestaurant.photoUrl;
+  let logoUrl = currentRestaurant.logoUrl;
+
   try {
     if (compressedRestaurantImageFile) {
-      submitButton.textContent = "Subiendo imagen...";
-      const imageFileName = `logo-${Date.now()}-${
-        compressedRestaurantImageFile.name
-      }`;
+      submitButton.textContent = "Subiendo imagen del local...";
+      const imageFileName = `local-${Date.now()}-${compressedRestaurantImageFile.name}`;
       const storageRef = firebase
         .storage()
         .ref(`restaurants/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedRestaurantImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
     }
+
+    if (compressedRestaurantLogoFile) {
+      submitButton.textContent = "Subiendo logo...";
+      const logoFileName = `logo-${Date.now()}-${compressedRestaurantLogoFile.name}`;
+      const logoStorageRef = firebase
+        .storage()
+        .ref(`restaurants/${currentRestaurant.id}/${logoFileName}`);
+      const uploadLogoTask = await logoStorageRef.put(compressedRestaurantLogoFile);
+      logoUrl = await uploadLogoTask.ref.getDownloadURL();
+    }
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const schedule = {};
+    days.forEach(day => {
+      schedule[day] = {
+        from: form.elements[`${day}From`].value,
+        to: form.elements[`${day}To`].value
+      };
+    });
+
     const updatedData = {
       name: form.elements.restaurantName.value,
       description: form.elements.restaurantDescription.value,
       district: form.elements.restaurantDistrict.value,
       whatsapp: form.elements.restaurantWhatsapp.value,
       photoUrl: photoUrl,
+      logoUrl: logoUrl,
+      ruc: form.elements.restaurantRuc.value,
+      yape: form.elements.restaurantYape.value,
+      phone: form.elements.restaurantPhone.value,
+      hasLocation: form.elements.restaurantLocation.value,
+      hasDelivery: form.elements.restaurantDelivery.checked,
+      localService: form.elements.restaurantLocalService.checked,
+      schedule: schedule
     };
 
-    const idToken = await currentUser.getIdToken(); 
-        const response = await fetch(`/api/restaurants/${currentRestaurant.id}`, {
-            method: "PUT",
-            headers: { 
-                "Content-Type": "application/json",
-                'Authorization': `Bearer ${idToken}` // Add token
-            },
-            body: JSON.stringify(updatedData),
-        });
+    const idToken = await currentUser.getIdToken();
+    const response = await fetch(`/api/restaurants/${currentRestaurant.id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        'Authorization': `Bearer ${idToken}` // Add token
+      },
+      body: JSON.stringify(updatedData),
+    });
     if (!response.ok) throw new Error("Error al actualizar el restaurante.");
     closeModal(null, "editRestaurantModal");
     showToast("Restaurante actualizado con éxito.");
@@ -673,14 +754,14 @@ async function handleDeleteDish() {
     return alert("Error: No se ha identificado el plato a eliminar.");
   const dishIdToDelete = editingDish.id;
   try {
-    const idToken = await currentUser.getIdToken(); 
-        const response = await fetch(`/api/dishes/${dishIdToDelete}`, {
-            method: "DELETE",
-            headers: { 
-                'Authorization': `Bearer ${idToken}` // Add token
-            }
-        });
-    
+    const idToken = await currentUser.getIdToken();
+    const response = await fetch(`/api/dishes/${dishIdToDelete}`, {
+      method: "DELETE",
+      headers: {
+        'Authorization': `Bearer ${idToken}` // Add token
+      }
+    });
+
     if (!response.ok) {
       throw new Error("El servidor no pudo eliminar el plato.");
     }
@@ -699,65 +780,65 @@ async function handleDeleteDish() {
 }
 
 async function handleUpdateDish(event) {
-  event.preventDefault();
-  if (!editingDish)
-    return alert("No se ha seleccionado ningún plato para editar.");
-  
-  const form = event.target;
-  const submitButton = form.querySelector('button[type="submit"]');
-  submitButton.disabled = true;
-  submitButton.textContent = "Guardando...";
-  
-  let photoUrl = editingDish.photoUrl;
+  event.preventDefault();
+  if (!editingDish)
+    return alert("No se ha seleccionado ningún plato para editar.");
 
-  try {
-    if (compressedDishImageFile) {
-      submitButton.textContent = "Subiendo imagen...";
-      const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
-      const storageRef = firebase
-        .storage()
-        .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
-      const uploadTask = await storageRef.put(compressedDishImageFile);
-      photoUrl = await uploadTask.ref.getDownloadURL();
-    }
+  const form = event.target;
+  const submitButton = form.querySelector('button[type="submit"]');
+  submitButton.disabled = true;
+  submitButton.textContent = "Guardando...";
 
-    const updatedData = {
-      name: form.elements.dishName.value,
-      price: form.elements.dishPrice.value,
-      photoUrl: photoUrl,
-    };
+  let photoUrl = editingDish.photoUrl;
+
+  try {
+    if (compressedDishImageFile) {
+      submitButton.textContent = "Subiendo imagen...";
+      const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
+      const storageRef = firebase
+        .storage()
+        .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
+      const uploadTask = await storageRef.put(compressedDishImageFile);
+      photoUrl = await uploadTask.ref.getDownloadURL();
+    }
+
+    const updatedData = {
+      name: form.elements.dishName.value,
+      price: form.elements.dishPrice.value,
+      photoUrl: photoUrl,
+    };
 
     // --- INICIO DE LA CORRECCIÓN ---
     const idToken = await currentUser.getIdToken(); // Obtener el token de autorización
-    
-    const response = await fetch(`/api/dishes/${editingDish.id}`, {
-      method: "PUT",
-      headers: { 
+
+    const response = await fetch(`/api/dishes/${editingDish.id}`, {
+      method: "PUT",
+      headers: {
         "Content-Type": "application/json",
         'Authorization': `Bearer ${idToken}` // Enviar el token al servidor
       },
-      body: JSON.stringify(updatedData),
-    });
+      body: JSON.stringify(updatedData),
+    });
     // --- FIN DE LA CORRECCIÓN ---
 
-    if (!response.ok) {
-      throw new Error("Error al actualizar el plato en el servidor.");
+    if (!response.ok) {
+      throw new Error("Error al actualizar el plato en el servidor.");
     }
 
-    closeModal(null, "editDishModal");
-    showToast("¡Plato actualizado!");
-    await loadDishes(currentCardId);
-    editingDish = null;
-    compressedDishImageFile = null;
+    closeModal(null, "editDishModal");
+    showToast("¡Plato actualizado!");
+    await loadDishes(currentCardId);
+    editingDish = null;
+    compressedDishImageFile = null;
 
-  } catch (error) {
-    console.error("Error al actualizar plato:", error);
-    // La línea de abajo es la que te muestra el error
-    alert("No se pudieron guardar los cambios."); 
-  } finally {
-    submitButton.disabled = false;
-    submitButton.textContent = "Guardar cambios";
-  }
+  } catch (error) {
+    console.error("Error al actualizar plato:", error);
+    // La línea de abajo es la que te muestra el error
+    alert("No se pudieron guardar los cambios.");
+  } finally {
+    submitButton.disabled = false;
+    submitButton.textContent = "Guardar cambios";
+  }
 }
 function showToast(message) {
   const toast = document.getElementById("toast-notification");

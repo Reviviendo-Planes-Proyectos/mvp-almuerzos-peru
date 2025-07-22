@@ -383,9 +383,21 @@ app.get('/api/restaurants/:restaurantId/menu', async (req, res) => {
 app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, res) => {
     try {
         const { restaurantId } = req.params;
-        const { name, description, district, whatsapp, photoUrl } = req.body;
-
-
+        const {
+            name,
+            description,
+            district,
+            whatsapp,
+            photoUrl,
+            logoUrl,
+            ruc,
+            yape,
+            phone,
+            delivery,
+            localService,
+            schedule,
+            location
+        } = req.body;
         const restaurantDoc = await db.collection('restaurants').doc(restaurantId).get();
         if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
             return res.status(403).json({ error: 'Forbidden: You do not own this restaurant.' });
@@ -394,11 +406,36 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
         if (!name || !description || !district || !whatsapp) {
             return res.status(400).json({ error: 'All fields are required.' });
         }
+
         const restaurantRef = db.collection('restaurants').doc(restaurantId);
         const oldData = restaurantDoc.data();
         const oldPhotoUrl = oldData.photoUrl;
-        const updatedData = { name, description, district, whatsapp, photoUrl: photoUrl || oldPhotoUrl };
+        const updatedData = {
+            name: name ?? '',
+            description: description ?? '',
+            district: district ?? '',
+            whatsapp: whatsapp ?? '',
+            photoUrl: photoUrl ?? null,
+            logoUrl: logoUrl ?? null,
+            ruc: ruc ?? null,
+            yape: yape ?? null,
+            phone: phone ?? null,
+            hasDelivery: delivery ?? false,
+            hasLocalService: localService ?? false,
+            location: location ?? null,
+            schedule: {
+                monday: schedule?.monday ?? { from: null, to: null },
+                tuesday: schedule?.tuesday ?? { from: null, to: null },
+                wednesday: schedule?.wednesday ?? { from: null, to: null },
+                thursday: schedule?.thursday ?? { from: null, to: null },
+                friday: schedule?.friday ?? { from: null, to: null },
+                saturday: schedule?.saturday ?? { from: null, to: null },
+                sunday: schedule?.sunday ?? { from: null, to: null }
+            },
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        };
         await restaurantRef.update(updatedData);
+
         if (photoUrl && oldPhotoUrl && photoUrl !== oldPhotoUrl) {
             try {
                 const filePath = decodeURIComponent(oldPhotoUrl.split('/o/')[1].split('?alt=media')[0]);
