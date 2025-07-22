@@ -695,9 +695,9 @@ async function handleUpdateRestaurant(event) {
       ruc: form.elements.restaurantRuc.value,
       yape: form.elements.restaurantYape.value,
       phone: form.elements.restaurantPhone.value,
-      hasLocation: form.elements.restaurantLocation.value,
+      location: form.elements.restaurantLocation.value,
       hasDelivery: form.elements.restaurantDelivery.checked,
-      localService: form.elements.restaurantLocalService.checked,
+      hasLocalService: form.elements.restaurantLocalService.checked,
       schedule: schedule
     };
 
