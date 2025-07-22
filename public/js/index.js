@@ -103,6 +103,8 @@ document.addEventListener("DOMContentLoaded", () => {
         userRole = roleData.role;
       }
 
+     
+
       const restaurantBtn = document.getElementById("my-restaurant");
       if (userRole === "customer") {
         restaurantBtn.style.display = "none";
