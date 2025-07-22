@@ -1,65 +1,80 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Menú del Restaurante - Almuerzos Perú</title>
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/menu.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="" id="og-url" />
-    <meta property="og:title" content="" id="og-title" />
-    <meta property="og:description" content="" id="og-description" />
-    <meta property="og:image" content="" id="og-image" />
-    
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="" id="twitter-url" />
-    <meta property="twitter:title" content="" id="twitter-title" />
-    <meta property="twitter:description" content="" id="twitter-description" />
-    <meta property="twitter:image" content="" id="twitter-image" />
-    
-  </head>
-  <body>
-    <header class="main-header">
-      <div class="container header-content">
-        <a href="index.html" class="logo">
-          <img
-            style="width: 200px"
-            src="images/logo.png"
-            alt="Almuerzos Perú"
-          />
-        </a>
-        <button id="my-restaurant-btn" class="header-button">
-          Mi Restaurante
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menú del Restaurante - Almuerzos Perú</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/menu.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="" id="og-url" />
+  <meta property="og:title" content="" id="og-title" />
+  <meta property="og:description" content="" id="og-description" />
+  <meta property="og:image" content="" id="og-image" />
+
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="" id="twitter-url" />
+  <meta property="twitter:title" content="" id="twitter-title" />
+  <meta property="twitter:description" content="" id="twitter-description" />
+  <meta property="twitter:image" content="" id="twitter-image" />
+
+</head>
+
+<body>
+  <header class="main-header">
+    <div class="container header-content">
+      <a href="index.html" class="logo">
+        <img style="width: 200px" src="images/logo.png" alt="Almuerzos Perú" />
+      </a>
+      <button id="my-restaurant-btn" class="header-button">
+        Mi Restaurante
+      </button>
+      <div
+        style="background-color: #ffffff; visibility: hidden; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; display: flex; align-items: center;">
+        <img style="width: 25px;" src="images/login.svg" alt="Login Icon">
+        <button id="my-account-btn" class="header-button">
+          Soy comenzal
         </button>
-        <div style="background-color: #ffffff; visibility: hidden; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; display: flex; align-items: center;">
-          <img style="width: 25px;" src="images/login.svg" alt="Login Icon"> 
-          <button id="my-account-btn" class="header-button" >
-            Soy comenzal
-          </button>
-          <span id="favorites-count-display" style="display: none; margin-left: 10px; cursor: pointer; color: #E91E63; font-weight: bold; font-size: 1.1em; gap: 5px;">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-              <span id="favorites-counter">0</span>
-          </span>
-          <span id="logout-text" style="display: none; margin-left: 10px; cursor: pointer; color: #555; font-size: 0.9em;">(Cerrar Sesión)</span>
-        </div>
+        <span id="favorites-count-display"
+          style="display: none; margin-left: 10px; cursor: pointer; color: #E91E63; font-weight: bold; font-size: 1.1em; gap: 5px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="feather feather-heart">
+            <path
+              d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z">
+            </path>
+          </svg>
+          <span id="favorites-counter">0</span>
+        </span>
+        <span id="logout-text"
+          style="display: none; margin-left: 10px; cursor: pointer; color: #555; font-size: 0.9em;">(Cerrar
+          Sesión)</span>
       </div>
-    </header>
+    </div>
+  </header>
 
-    <div class="container">
-      <div id="menu-banner" class="menu-banner">
-        <a href="/index.html" class="banner-back-btn">
+
+  <a href="/index.html" class="banner-back-btn">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5"></path>
+      <path d="M12 19l-7-7 7-7"></path>
+    </svg>
+  </a>
+
+
+  <div class="container">
+    <div id="menu-banner" class="menu-banner">
+      <!--  <a href="/index.html" class="banner-back-btn">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -74,49 +89,69 @@
             <path d="M19 12H5"></path>
             <path d="M12 19l-7-7 7-7"></path>
           </svg>
-        </a>
-        <button
-          id="share-btn"
-          class="banner-share-btn"
-          style="display: none;"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-share-2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-        </button>
-        <div class="banner-content">
-          <h2 id="restaurant-name"></h2>
-        </div>
+        </a> -->
+      <!-- <button id="share-btn" class="banner-share-btn" style="display: none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+          class="feather feather-share-2">
+          <circle cx="18" cy="5" r="3"></circle>
+          <circle cx="6" cy="12" r="3"></circle>
+          <circle cx="18" cy="19" r="3"></circle>
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+        </svg>
+      </button> -->
+      <div class="banner-content">
+        <h2 id="restaurant-name"></h2>
       </div>
-
-      <p id="restaurant-description" class="restaurant-description"></p>
-
-      <nav id="cards-nav" class="cards-nav">
-        <p style="color: white; text-align: center">Cargando cartas...</p>
-      </nav>
-
-      <div id="dishes-container" class="dishes-container">
-        <p style="text-align: center">
-          Selecciona una carta para ver sus platos.
-        </p>
-      </div>
-
-      <button class="order-button">Realiza tu pedido</button>
     </div>
 
-    <div id="toast-notification" class="toast"></div>
 
-    <div id="login-modal-overlay" class="login-modal-overlay">
-        <div class="login-modal-content">
-            <button class="login-modal-close-btn" id="login-modal-close-btn">&times;</button>
-            <h2>¡Bienvenido!</h2>
-            <p>Únete para poder dar "Me gusta" a tus platos favoritos o realizar pedidos.</p>
-            <button id="google-login-btn">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
-                Unirse con Google
-            </button>
-        </div>
+    <button id="share-btn" class="banner-share-btn" style="display: none;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+        class="feather feather-share-2">
+        <circle cx="18" cy="5" r="3"></circle>
+        <circle cx="6" cy="12" r="3"></circle>
+        <circle cx="18" cy="19" r="3"></circle>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+      </svg>
+    </button>
+
+
+
+    <p id="restaurant-description" class="restaurant-description"></p>
+
+    <nav id="cards-nav" class="cards-nav">
+      <p style="color: white; text-align: center">Cargando cartas...</p>
+    </nav>
+
+    <div id="dishes-container" class="dishes-container">
+      <p style="text-align: center">
+        Selecciona una carta para ver sus platos.
+      </p>
     </div>
-    
-    <script src="js/menu.js"></script>
-    
-  </body>
+
+    <button class="order-button">Realiza tu pedido</button>
+  </div>
+
+  <div id="toast-notification" class="toast"></div>
+
+  <div id="login-modal-overlay" class="login-modal-overlay">
+    <div class="login-modal-content">
+      <button class="login-modal-close-btn" id="login-modal-close-btn">&times;</button>
+      <h2>¡Bienvenido!</h2>
+      <p>Únete para poder dar "Me gusta" a tus platos favoritos o realizar pedidos.</p>
+      <button id="google-login-btn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google icon">
+        Unirse con Google
+      </button>
+    </div>
+  </div>
+
+  <script src="js/menu.js"></script>
+
+</body>
+
 </html>
