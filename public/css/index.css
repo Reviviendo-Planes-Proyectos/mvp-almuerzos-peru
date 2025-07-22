@@ -383,3 +383,16 @@ body {
   font-size: 14px;
 }
 
+
+
+@media (max-width: 640px) {
+  .zone-selector {
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .zone-selector h3, #district-filter {
+    width: 48%;
+    margin: 0;
+  }
+}
