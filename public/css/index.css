@@ -398,14 +398,19 @@ body {
   }
 }
 
-@media (max-width: 640px) {}
+@media (max-width: 640px) {
   /* Ajuste para el botón de cuenta de usuario */
   #my-account-btn { 
     position: relative; 
     top: 3px; 
   } 
   
-
+  /* Ajuste para el botón de restaurante */
+  #my-restaurant-btn {
+    position: relative;
+    top: 3px;
+  }
+}
 @media (max-width: 480px) {
   .cont-gen {
     gap: 5px; /* Reducir el espacio entre botones */

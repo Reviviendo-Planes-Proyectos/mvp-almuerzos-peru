@@ -242,10 +242,10 @@
                     <polyline points="21 15 16 10 5 21"></polyline>
                   </svg>
                 </div>
-                <span>Foto del plato</span>
+                <span>Foto del plato (opcional)</span>
               </div>
             </label>
-            <!-- El input de archivo real está oculto -->
+            <!-- Después del input de archivo -->
             <input
               type="file"
               id="dish-image-input"
@@ -253,6 +253,9 @@
               accept="image/png, image/jpeg"
               style="display: none"
             />
+            <small style="display: block; margin-top: 0.5rem; color: #666;">
+              Si no seleccionas una imagen, se usará una imagen por defecto.
+            </small>
           </div>
           <div class="modal-form-group">
             <input

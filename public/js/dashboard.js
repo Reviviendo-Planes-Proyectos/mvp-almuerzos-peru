@@ -308,25 +308,37 @@ async function handleCreateCard(event) {
 async function handleCreateDish(event) {
   event.preventDefault();
   if (!currentCardId) return alert("No se ha seleccionado una carta.");
-  if (!compressedDishImageFile) {
-    alert("Por favor, selecciona una imagen para el plato.");
-    return;
-  }
+  // Eliminar la validación obligatoria de imagen
+  // if (!compressedDishImageFile) {
+  //   alert("Por favor, selecciona una imagen para el plato.");
+  //   return;
+  // }
   const form = event.target;
   const dishName = form.elements.dishName.value;
   const dishPrice = form.elements.dishPrice.value;
   const submitButton = form.querySelector('button[type="submit"]');
   if (!dishName.trim() || !dishPrice.trim()) return;
   submitButton.disabled = !0;
-  submitButton.textContent = "Subiendo imagen...";
+  
+  // Modificar el texto del botón según si hay imagen o no
+  submitButton.textContent = compressedDishImageFile ? "Subiendo imagen..." : "Guardando plato...";
+  
   try {
-    const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
-    const idToken = await currentUser.getIdToken(); 
-    const storageRef = firebase
-      .storage()
-      .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
-    const uploadTask = await storageRef.put(compressedDishImageFile);
-    const photoUrl = await uploadTask.ref.getDownloadURL();
+    // Obtener el token de autenticación independientemente de si hay imagen o no
+    const idToken = await currentUser.getIdToken();
+    
+    let photoUrl = "/images/default-dish.jpg.png"; // URL de la imagen por defecto (ajustada a la ruta correcta)
+    
+    // Solo subir imagen si se ha seleccionado una
+    if (compressedDishImageFile) {
+      const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
+      const storageRef = firebase
+        .storage()
+        .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
+      const uploadTask = await storageRef.put(compressedDishImageFile);
+      photoUrl = await uploadTask.ref.getDownloadURL();
+    }
+    
     submitButton.textContent = "Guardando plato...";
     const dishData = {
       cardId: currentCardId,
@@ -493,6 +505,24 @@ function setupImageUploader() {
   const imageInput = document.getElementById("dish-image-input");
   imageInput.addEventListener("change", handleImageSelection);
 }
+// Función auxiliar para obtener dimensiones de la imagen
+function getImageDimensions(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.width, height: img.height });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = (error) => {
+      reject(error);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
+
+// Modificación en handleImageSelection
 async function handleImageSelection(event) {
   const preview = document.getElementById("dish-image-preview");
   const placeholder = document.getElementById("image-upload-placeholder");
@@ -504,6 +534,24 @@ async function handleImageSelection(event) {
     return;
   }
   try {
+    const { width, height } = await getImageDimensions(file);
+   const minWidth = 160;
+   const minHeight = 120;
+   const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      alert(`La resolución de la imagen es muy baja. El mínimo es ${minWidth}x${minHeight} píxeles.`);
+      event.target.value = "";
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      alert(`La resolución de la imagen es demasiado alta. El máximo es ${maxWidth}x${maxHeight} píxeles.`);
+      event.target.value = "";
+      return;
+    }
+
     const compressedFile = await compressImage(file);
     compressedDishImageFile = compressedFile;
     const previewUrl = URL.createObjectURL(compressedFile);
@@ -511,7 +559,7 @@ async function handleImageSelection(event) {
     preview.style.display = "block";
     placeholder.style.display = "none";
   } catch (error) {
-    console.error("Error al comprimir la imagen:", error);
+    console.error("Error al procesar la imagen:", error);
     alert("Hubo un error al procesar la imagen.");
     event.target.value = "";
   }
@@ -525,16 +573,32 @@ function compressImage(file, quality = 0.7, maxWidth = 800) {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
+        
+        // Determinar el tamaño del cuadrado para el recorte (usar el lado más pequeño)
+        const size = Math.min(img.width, img.height);
+        
+        // Calcular las coordenadas para centrar el recorte
+        const startX = (img.width - size) / 2;
+        const startY = (img.height - size) / 2;
+        
+        // Establecer el tamaño del canvas para el cuadrado recortado
+        let finalSize = size;
+        if (finalSize > maxWidth) {
+          finalSize = maxWidth;
         }
-        canvas.width = width;
-        canvas.height = height;
+        
+        canvas.width = finalSize;
+        canvas.height = finalSize;
+        
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Dibujar la imagen recortada y centrada
+        ctx.drawImage(
+          img,
+          startX, startY, size, size, // Área de origen (recorte cuadrado centrado)
+          0, 0, finalSize, finalSize  // Área de destino (canvas cuadrado)
+        );
+        
         canvas.toBlob(
           (blob) => {
             if (blob) {
