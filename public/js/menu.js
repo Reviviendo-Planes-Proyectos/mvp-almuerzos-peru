@@ -269,6 +269,13 @@ document.addEventListener("DOMContentLoaded", () => {
         userRole = roleData.role;
       }
 
+      const restaurantBtn = document.getElementById("my-restaurant");
+      if (userRole === "customer") {
+        restaurantBtn.style.display = "none";
+      } else {
+        restaurantBtn.style.display = "flex";
+      }
+
       if (userRole !== "owner") {
         await upsertUser(user, "customer"); // Esto lo guardará en 'invited'
       } else {
@@ -293,6 +300,10 @@ document.addEventListener("DOMContentLoaded", () => {
       logoutText.style.display = "none";
       favoritesCountDisplay.style.display = "none";
       currentUserFavorites.clear();
+
+      const restaurantBtn = document.getElementById("my-restaurant");
+      restaurantBtn.style.display = "flex";
+
       updateDishLikeButtons();
     }
   });
