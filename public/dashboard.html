@@ -12,6 +12,8 @@
     />
 
     <link rel="stylesheet" href="css/dashboard.css" />
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
   </head>
   <body>
     <div id="toast-notification" class="toast">
@@ -579,9 +581,26 @@
       </div>
     </div>
 
+    <!-- Modal: Recorte de Imagen -->
+    <div id="cropperModal" class="modal-backdrop" style="z-index: 2000; display: none;">
+      <div class="modal-content" style="max-width: 90%; max-height: 90%; padding: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; text-align: center;">Recortar imagen</h2>
+        <div id="cropper-container" style="max-height: 400px; margin-bottom: 1rem;">
+          <img id="cropper-image" style="max-width: 100%; display: block;" />
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <button id="cancel-crop-btn" class="primary-button" style="min-width: 100px;">Cancelar</button>
+          <button id="crop-btn" class="primary-button" style="min-width: 100px;">Recortar</button>
+          <button id="save-crop-btn" class="primary-button dark-button" style="min-width: 100px;">Guardar</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <!-- Cropper.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="js/dashboard.js"></script>
   </body>
 </html>

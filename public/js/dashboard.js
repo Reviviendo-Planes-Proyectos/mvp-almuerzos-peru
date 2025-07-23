@@ -14,6 +14,10 @@ let currentCardId = null;
 let compressedDishImageFile = null;
 let editingDish = null;
 let originalCardName = "";
+let cropper = null;
+let currentImageInput = null;
+let currentPreview = null;
+let currentPlaceholder = null;
 function checkAuthStatus() {
   if (auth.currentUser) {
     currentUser = auth.currentUser;
@@ -528,16 +532,18 @@ async function handleImageSelection(event) {
   const placeholder = document.getElementById("image-upload-placeholder");
   const file = event.target.files[0];
   if (!file) return;
+  
   if (file.size > 3 * 1024 * 1024) {
     alert("La imagen es demasiado grande. Elige una de menos de 3MB.");
     event.target.value = "";
     return;
   }
+  
   try {
     const { width, height } = await getImageDimensions(file);
-   const minWidth = 160;
-   const minHeight = 120;
-   const maxWidth = 2560;
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
     const maxHeight = 1440;
 
     if (width < minWidth || height < minHeight) {
@@ -552,12 +558,9 @@ async function handleImageSelection(event) {
       return;
     }
 
-    const compressedFile = await compressImage(file);
-    compressedDishImageFile = compressedFile;
-    const previewUrl = URL.createObjectURL(compressedFile);
-    preview.src = previewUrl;
-    preview.style.display = "block";
-    placeholder.style.display = "none";
+    // Abrir el modal de recorte en lugar de mostrar directamente la imagen
+    openCropperModal(file, event.target, preview, placeholder);
+    
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
     alert("Hubo un error al procesar la imagen.");
@@ -715,17 +718,41 @@ function openEditDishModal(dish) {
     dish.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Img`;
   compressedDishImageFile = null;
   document.getElementById("edit-dish-image-input").value = "";
-  editImageInput.onchange = (event) => {
+  editImageInput.onchange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) {
       alert("La imagen es demasiado grande (máx 3MB).");
       return;
     }
-    compressImage(file).then((compressedFile) => {
-      compressedDishImageFile = compressedFile;
-      preview.src = URL.createObjectURL(compressedFile);
-    });
+    
+    try {
+      const { width, height } = await getImageDimensions(file);
+      const minWidth = 160;
+      const minHeight = 120;
+      const maxWidth = 2560;
+      const maxHeight = 1440;
+
+      if (width < minWidth || height < minHeight) {
+        alert(`La resolución de la imagen es muy baja. El mínimo es ${minWidth}x${minHeight} píxeles.`);
+        event.target.value = "";
+        return;
+      }
+
+      if (width > maxWidth || height > maxHeight) {
+        alert(`La resolución de la imagen es demasiado alta. El máximo es ${maxWidth}x${maxHeight} píxeles.`);
+        event.target.value = "";
+        return;
+      }
+
+      // Abrir el modal de recorte
+      openCropperModal(file, event.target, preview, null);
+      
+    } catch (error) {
+      console.error("Error al procesar la imagen:", error);
+      alert("Hubo un error al procesar la imagen.");
+      event.target.value = "";
+    }
   };
   document.getElementById("open-delete-dish-alert-btn").onclick = () => {
     openModal("deleteDishAlert");
@@ -832,4 +859,157 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.remove("show");
   }, 3000);
+}
+
+// Funciones para el modal de recorte de imagen
+function openCropperModal(file, imageInput, preview, placeholder) {
+  currentImageInput = imageInput;
+  currentPreview = preview;
+  currentPlaceholder = placeholder;
+  
+  const cropperModal = document.getElementById('cropperModal');
+  const cropperImage = document.getElementById('cropper-image');
+  
+  // Crear URL para la imagen
+  const imageUrl = URL.createObjectURL(file);
+  cropperImage.src = imageUrl;
+  
+  // Mostrar el modal
+  cropperModal.style.display = 'flex';
+  
+  // Inicializar Cropper.js después de que la imagen se cargue
+  cropperImage.onload = function() {
+    if (cropper) {
+      cropper.destroy();
+    }
+    
+    cropper = new Cropper(cropperImage, {
+      aspectRatio: 1, // Área cuadrada
+      viewMode: 1,
+      dragMode: 'move',
+      autoCropArea: 0.8,
+      restore: false,
+      guides: false,
+      center: false,
+      highlight: false,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+      responsive: true,
+      checkOrientation: false
+    });
+  };
+  
+  // Event listeners para los botones
+  setupCropperButtons();
+}
+
+function setupCropperButtons() {
+  const cancelBtn = document.getElementById('cancel-crop-btn');
+  const cropBtn = document.getElementById('crop-btn');
+  const saveBtn = document.getElementById('save-crop-btn');
+  
+  // Remover event listeners previos
+  cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+  cropBtn.replaceWith(cropBtn.cloneNode(true));
+  saveBtn.replaceWith(saveBtn.cloneNode(true));
+  
+  // Obtener las nuevas referencias
+  const newCancelBtn = document.getElementById('cancel-crop-btn');
+  const newCropBtn = document.getElementById('crop-btn');
+  const newSaveBtn = document.getElementById('save-crop-btn');
+  
+  newCancelBtn.addEventListener('click', closeCropperModal);
+  newCropBtn.addEventListener('click', cropImage);
+  newSaveBtn.addEventListener('click', saveCroppedImage);
+}
+
+function closeCropperModal() {
+  const cropperModal = document.getElementById('cropperModal');
+  cropperModal.style.display = 'none';
+  
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+  
+  // Limpiar el input
+  if (currentImageInput) {
+    currentImageInput.value = '';
+  }
+  
+  // Limpiar variables
+  currentImageInput = null;
+  currentPreview = null;
+  currentPlaceholder = null;
+}
+
+function cropImage() {
+  if (!cropper) return;
+  
+  // Obtener el área recortada
+  const canvas = cropper.getCroppedCanvas({
+    width: 400,
+    height: 400,
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high'
+  });
+  
+  // Mostrar la imagen recortada en el cropper
+  const cropperImage = document.getElementById('cropper-image');
+  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
+  
+  // Destruir el cropper actual
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+}
+
+async function saveCroppedImage() {
+  if (!cropper) {
+    alert('Error: No se ha inicializado el recortador de imagen.');
+    return;
+  }
+  
+  try {
+    // Obtener el área recortada directamente del cropper
+    const canvas = cropper.getCroppedCanvas({
+      width: 400,
+      height: 400,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    });
+    
+    canvas.toBlob(async (blob) => {
+      try {
+        // Comprimir la imagen
+        const compressedFile = await compressImage(new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' }));
+        compressedDishImageFile = compressedFile;
+        
+        // Actualizar la vista previa
+        if (currentPreview) {
+          const previewUrl = URL.createObjectURL(compressedFile);
+          currentPreview.src = previewUrl;
+          currentPreview.style.display = 'block';
+          
+          // Solo ocultar placeholder si existe (para el modal de nuevo plato)
+          if (currentPlaceholder) {
+            currentPlaceholder.style.display = 'none';
+          }
+        }
+        
+        // Cerrar el modal
+        closeCropperModal();
+        
+        showToast('Imagen recortada y guardada correctamente');
+      } catch (error) {
+        console.error('Error al procesar la imagen recortada:', error);
+        alert('Error al procesar la imagen recortada');
+      }
+    }, 'image/jpeg', 0.8);
+  } catch (error) {
+    console.error('Error al obtener la imagen recortada:', error);
+    alert('Error al procesar la imagen. Por favor, inténtalo de nuevo.');
+  }
 }
