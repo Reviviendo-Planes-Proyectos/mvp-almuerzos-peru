@@ -551,6 +551,7 @@ document.addEventListener("DOMContentLoaded", () => {
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
     }')`;
     restaurantNameElement.textContent = currentRestaurant.name;
+
     restaurantDescriptionElement.textContent = currentRestaurant.description;
 
     if (shareButton) {
