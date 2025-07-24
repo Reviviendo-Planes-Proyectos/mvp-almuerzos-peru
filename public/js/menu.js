@@ -796,8 +796,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!validateContentModal()) return;
 
       const comment = document.getElementById("commentText").value.trim();
-      console.log(`Comentario enviado:`, comment);
+      const user = firebase.auth().currentUser;
+      commentContent = {
+        invitedId: user.uid,
+        dishId: dishId,
+        content: comment,
+        restaurantId: currentRestaurantId,
+      };
       document.getElementById("commentModalOverlay").style.display = "none";
+      showCustomToast("Comentario enviado con éxito");
+      submitDishComment(commentContent);
     };
   }
 
@@ -826,7 +834,47 @@ document.addEventListener("DOMContentLoaded", () => {
 
     return true;
   }
+  function showCustomToast(message) {
+    const toast = document.getElementById("custom-toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    toast.classList.add("show");
 
+    setTimeout(() => {
+      toast.classList.remove("show");
+      toast.classList.add("hidden");
+    }, 3000);
+  }
+  async function submitDishComment({invitedId,  dishId, content}) {
+    try {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        throw new Error("Usuario no autenticado.");
+      }
+
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dishId,
+          content,
+          invitedId
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al guardar el comentario.");
+      }
+      return data;
+    } catch (err) {
+      console.error("❌ Error al enviar comentario:", err.message);
+      throw err;
+    }
+  }
   initializeMenuPage();
   setupMyRestaurantButton();
 });

@@ -561,3 +561,35 @@ textarea:focus {
   background: var(--brand-yellow);
   color: white;
 }
+.custom-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-10px);
+  background-color: var(--brand-green);
+  color: white;
+  width: 400px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0 20px;
+  border-radius: 12px;
+  font-size: 18px;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.custom-toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+}
+
+.hidden {
+  display: none;
+}

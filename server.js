@@ -833,6 +833,48 @@ app.post('/api/dishes/:dishId/like', async (req, res) => {
     }
 });
 
+app.post('/api/comments', async (req, res) => {
+    try {
+        const { invitedId, dishId, content } = req.body;
+
+        // Validaciones básicas
+        if (!content) {
+            return res.status(400).json({ error: 'restaurantId y content son requeridos.' });
+        }
+
+        // Opcional: validar si el plato existe (si se envía dishId)
+        if (dishId) {
+            const dishDoc = await db.collection('dishes').doc(dishId).get();
+            if (!dishDoc.exists) {
+                return res.status(404).json({ error: 'El plato especificado no existe.' });
+            }
+        }
+        if (invitedId) {
+            const invitedDoc = await db.collection('invited').doc(invitedId).get();
+            if (!invitedDoc.exists) {
+                return res.status(404).json({ error: 'El plato especificado no existe.' });
+            }
+        }
+
+        // Crear el comentario
+        const commentData = {
+            invitedId: invitedId,
+            dishId,
+            content,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+        const commentRef = await db.collection('comments_dishes').add(commentData);
+
+        res.status(201).json({
+            message: 'Comentario guardado exitosamente.',
+            commentId: commentRef.id,
+            data: commentData
+        });
+    } catch (error) {
+        console.error('Error al guardar comentario:', error);
+        res.status(500).json({ error: 'Ocurrió un error en el servidor.' });
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
