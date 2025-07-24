@@ -12,6 +12,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" />
     <style>
  
 .toast {
@@ -51,23 +52,25 @@
           background-color: #1f2937; /* var(--brand-dark) */
           color: #ffffff; /* var(--white) */
           border-radius: 10px;
-          padding-right: 15px;
-          padding-left: 15px;
+          padding: 8px 15px;
           display: flex;
           align-items: center;
           justify-content: center;
           font-weight: bold;
+          min-width: 160px;
+          height: 56px;
         }
 
 .cont-com{
-background-color: #ffffff;
-              border-radius: 10px;
-              padding-right: 15px;
-              margin-right: 10px;
-              padding-left: 15px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
+          background-color: #ffffff;
+          border-radius: 10px;
+          padding: 8px 15px;
+          margin-right: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 160px;
+          height: 56px;
 }
 
 .cont-gen{
@@ -190,54 +193,7 @@ background-color: #ffffff;
      <main class="main-content container">
       <div class="zone-selector">
         <h3>Restaurantes en:</h3>
-        <select id="district-filter">
-          <option value="Todos">Todos los Distritos</option>
-          <option>Ate</option>
-          <option>Barranco</option>
-          <option>Breña</option>
-          <option>Carabayllo</option>
-          <option>Cercado de Lima</option>
-          <option>Chaclacayo</option>
-          <option>Chorrillos</option>
-          <option>Cieneguilla</option>
-          <option>Comas</option>
-          <option>El Agustino</option>
-          <option>Independencia</option>
-          <option>Jesús María</option>
-          <option>La Molina</option>
-          <option>La Victoria</option>
-          <option>Lince</option>
-          <option>Los Olivos</option>
-          <option>Lurigancho (Chosica)</option>
-          <option>Lurín</option>
-          <option>Magdalena del Mar</option>
-          <option>Pueblo Libre</option>
-          <option>Miraflores</option>
-          <option>Pachacámac</option>
-          <option>Puente Piedra</option>
-          <option>Rímac</option>
-          <option>San Bartolo</option>
-          <option>San Borja</option>
-          <option>San Isidro</option>
-          <option>San Juan de Lurigancho</option>
-          <option>San Juan de Miraflores</option>
-          <option>San Luis</option>
-          <option>San Martín de Porres</option>
-          <option>San Miguel</option>
-          <option>Santa Anita</option>
-          <option>Santa María del Mar</option>
-          <option>Santa Rosa</option>
-          <option>Santiago de Surco</option>
-          <option>Surquillo</option>
-          <option>Villa El Salvador</option>
-          <option>Villa María del Triunfo</option>
-          <option>Bellavista</option>
-          <option>Callao</option>
-          <option>Carmen de la Legua Reynoso</option>
-          <option>La Perla</option>
-          <option>La Punta</option>
-          <option>Mi Perú</option>
-          <option>Ventanilla</option>
+        <select id="district-filter" placeholder="Buscar distrito...">
         </select>
       </div> 
 
@@ -278,6 +234,7 @@ background-color: #ffffff;
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
 
     <script src="js/index.js"></script>
   </body>
