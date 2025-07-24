@@ -629,20 +629,19 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = generateWhatsAppMessageSharing(currentRestaurant);
     const encodedMessage = encodeURIComponent(message);
 
-    const whatsappWebURL = `https://api.whatsapp.com/send?phone=${currentRestaurant.whatsapp}&text=${encodedMessage}`;
+    const whatsappWebURL = `https://api.whatsapp.com/send?text=${encodedMessage}`;
 
     const shareData = {
       title: `Descubre ${currentRestaurant.name} en Almuerzos Perú`,
       text: message,
     };
-    
+
     try {
       if (navigator.share && isMobileDevice()) {
         await navigator.share(shareData);
         showToast("¡Restaurante compartido exitosamente!", "success");
       } else {
-        const url =  whatsappWebURL;
-        window.open(url, "_blank");
+        window.open(whatsappWebURL, "_blank");
         showToast("Abriendo WhatsApp...", "info");
       }
     } catch (error) {
