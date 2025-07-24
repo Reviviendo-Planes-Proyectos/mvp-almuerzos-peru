@@ -27,8 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const favoritesCounter = document.getElementById("favorites-counter");
 
   let lastVisibleDocId = null;
-  let currentDistrictFilter = "Todos";
+  let currentDistrictFilter = "";
   let currentUserFavorites = new Set();
+  let tomSelectInstance = null;
 
   function showToast(message, type, duration = 3000) {
     const toast = document.getElementById("toast-notification");
@@ -44,12 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (loadMoreBtn) {
     loadMoreBtn.addEventListener("click", () => loadRestaurants(false));
   }
-  if (districtFilter) {
-    districtFilter.addEventListener("change", (event) => {
-      currentDistrictFilter = event.target.value;
-      loadRestaurants(true);
-    });
-  }
+  
+  // Inicializar Tom Select y cargar distritos
+  initializeDistrictFilter();
+  
   if (myRestaurantButton) {
     setupMyRestaurantButton();
   }
@@ -301,6 +300,96 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Función para cargar distritos desde el backend
+  async function loadDistricts() {
+    try {
+      const response = await fetch('/api/districts');
+      if (!response.ok) {
+        throw new Error('Error al cargar distritos');
+      }
+      const districts = await response.json();
+      return districts;
+    } catch (error) {
+      console.error('Error loading districts:', error);
+      return [];
+    }
+  }
+
+  // Función para inicializar Tom Select
+  async function initializeDistrictFilter() {
+    if (!districtFilter) return;
+
+    try {
+      // Cargar distritos desde el backend
+      const districts = await loadDistricts();
+      
+      // Limpiar opciones existentes
+      districtFilter.innerHTML = '';
+      
+      // Agregar opción "Todos los Distritos" primero
+      const allOption = document.createElement('option');
+      allOption.value = '';
+      allOption.textContent = 'Todos los Distritos';
+      districtFilter.appendChild(allOption);
+      
+      // Agregar distritos dinámicamente
+      districts.forEach(district => {
+        const option = document.createElement('option');
+        option.value = district;
+        option.textContent = district;
+        districtFilter.appendChild(option);
+      });
+
+      // Inicializar Tom Select
+      tomSelectInstance = new TomSelect(districtFilter, {
+        placeholder: 'Buscar distrito...',
+        searchField: ['text', 'value'],
+        maxOptions: null,
+        create: false,
+        allowEmptyOption: true,
+        onChange: function(value) {
+          currentDistrictFilter = value || '';
+          loadRestaurants(true);
+        },
+        onClick: function() {
+          // Permitir abrir el dropdown al hacer click
+          if (!this.isOpen) {
+            this.open();
+          }
+        }
+      });
+      
+      // Forzar que inicie vacío y muestre el placeholder
+      tomSelectInstance.clear();
+      tomSelectInstance.clearOptions();
+      
+      // Volver a agregar las opciones
+      // Agregar opción "Todos los Distritos" primero
+      tomSelectInstance.addOption({
+        value: '',
+        text: 'Todos los Distritos'
+      });
+      
+      districts.forEach(district => {
+        tomSelectInstance.addOption({
+          value: district,
+          text: district
+        });
+      });
+      
+      // Asegurar que no hay valor seleccionado
+      tomSelectInstance.setValue('');
+      
+    } catch (error) {
+      console.error('Error initializing district filter:', error);
+      // Fallback: usar select normal si Tom Select falla
+      districtFilter.addEventListener('change', (event) => {
+        currentDistrictFilter = event.target.value;
+        loadRestaurants(true);
+      });
+    }
+  }
+
   async function loadRestaurants(reset = false) {
     if (reset) {
       if (restaurantsList)
@@ -314,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (lastVisibleDocId) {
       url += `&lastDocId=${lastVisibleDocId}`;
     }
-    if (currentDistrictFilter !== "Todos") {
+    if (currentDistrictFilter && currentDistrictFilter.trim() !== "") {
       url += `&district=${encodeURIComponent(currentDistrictFilter)}`;
     }
     try {
