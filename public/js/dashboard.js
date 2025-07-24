@@ -16,6 +16,10 @@ let compressedRestaurantImageFile = null;
 let compressedRestaurantLogoFile = null;
 let editingDish = null;
 let originalCardName = "";
+let cropper = null;
+let currentImageInput = null;
+let currentPreview = null;
+let currentPlaceholder = null;
 function checkAuthStatus() {
   if (auth.currentUser) {
     currentUser = auth.currentUser;
@@ -310,25 +314,31 @@ async function handleCreateCard(event) {
 async function handleCreateDish(event) {
   event.preventDefault();
   if (!currentCardId) return alert("No se ha seleccionado una carta.");
-  if (!compressedDishImageFile) {
-    alert("Por favor, selecciona una imagen para el plato.");
-    return;
-  }
+  
   const form = event.target;
   const dishName = form.elements.dishName.value;
   const dishPrice = form.elements.dishPrice.value;
   const submitButton = form.querySelector('button[type="submit"]');
+  
   if (!dishName.trim() || !dishPrice.trim()) return;
-  submitButton.disabled = !0;
-  submitButton.textContent = "Subiendo imagen...";
+  
+  submitButton.disabled = true;
+  submitButton.textContent = compressedDishImageFile ? "Subiendo imagen..." : "Guardando plato...";
+  
   try {
-    const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
-    const idToken = await currentUser.getIdToken();
-    const storageRef = firebase
-      .storage()
-      .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
-    const uploadTask = await storageRef.put(compressedDishImageFile);
-    const photoUrl = await uploadTask.ref.getDownloadURL();
+    let photoUrl = "images/default-dish.jpg"; // Ruta corregida
+    
+    // Solo subir imagen si se ha seleccionado una
+    if (compressedDishImageFile) {
+      const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
+      const idToken = await currentUser.getIdToken();
+      const storageRef = firebase
+        .storage()
+        .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
+      const uploadTask = await storageRef.put(compressedDishImageFile);
+      photoUrl = await uploadTask.ref.getDownloadURL();
+    }
+    
     submitButton.textContent = "Guardando plato...";
     const dishData = {
       cardId: currentCardId,
@@ -337,18 +347,20 @@ async function handleCreateDish(event) {
       photoUrl: photoUrl,
     };
 
-
+    const idToken = await currentUser.getIdToken();
     const response = await fetch("/api/dishes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        'Authorization': `Bearer ${idToken}` // Add token
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify(dishData),
     });
+    
     if (!response.ok) {
       throw new Error("Error al guardar los datos del plato.");
     }
+    
     form.reset();
     document.getElementById("dish-image-preview").style.display = "none";
     document.getElementById("image-upload-placeholder").style.display = "flex";
@@ -356,12 +368,13 @@ async function handleCreateDish(event) {
     closeModal(null, "newDishModal");
     showToast("Plato creado con éxito.");
     await loadDishes(currentCardId);
+    
   } catch (error) {
     console.error("Error en el proceso de creación del plato:", error);
-    alert(`Ocurrió un error: ${error.message}`);
+    alert("No se pudo crear el plato. Por favor, inténtalo de nuevo.");
   } finally {
-    submitButton.disabled = !1;
-    submitButton.textContent = "Agregar plato";
+    submitButton.disabled = false;
+    submitButton.textContent = "Crear plato";
   }
 }
 async function handleToggleCard(event) {
@@ -495,25 +508,60 @@ function setupImageUploader() {
   const imageInput = document.getElementById("dish-image-input");
   imageInput.addEventListener("change", handleImageSelection);
 }
+// Función auxiliar para obtener dimensiones de la imagen
+function getImageDimensions(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.width, height: img.height });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = (error) => {
+      reject(error);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
+
+// Modificación en handleImageSelection
 async function handleImageSelection(event) {
   const preview = document.getElementById("dish-image-preview");
   const placeholder = document.getElementById("image-upload-placeholder");
   const file = event.target.files[0];
   if (!file) return;
+  
   if (file.size > 3 * 1024 * 1024) {
     alert("La imagen es demasiado grande. Elige una de menos de 3MB.");
     event.target.value = "";
     return;
   }
+  
   try {
-    const compressedFile = await compressImage(file);
-    compressedDishImageFile = compressedFile;
-    const previewUrl = URL.createObjectURL(compressedFile);
-    preview.src = previewUrl;
-    preview.style.display = "block";
-    placeholder.style.display = "none";
+    const { width, height } = await getImageDimensions(file);
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      alert(`La resolución de la imagen es muy baja. El mínimo es ${minWidth}x${minHeight} píxeles.`);
+      event.target.value = "";
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      alert(`La resolución de la imagen es demasiado alta. El máximo es ${maxWidth}x${maxHeight} píxeles.`);
+      event.target.value = "";
+      return;
+    }
+
+    // Abrir el modal de recorte en lugar de mostrar directamente la imagen
+    openCropperModal(file, event.target, preview, placeholder);
+    
   } catch (error) {
-    console.error("Error al comprimir la imagen:", error);
+    console.error("Error al procesar la imagen:", error);
     alert("Hubo un error al procesar la imagen.");
     event.target.value = "";
   }
@@ -527,16 +575,32 @@ function compressImage(file, quality = 0.7, maxWidth = 800) {
       img.src = event.target.result;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = (height * maxWidth) / width;
-          width = maxWidth;
+        
+        // Determinar el tamaño del cuadrado para el recorte (usar el lado más pequeño)
+        const size = Math.min(img.width, img.height);
+        
+        // Calcular las coordenadas para centrar el recorte
+        const startX = (img.width - size) / 2;
+        const startY = (img.height - size) / 2;
+        
+        // Establecer el tamaño del canvas para el cuadrado recortado
+        let finalSize = size;
+        if (finalSize > maxWidth) {
+          finalSize = maxWidth;
         }
-        canvas.width = width;
-        canvas.height = height;
+        
+        canvas.width = finalSize;
+        canvas.height = finalSize;
+        
         const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Dibujar la imagen recortada y centrada
+        ctx.drawImage(
+          img,
+          startX, startY, size, size, // Área de origen (recorte cuadrado centrado)
+          0, 0, finalSize, finalSize  // Área de destino (canvas cuadrado)
+        );
+        
         canvas.toBlob(
           (blob) => {
             if (blob) {
@@ -732,17 +796,41 @@ function openEditDishModal(dish) {
     dish.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Img`;
   compressedDishImageFile = null;
   document.getElementById("edit-dish-image-input").value = "";
-  editImageInput.onchange = (event) => {
+  editImageInput.onchange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
     if (file.size > 3 * 1024 * 1024) {
       alert("La imagen es demasiado grande (máx 3MB).");
       return;
     }
-    compressImage(file).then((compressedFile) => {
-      compressedDishImageFile = compressedFile;
-      preview.src = URL.createObjectURL(compressedFile);
-    });
+    
+    try {
+      const { width, height } = await getImageDimensions(file);
+      const minWidth = 160;
+      const minHeight = 120;
+      const maxWidth = 2560;
+      const maxHeight = 1440;
+
+      if (width < minWidth || height < minHeight) {
+        alert(`La resolución de la imagen es muy baja. El mínimo es ${minWidth}x${minHeight} píxeles.`);
+        event.target.value = "";
+        return;
+      }
+
+      if (width > maxWidth || height > maxHeight) {
+        alert(`La resolución de la imagen es demasiado alta. El máximo es ${maxWidth}x${maxHeight} píxeles.`);
+        event.target.value = "";
+        return;
+      }
+
+      // Abrir el modal de recorte
+      openCropperModal(file, event.target, preview, null);
+      
+    } catch (error) {
+      console.error("Error al procesar la imagen:", error);
+      alert("Hubo un error al procesar la imagen.");
+      event.target.value = "";
+    }
   };
   document.getElementById("open-delete-dish-alert-btn").onclick = () => {
     openModal("deleteDishAlert");
@@ -849,4 +937,157 @@ function showToast(message) {
   setTimeout(() => {
     toast.classList.remove("show");
   }, 3000);
+}
+
+// Funciones para el modal de recorte de imagen
+function openCropperModal(file, imageInput, preview, placeholder) {
+  currentImageInput = imageInput;
+  currentPreview = preview;
+  currentPlaceholder = placeholder;
+  
+  const cropperModal = document.getElementById('cropperModal');
+  const cropperImage = document.getElementById('cropper-image');
+  
+  // Crear URL para la imagen
+  const imageUrl = URL.createObjectURL(file);
+  cropperImage.src = imageUrl;
+  
+  // Mostrar el modal
+  cropperModal.style.display = 'flex';
+  
+  // Inicializar Cropper.js después de que la imagen se cargue
+  cropperImage.onload = function() {
+    if (cropper) {
+      cropper.destroy();
+    }
+    
+    cropper = new Cropper(cropperImage, {
+      aspectRatio: 1, // Área cuadrada
+      viewMode: 1,
+      dragMode: 'move',
+      autoCropArea: 0.8,
+      restore: false,
+      guides: false,
+      center: false,
+      highlight: false,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false,
+      responsive: true,
+      checkOrientation: false
+    });
+  };
+  
+  // Event listeners para los botones
+  setupCropperButtons();
+}
+
+function setupCropperButtons() {
+  const cancelBtn = document.getElementById('cancel-crop-btn');
+  const cropBtn = document.getElementById('crop-btn');
+  const saveBtn = document.getElementById('save-crop-btn');
+  
+  // Remover event listeners previos
+  cancelBtn.replaceWith(cancelBtn.cloneNode(true));
+  cropBtn.replaceWith(cropBtn.cloneNode(true));
+  saveBtn.replaceWith(saveBtn.cloneNode(true));
+  
+  // Obtener las nuevas referencias
+  const newCancelBtn = document.getElementById('cancel-crop-btn');
+  const newCropBtn = document.getElementById('crop-btn');
+  const newSaveBtn = document.getElementById('save-crop-btn');
+  
+  newCancelBtn.addEventListener('click', closeCropperModal);
+  newCropBtn.addEventListener('click', cropImage);
+  newSaveBtn.addEventListener('click', saveCroppedImage);
+}
+
+function closeCropperModal() {
+  const cropperModal = document.getElementById('cropperModal');
+  cropperModal.style.display = 'none';
+  
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+  
+  // Limpiar el input
+  if (currentImageInput) {
+    currentImageInput.value = '';
+  }
+  
+  // Limpiar variables
+  currentImageInput = null;
+  currentPreview = null;
+  currentPlaceholder = null;
+}
+
+function cropImage() {
+  if (!cropper) return;
+  
+  // Obtener el área recortada
+  const canvas = cropper.getCroppedCanvas({
+    width: 400,
+    height: 400,
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high'
+  });
+  
+  // Mostrar la imagen recortada en el cropper
+  const cropperImage = document.getElementById('cropper-image');
+  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
+  
+  // Destruir el cropper actual
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+}
+
+async function saveCroppedImage() {
+  if (!cropper) {
+    alert('Error: No se ha inicializado el recortador de imagen.');
+    return;
+  }
+  
+  try {
+    // Obtener el área recortada directamente del cropper
+    const canvas = cropper.getCroppedCanvas({
+      width: 400,
+      height: 400,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    });
+    
+    canvas.toBlob(async (blob) => {
+      try {
+        // Comprimir la imagen
+        const compressedFile = await compressImage(new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' }));
+        compressedDishImageFile = compressedFile;
+        
+        // Actualizar la vista previa
+        if (currentPreview) {
+          const previewUrl = URL.createObjectURL(compressedFile);
+          currentPreview.src = previewUrl;
+          currentPreview.style.display = 'block';
+          
+          // Solo ocultar placeholder si existe (para el modal de nuevo plato)
+          if (currentPlaceholder) {
+            currentPlaceholder.style.display = 'none';
+          }
+        }
+        
+        // Cerrar el modal
+        closeCropperModal();
+        
+        showToast('Imagen recortada y guardada correctamente');
+      } catch (error) {
+        console.error('Error al procesar la imagen recortada:', error);
+        alert('Error al procesar la imagen recortada');
+      }
+    }, 'image/jpeg', 0.8);
+  } catch (error) {
+    console.error('Error al obtener la imagen recortada:', error);
+    alert('Error al procesar la imagen. Por favor, inténtalo de nuevo.');
+  }
 }
