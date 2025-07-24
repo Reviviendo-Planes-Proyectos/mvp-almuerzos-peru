@@ -806,6 +806,7 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("commentModalOverlay").style.display = "none";
       showCustomToast("Comentario enviado con éxito");
       submitDishComment(commentContent);
+      toggleCommentIcon(dishId, 0);
     };
   }
 
