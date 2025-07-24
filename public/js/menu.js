@@ -46,6 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let startX;
   let scrollLeft;
 
+  let currentCardId = null;
+
   // --- Funciones auxiliares ---
   function showToast(message, type = "info", duration = 3000) {
     if (!toastNotification) return;
@@ -603,7 +605,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (index === 0) button.classList.add("active");
       button.textContent = card.name;
       button.dataset.cardId = card.id;
-      button.onclick = () => displayDishesForCard(card.id);
+      button.onclick = () => {
+        currentCardId = card.id;
+        displayDishesForCard(card.id);
+      };
       cardsNav.appendChild(button);
     });
   }
@@ -617,10 +622,12 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const message = generateWhatsAppMessageSharing(currentRestaurant);
+
     const shareData = {
       title: `Discover ${currentRestaurant.name} on Almuerzos Perú!`,
-      text: `Check out the delicious menu of ${currentRestaurant.name} on Almuerzos Perú.`,
-      url: window.location.href,
+      text: message,
+      //url: window.location.href,
     };
 
     try {
@@ -647,6 +654,56 @@ document.addEventListener("DOMContentLoaded", () => {
         showToast("Error attempting to share.", "error");
       }
     }
+  }
+
+  function generateWhatsAppMessageSharing(currentRestaurant) {
+    if (!currentRestaurant) {
+      showToast(
+        "No se puede generar el mensaje: restaurante no disponible",
+        "warning"
+      );
+      return "";
+    }
+
+    const name = currentRestaurant.name || "";
+    const link = `https://almuerzaperu.com/${currentRestaurant.name}`;
+    const yape = currentRestaurant.yape || "No disponible";
+
+    const today = new Date()
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+    const todayHours = currentRestaurant.schedule?.[today] || {};
+    const from = todayHours.from || "—";
+    const to = todayHours.to || "—";
+
+    const fallbackCard =
+      allCardsData?.find((card) => card.id === currentCardId) ||
+      allCardsData[0];
+    const categoryName = fallbackCard?.name || "Almuerzos";
+    const dishes = fallbackCard?.dishes || [];
+
+    let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en *${name}* 🍽️\n\n`;
+
+    if (link) {
+      message += `📌 Puedes ver nuestra carta aquí: 👉 ${link}\n\n`;
+    }
+
+    message += `🍽️ *${categoryName}*\n`;
+
+    if (dishes.length === 0) {
+      message += `❌ Actualmente no hay platos disponibles para esta categoría.\n`;
+    } else {
+      dishes.forEach((dish) => {
+        message += `❤️ ${dish.name} – S/ ${dish.price.toFixed(2)}\n`;
+      });
+    }
+
+    message += `\n🕒 *Horario de atención (hoy):*\n${from} – ${to}\n`;
+    message += `📱 *Yape:* ${yape}\n\n`;
+    message += `📥 ¿Quieres separar tu plato? Escríbenos por aquí y te lo dejamos listo 🤗\n\n`;
+    message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
+
+    return message;
   }
 
   async function displayDishesForCard(cardId) {
