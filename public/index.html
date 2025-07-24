@@ -47,14 +47,17 @@
 
 
 
-.cont-but{
- background-color: #ffffff;
-              border-radius: 10px;
-              padding-right: 15px;
-              padding-left: 15px;
-              display: flex;
-              align-items: center;
-}
+        .cont-but{
+          background-color: #1f2937; /* var(--brand-dark) */
+          color: #ffffff; /* var(--white) */
+          border-radius: 10px;
+          padding-right: 15px;
+          padding-left: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
+        }
 
 .cont-com{
 background-color: #ffffff;
@@ -64,6 +67,7 @@ background-color: #ffffff;
               padding-left: 15px;
               display: flex;
               align-items: center;
+              justify-content: center;
 }
 
 .cont-gen{
@@ -75,17 +79,32 @@ background-color: #ffffff;
 
 @media (max-width: 767px) {
   .cont-gen{
-    flex-direction: column;
+    flex-direction: row;
+    width: 100%;
+    gap: 10px;
   }
   .cont-but{
-    width: 100%;
-    margin-top: 30px;
+    width: auto;
+    margin-top: 0;
+    justify-content: center;
+    padding: 8px 15px;
   }
   .cont-com{
-    width: 100%;
+    width: auto;
+    justify-content: center;
+    margin-right: 0;
+    padding: 8px 15px;
   }
   .header-button{
-    width: 100%;
+    width: auto;
+    flex-grow: 0;
+    margin-top: 0;
+    height: 40px;
+  }
+  .cont-but img, .cont-com img {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
   }
 }
 
@@ -146,25 +165,29 @@ background-color: #ffffff;
           </div>
 
           <div class="cont-but" id="my-restaurant">
+  
+          <div class="cont-but"
+           
+          >
             <img
               style="width: 25px"
-              src="images/restaurant.png"
+              src="images/restauranteb.png"
               alt="Restaurant Icon"
             />
-            <button id="my-restaurant-btn" class="header-button">
-              Mi Restaurante
-            </button>
+             <button id="my-restaurant-btn" class="header-button header-button--alt">
+           Mi Restaurante
+          </button> 
           </div>
-        </div>
+        </div> 
       </div>
     </header>
 
     <div class="hero-section">
-      <h2>Tu restaurante favorito</h2>
-      <p>Sin salir de casa 🏠</p>
+      <h2>Encuentra tu menú diario</h2>
+      <p>¡sin perder tiempo! 🏠</p>
     </div>
 
-    <main class="main-content container">
+     <main class="main-content container">
       <div class="zone-selector">
         <h3>Restaurantes en:</h3>
         <select id="district-filter">
@@ -216,7 +239,7 @@ background-color: #ffffff;
           <option>Mi Perú</option>
           <option>Ventanilla</option>
         </select>
-      </div>
+      </div> 
 
       <div id="restaurants-list" class="restaurant-grid">
         <p style="text-align: center; grid-column: 1 / -1">
