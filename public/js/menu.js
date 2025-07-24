@@ -99,17 +99,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleOrderClick() {
-    // 1. VERIFICAR LA SESIÓN PRIMERO
-    const user = auth.currentUser; // Usamos el método de Firebase, que es más seguro
+    const user = auth.currentUser;
 
     if (!user) {
-      // 2. SI NO HAY USUARIO, ABRIR EL MODAL DE LOGIN
       loginModalOverlay.style.display = "flex";
       showToast("Por favor, inicia sesión para realizar un pedido.", "info");
-      return; // Detenemos la función aquí
+      return;
     }
 
-    // 3. SI HAY USUARIO, CONTINUAMOS CON TU LÓGICA ORIGINAL
     if (!currentRestaurant || !currentRestaurant.whatsapp) {
       return showToast(
         "No se encontró el número de WhatsApp del restaurante.",
@@ -117,10 +114,36 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    // Tu función original para crear el mensaje detallado
     const message = generateWhatsAppMessage();
 
     if (message) {
+      Object.keys(shoppingCart).forEach((dishId) => {
+        const quantity = shoppingCart[dishId];
+        if (quantity > 0) {
+          const commentContainer = document.querySelector(
+            `.comment-button-container[data-dish-id="${dishId}"]`
+          );
+
+          if (
+            commentContainer &&
+            !commentContainer.querySelector(".comment-icon")
+          ) {
+            const commentIcon = document.createElement("span");
+            commentIcon.className = "comment-icon";
+            commentIcon.innerHTML = "🗨️";
+            commentIcon.setAttribute("data-dish-id", dishId);
+            commentIcon.style.cursor = "pointer";
+
+            commentIcon.addEventListener("click", () => {
+              openCommentModal(dishId);
+            });
+
+            commentContainer.appendChild(commentIcon);
+          }
+        }
+      });
+
+      // Abrir WhatsApp al final
       const encoded = encodeURIComponent(message);
       const link = `https://api.whatsapp.com/send?phone=${currentRestaurant.whatsapp}&text=${encoded}`;
       window.open(link, "_blank");
@@ -149,9 +172,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dishFound) break;
       }
       if (dishFound) {
-        message += `  • ${quantity} ${
-          dishFound.name
-        } - S/.${dishFound.price.toFixed(2)}\n`;
+        message += `  • ${quantity} ${dishFound.name
+          } - S/.${dishFound.price.toFixed(2)}\n`;
         total += quantity * dishFound.price;
       }
     }
@@ -186,13 +208,37 @@ document.addEventListener("DOMContentLoaded", () => {
         display.textContent = "0";
       }
 
-      addBtn.onclick = () => updateCart(dishId, 1, control);
-      minusBtn.onclick = () =>
-        updateCart(dishId, (shoppingCart[dishId] || 0) - 1, control);
-      plusBtn.onclick = () =>
-        updateCart(dishId, (shoppingCart[dishId] || 0) + 1, control);
+      addBtn.onclick = () => {
+        updateCart(dishId, 1, control);
+      };
+
+      minusBtn.onclick = () => {
+        const newQuantity = (shoppingCart[dishId] || 0) - 1;
+        updateCart(dishId, newQuantity, control);
+        toggleCommentIcon(dishId, newQuantity);
+      };
+
+      plusBtn.onclick = () => {
+        const newQuantity = (shoppingCart[dishId] || 0) + 1;
+        updateCart(dishId, newQuantity, control);
+      };
       control.dataset.listenersInitialized = true; // Marcar como inicializado
     });
+  }
+  function toggleCommentIcon(dishId, quantity) {
+    if (quantity !== 0) return; // Solo actuamos si la cantidad es exactamente 0
+
+    const commentContainer = document.querySelector(
+      `.comment-button-container[data-dish-id="${dishId}"]`
+    );
+
+    if (!commentContainer) return;
+
+    const existingIcon = commentContainer.querySelector(".comment-icon");
+
+    if (existingIcon) {
+      existingIcon.remove();
+    }
   }
 
   function updateCart(dishId, quantity, control) {
@@ -412,7 +458,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const errorData = await response.json();
         throw new Error(
           errorData.error ||
-            `Error ${action === "like" ? "liking" : "unliking"} the dish.`
+          `Error ${action === "like" ? "liking" : "unliking"} the dish.`
         );
       }
 
@@ -437,8 +483,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       showToast(
-        `Plato ${
-          action === "like" ? "añadido a" : "retirado de"
+        `Plato ${action === "like" ? "añadido a" : "retirado de"
         } sus favoritos!`,
         "success"
       );
@@ -546,10 +591,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateUI() {
     if (!currentRestaurant) return;
 
-    menuBanner.style.backgroundImage = `url('${
-      currentRestaurant.photoUrl ||
+    menuBanner.style.backgroundImage = `url('${currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
-    }')`;
+      }')`;
     restaurantNameElement.textContent = currentRestaurant.name;
 
     restaurantDescriptionElement.textContent = currentRestaurant.description;
@@ -634,7 +678,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           showToast(
             "Your browser does not support direct sharing. Copy and paste the link: " +
-              window.location.href,
+            window.location.href,
             "info"
           );
         }
@@ -693,31 +737,24 @@ document.addEventListener("DOMContentLoaded", () => {
                                 <div class="dish-image-wrapper">
                                     <img src="${imageUrl}" alt="${dish.name}">
                                     <div class="dish-like-control">
-                                        <button class="like-button dish-like-btn" data-dish-id="${
-                                          dish.id
-                                        }">${heartIcon}</button>
+                                        <button class="like-button dish-like-btn" data-dish-id="${dish.id}">${heartIcon}</button>
                                     </div>
                                 </div>
                                 <div class="dish-details">
                                     <h3>${dish.name}</h3>
                                     <p>S/. ${dish.price.toFixed(2)}</p>
-                                    <p class="likes-count" id="likes-count-${
-                                      dish.id
-                                    }">${dish.likesCount || 0} me gustas</p> 
+                                    <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gustas</p> 
                                 </div>
-                                <div class="quantity-control" data-dish-id="${
-                                  dish.id
-                                }" data-dish-name="${
-        dish.name
-      }" data-dish-price="${dish.price}">
+                                <div class="quantity-container">
+                                <div class="quantity-control" data-dish-id="${dish.id}" data-dish-name="${dish.name}" data-dish-price="${dish.price}">
                                     <button class="quantity-btn add-btn">+</button>
                                     <div class="quantity-selector">
                                         <button class="quantity-btn minus-btn">-</button>
-                                        <span class="quantity-display">${
-                                          shoppingCart[dish.id] || 0
-                                        }</span>
+                                        <span class="quantity-display">${shoppingCart[dish.id] || 0}</span>
                                         <button class="quantity-btn plus-btn">+</button>
                                     </div>
+                                    </div>
+                                    <div class="comment-button-container" data-dish-id="${dish.id}"></div>
                                 </div>
                             `;
       dishesContainer.appendChild(dishItem);

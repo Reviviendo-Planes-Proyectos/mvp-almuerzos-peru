@@ -467,3 +467,22 @@ body {
     transform: scale(1);
   }
 }
+.comment-button-container {
+  margin-top: 6px;
+  display: flex;
+  justify-content: center;
+}
+
+.comment-icon {
+  user-select: none;
+  font-size: 20px;
+  color: #4A5568;
+  transition: transform 0.2s;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.comment-icon:hover {
+  transform: scale(1.2);
+  color: #2B6CB0;
+}
