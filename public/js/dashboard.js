@@ -314,34 +314,24 @@ async function handleCreateCard(event) {
 async function handleCreateDish(event) {
   event.preventDefault();
   if (!currentCardId) return alert("No se ha seleccionado una carta.");
-  // Eliminar la validación obligatoria de imagen
-  // if (!compressedDishImageFile) {
-  //   alert("Por favor, selecciona una imagen para el plato.");
-  //   return;
-  // }
+  
   const form = event.target;
   const dishName = form.elements.dishName.value;
   const dishPrice = form.elements.dishPrice.value;
   const submitButton = form.querySelector('button[type="submit"]');
-  if (!dishName.trim() || !dishPrice.trim()) return;
-  submitButton.disabled = !0;
   
-  // Modificar el texto del botón según si hay imagen o no
+  if (!dishName.trim() || !dishPrice.trim()) return;
+  
+  submitButton.disabled = true;
   submitButton.textContent = compressedDishImageFile ? "Subiendo imagen..." : "Guardando plato...";
   
   try {
-    const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
-    const idToken = await currentUser.getIdToken();
-    const storageRef = firebase
-      .storage()
-      .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
-    const uploadTask = await storageRef.put(compressedDishImageFile);
-    
-    let photoUrl = "/images/default-dish.jpg.png"; // URL de la imagen por defecto (ajustada a la ruta correcta)
+    let photoUrl = "images/default-dish.jpg"; // Ruta corregida
     
     // Solo subir imagen si se ha seleccionado una
     if (compressedDishImageFile) {
       const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
+      const idToken = await currentUser.getIdToken();
       const storageRef = firebase
         .storage()
         .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
@@ -357,18 +347,20 @@ async function handleCreateDish(event) {
       photoUrl: photoUrl,
     };
 
-
+    const idToken = await currentUser.getIdToken();
     const response = await fetch("/api/dishes", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        'Authorization': `Bearer ${idToken}` // Add token
+        'Authorization': `Bearer ${idToken}`
       },
       body: JSON.stringify(dishData),
     });
+    
     if (!response.ok) {
       throw new Error("Error al guardar los datos del plato.");
     }
+    
     form.reset();
     document.getElementById("dish-image-preview").style.display = "none";
     document.getElementById("image-upload-placeholder").style.display = "flex";
@@ -376,12 +368,13 @@ async function handleCreateDish(event) {
     closeModal(null, "newDishModal");
     showToast("Plato creado con éxito.");
     await loadDishes(currentCardId);
+    
   } catch (error) {
     console.error("Error en el proceso de creación del plato:", error);
-    alert(`Ocurrió un error: ${error.message}`);
+    alert("No se pudo crear el plato. Por favor, inténtalo de nuevo.");
   } finally {
-    submitButton.disabled = !1;
-    submitButton.textContent = "Agregar plato";
+    submitButton.disabled = false;
+    submitButton.textContent = "Crear plato";
   }
 }
 async function handleToggleCard(event) {

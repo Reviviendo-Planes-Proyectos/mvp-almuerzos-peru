@@ -339,64 +339,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const totalLikes = restaurant.totalLikes || 0;
 
-    async function loadRestaurants(reset = false) {
-        if (reset) {
-            if (restaurantsList)
-                restaurantsList.innerHTML =
-                    '<p style="text-align: center; grid-column: 1 / -1;">Cargando restaurantes...</p>';
-            lastVisibleDocId = null;
-            if (loadMoreBtn) loadMoreBtn.style.display = "none";
-        }
-        if (loadMoreBtn) loadMoreBtn.disabled = true;
-        let url = `/api/restaurants-paginated?limit=12`;
-        if (lastVisibleDocId) {
-            url += `&lastDocId=${lastVisibleDocId}`;
-        }
-        if (currentDistrictFilter !== "Todos") {
-            url += `&district=${encodeURIComponent(currentDistrictFilter)}`;
-        }
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Error al cargar los restaurantes.");
-            const data = await response.json();
-            const restaurants = data.restaurants;
-            lastVisibleDocId = data.lastDocId;
-            if (reset) {
-                restaurantsList.innerHTML = "";
-            }
-            if (restaurants.length === 0 && reset) {
-                restaurantsList.innerHTML =
-                    '<p style="text-align: center; grid-column: 1 / -1;">No se encontraron restaurantes.</p>';
-            } else {
-                restaurants.forEach((restaurant, index) => {
-                    const restaurantCard = document.createElement("div");
-                    restaurantCard.className = "restaurant-card";
-                    const imageUrl =
-                        restaurant.photoUrl ||
-                        "https://placehold.co/600x400/cccccc/333333?text=Sin+Imagen";
-
-                    const totalLikes = restaurant.totalLikes || 0;
-
-                    restaurantCard.innerHTML = `
-                               <img src="${imageUrl}" alt="${restaurant.name}" class="restaurant-card-image">
-
-                <div class="card-content">
-             <div class="restaurant-title">
-             <h4>${restaurant.name.length > 35 ? restaurant.name.substring(0, 35) + '...' : restaurant.name}</h4>
-             <span class="restaurant-likes-inline">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-             </svg>
-           <span>${totalLikes}</span>
-            </span>
-             </div>
-
-
-               <p>${restaurant.description.length > 30 ? restaurant.description.substring(0, 30) + '...' : restaurant.description}</p>
-               <a href="/menu.html?restaurantId=${restaurant.id}" class="card-button">Ver menú</a>
-                </div>
-
-                                    `;
+          restaurantCard.innerHTML = `
+            <img src="${imageUrl}" alt="${restaurant.name}" class="restaurant-card-image">
+            <div class="card-content">
+              <div class="restaurant-title">
+                <h4>${restaurant.name.length > 35 ? restaurant.name.substring(0, 35) + '...' : restaurant.name}</h4>
+                <span class="restaurant-likes-inline">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                  <span>${totalLikes}</span>
+                </span>
+              </div>
+              <p>${restaurant.description.length > 30 ? restaurant.description.substring(0, 30) + '...' : restaurant.description}</p>
+              <a href="/menu.html?restaurantId=${restaurant.id}" class="card-button">Ver menú</a>
+            </div>
+          `;
           restaurantsList.appendChild(restaurantCard);
           setTimeout(() => {
             restaurantCard.classList.add("is-visible");
