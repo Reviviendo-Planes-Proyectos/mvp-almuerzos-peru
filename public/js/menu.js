@@ -552,7 +552,10 @@ document.addEventListener("DOMContentLoaded", () => {
       currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
     }')`;
-    restaurantNameElement.textContent = currentRestaurant.name.length > 40 ? currentRestaurant.name.substring(0, 40) + '...' : currentRestaurant.name;
+    restaurantNameElement.textContent =
+      currentRestaurant.name.length > 40
+        ? currentRestaurant.name.substring(0, 40) + "..."
+        : currentRestaurant.name;
     restaurantDescriptionElement.textContent = currentRestaurant.description;
 
     if (shareButton) {
@@ -612,46 +615,43 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+      navigator.userAgent
+    );
+  }
+
   async function handleShareRestaurant() {
-    if (!currentRestaurant) {
+    if (!currentRestaurant || !currentRestaurant.whatsapp) {
       showToast(
-        "Cannot share: restaurant information not available.",
+        "No se encontró número de WhatsApp del restaurante.",
         "warning"
       );
       return;
     }
 
     const message = generateWhatsAppMessageSharing(currentRestaurant);
+    const encodedMessage = encodeURIComponent(message);
+
+    const whatsappWebURL = `https://api.whatsapp.com/send?phone=${currentRestaurant.whatsapp}&text=${encodedMessage}`;
 
     const shareData = {
-      title: `Discover ${currentRestaurant.name} on Almuerzos Perú!`,
+      title: `Descubre ${currentRestaurant.name} en Almuerzos Perú`,
       text: message,
-      //url: window.location.href,
     };
-
+    
     try {
-      if (navigator.share) {
+      if (navigator.share && isMobileDevice()) {
         await navigator.share(shareData);
-        showToast("Restaurant shared successfully!", "success");
+        showToast("¡Restaurante compartido exitosamente!", "success");
       } else {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(shareData.url);
-          showToast("Link copied to clipboard. Share it!", "success");
-        } else {
-          showToast(
-            "Your browser does not support direct sharing. Copy and paste the link: " +
-              window.location.href,
-            "info"
-          );
-        }
+        const url =  whatsappWebURL;
+        window.open(url, "_blank");
+        showToast("Abriendo WhatsApp...", "info");
       }
     } catch (error) {
-      console.error("Error sharing:", error);
-      if (error.name === "AbortError") {
-        showToast("Sharing cancelled.", "info");
-      } else {
-        showToast("Error attempting to share.", "error");
-      }
+      console.error("Error al compartir:", error);
+      showToast("Hubo un error al intentar compartir.", "error");
     }
   }
 
@@ -665,7 +665,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const name = currentRestaurant.name || "";
-    const link = `https://almuerzaperu.com/${currentRestaurant.name}`;
+    const link = `https://app-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}`;
     const yape = currentRestaurant.yape || "No disponible";
 
     const today = new Date()
