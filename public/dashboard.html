@@ -12,6 +12,112 @@
     />
 
     <link rel="stylesheet" href="css/dashboard.css" />
+    <style>
+      /* Estilos para el switch */
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+      }
+
+      input:checked + .slider {
+        background-color: #00b44e;
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px #00b44e;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(24px);
+      }
+
+      .slider.round {
+        border-radius: 34px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
+      }
+
+      /* Estilos adicionales para el estado activo del switch */
+      .switch.active .slider {
+        background-color: #2196f3;
+      }
+
+      .switch input:checked + .slider:before {
+        transform: translateX(24px);
+      }
+
+      /* Animación suave para el cambio de estado */
+      .switch .slider:before {
+        transition: transform 0.3s ease-in-out;
+      }
+
+      /* Estilos para el botón de sincronizar horarios */
+      .sync-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 0.5rem;
+        color: #495057;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+      }
+
+      .sync-button:hover {
+        background-color: #e9ecef;
+        border-color: #ced4da;
+        color: #212529;
+      }
+
+      .sync-button svg {
+        transition: transform 0.3s ease;
+      }
+
+      .sync-button:hover svg {
+        transform: rotate(180deg);
+      }
+
+      .sync-button:active {
+        transform: scale(0.98);
+      }
+    </style>
+    <!-- Cropper.js CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
   </head>
   <body>
     <div id="toast-notification" class="toast">
@@ -242,10 +348,10 @@
                     <polyline points="21 15 16 10 5 21"></polyline>
                   </svg>
                 </div>
-                <span>Foto del plato</span>
+                <span>Foto del plato (opcional)</span>
               </div>
             </label>
-            <!-- El input de archivo real está oculto -->
+            <!-- Después del input de archivo -->
             <input
               type="file"
               id="dish-image-input"
@@ -253,6 +359,9 @@
               accept="image/png, image/jpeg"
               style="display: none"
             />
+            <small style="display: block; margin-top: 0.5rem; color: #666;">
+              Si no seleccionas una imagen, se usará una imagen por defecto.
+            </small>
           </div>
           <div class="modal-form-group">
             <input
@@ -411,17 +520,21 @@
       class="modal-backdrop"
       onclick="closeModal(event)"
     >
-      <div class="modal-content">
+      <div
+        class="modal-content"
+        style="max-width: 600px; max-height: 90vh; overflow-y: auto"
+      >
         <button class="modal-close-btn" onclick="closeModal(event)">
           &times;
         </button>
-        <h2>Editar restaurante</h2>
+        <h2 style="text-align: center">Editar restaurante</h2>
         <form id="edit-restaurant-form">
           <div class="modal-form-group">
             <label
               id="edit-restaurant-image-box"
               class="image-upload-box"
               for="edit-restaurant-image-input"
+              style="margin-bottom: 1rem"
             >
               <img
                 id="edit-restaurant-image-preview"
@@ -463,22 +576,79 @@
             />
           </div>
           <div class="modal-form-group">
-            <label for="edit-restaurant-name">Nombre del restaurante</label>
+            <label
+              id="edit-restaurant-logo-box"
+              class="image-upload-box"
+              for="edit-restaurant-logo-input"
+              style="margin-bottom: 1rem"
+            >
+              <img
+                id="edit-restaurant-logo-preview"
+                src=""
+                alt="Logo del restaurante"
+                style="
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 0.25rem;
+                "
+              />
+              <div class="edit-image-overlay">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"
+                  />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
+              </div>
+            </label>
+            <input
+              type="file"
+              id="edit-restaurant-logo-input"
+              accept="image/png, image/jpeg"
+              style="display: none"
+            />
+          </div>
+          <div class="modal-form-group">
             <input
               type="text"
               id="edit-restaurant-name"
               name="restaurantName"
+              placeholder="Nombre del restaurante"
               required
+              style="
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid #ddd;
+                border-radius: 0.5rem;
+              "
             />
           </div>
           <div class="modal-form-group">
-            <label for="edit-restaurant-description">Descripción</label>
             <textarea
               id="edit-restaurant-description"
               name="restaurantDescription"
               rows="3"
               maxlength="300"
               required
+              placeholder="Descripción del restaurante"
+              style="
+                width: 100%;
+                padding: 0.75rem;
+                border: 1px solid #ddd;
+                border-radius: 0.5rem;
+                resize: vertical;
+              "
             ></textarea>
           </div>
           <div class="modal-form-group">
@@ -537,6 +707,15 @@
             </select>
           </div>
           <div class="modal-form-group">
+            <label for="edit-restaurant-ruc">RUC (opcional)</label>
+            <input
+              type="text"
+              id="edit-restaurant-ruc"
+              name="restaurantRuc"
+              pattern="[0-9]{11}"
+            />
+          </div>
+          <div class="modal-form-group">
             <label for="edit-restaurant-whatsapp">Whatsapp</label>
             <input
               type="tel"
@@ -545,6 +724,359 @@
               required
               title="El número debe contener 9 dígitos."
             />
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-restaurant-yape">Yape (opcional)</label>
+            <input type="tel" id="edit-restaurant-yape" name="restaurantYape" />
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-restaurant-phone"
+              >Teléfono para llamadas (opcional)</label
+            >
+            <input
+              type="tel"
+              id="edit-restaurant-phone"
+              name="restaurantPhone"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label for="edit-restaurant-location"
+              >Link de ubicación (Google Maps)</label
+            >
+            <input
+              type="url"
+              id="edit-restaurant-location"
+              name="restaurantLocation"
+              required
+            />
+          </div>
+          <div class="modal-form-group">
+            <div
+              style="
+                display: grid;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+              "
+            >
+              <div class="modal-form-group" style="margin: 0">
+                <label style="display: block; margin-bottom: 0.5rem"
+                  >Delivery</label
+                >
+                <div
+                  style="
+                    background: #f5f5f5;
+                    padding: 0.75rem;
+                    border-radius: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  "
+                >
+                  <label
+                    for="edit-restaurant-delivery"
+                    style="font-size: 0.875rem; color: #333"
+                  >
+                    ¿Haces delivery?
+                  </label>
+                  <label class="switch">
+                    <input
+                      type="checkbox"
+                      id="edit-restaurant-delivery"
+                      name="restaurantDelivery"
+                    />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="modal-form-group" style="margin: 0">
+                <label style="display: block; margin-bottom: 0.5rem"
+                  >Atención en local</label
+                >
+                <div
+                  style="
+                    background: #f5f5f5;
+                    padding: 0.75rem;
+                    border-radius: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                  "
+                >
+                  <label
+                    for="edit-restaurant-localService"
+                    style="font-size: 0.875rem; color: #333"
+                  >
+                    ¿Atiendes en el local?
+                  </label>
+                  <label class="switch">
+                    <input
+                      type="checkbox"
+                      id="edit-restaurant-localService"
+                      name="restaurantLocalService"
+                    />
+                    <span class="slider round"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-form-group">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+              "
+            >
+              <p style="font-weight: bold">Horario de atención</p>
+              <button
+                type="button"
+                class="sync-button"
+                onclick="syncScheduleWithMonday()"
+                title="Sincronizar todos los horarios con el Lunes"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2"
+                  />
+                </svg>
+                <span>Sincronizar horarios</span>
+              </button>
+            </div>
+            <div
+              class="schedule-container"
+              style="
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                background: #f5f5f5;
+                padding: 1.5rem;
+                border-radius: 0.5rem;
+              "
+            >
+              <div
+                class="schedule-row"
+                style="display: flex; gap: 1rem; align-items: center"
+              >
+                <span style="min-width: 80px">Lunes</span>
+                <input
+                  type="time"
+                  id="edit-monday-from"
+                  name="mondayFrom"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <input
+                  type="time"
+                  id="edit-monday-to"
+                  name="mondayTo"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+              </div>
+              <div
+                class="schedule-row"
+                style="display: flex; gap: 1rem; align-items: center"
+              >
+                <span style="min-width: 80px">Martes</span>
+                <input
+                  type="time"
+                  id="edit-tuesday-from"
+                  name="tuesdayFrom"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <input
+                  type="time"
+                  id="edit-tuesday-to"
+                  name="tuesdayTo"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+              </div>
+              <div
+                class="schedule-row"
+                style="display: flex; gap: 1rem; align-items: center"
+              >
+                <span style="min-width: 80px">Miércoles</span>
+                <input
+                  type="time"
+                  id="edit-wednesday-from"
+                  name="wednesdayFrom"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <input
+                  type="time"
+                  id="edit-wednesday-to"
+                  name="wednesdayTo"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+              </div>
+              <div
+                class="schedule-row"
+                style="display: flex; gap: 1rem; align-items: center"
+              >
+                <span style="min-width: 80px">Jueves</span>
+                <input
+                  type="time"
+                  id="edit-thursday-from"
+                  name="thursdayFrom"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <input
+                  type="time"
+                  id="edit-thursday-to"
+                  name="thursdayTo"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+              </div>
+              <div
+                class="schedule-row"
+                style="display: flex; gap: 1rem; align-items: center"
+              >
+                <span style="min-width: 80px">Viernes</span>
+                <input
+                  type="time"
+                  id="edit-friday-from"
+                  name="fridayFrom"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <input
+                  type="time"
+                  id="edit-friday-to"
+                  name="fridayTo"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+              </div>
+              <div
+                class="schedule-row"
+                style="display: flex; gap: 1rem; align-items: center"
+              >
+                <span style="min-width: 80px">Sábado</span>
+                <input
+                  type="time"
+                  id="edit-saturday-from"
+                  name="saturdayFrom"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <input
+                  type="time"
+                  id="edit-saturday-to"
+                  name="saturdayTo"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+              </div>
+              <div
+                class="schedule-row"
+                style="display: flex; gap: 1rem; align-items: center"
+              >
+                <span style="min-width: 80px">Domingo</span>
+                <input
+                  type="time"
+                  id="edit-sunday-from"
+                  name="sundayFrom"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+                <input
+                  type="time"
+                  id="edit-sunday-to"
+                  name="sundayTo"
+                  required
+                  style="
+                    flex: 1;
+                    padding: 0.5rem;
+                    border-radius: 0.25rem;
+                    border: 1px solid #ddd;
+                  "
+                />
+              </div>
+            </div>
           </div>
           <button
             type="submit"
@@ -576,9 +1108,26 @@
       </div>
     </div>
 
+    <!-- Modal: Recorte de Imagen -->
+    <div id="cropperModal" class="modal-backdrop" style="z-index: 2000; display: none;">
+      <div class="modal-content" style="max-width: 90%; max-height: 90%; padding: 1.5rem;">
+        <h2 style="margin-bottom: 1rem; text-align: center;">Recortar imagen</h2>
+        <div id="cropper-container" style="max-height: 400px; margin-bottom: 1rem;">
+          <img id="cropper-image" style="max-width: 100%; display: block;" />
+        </div>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+          <button id="cancel-crop-btn" class="primary-button" style="min-width: 100px;">Cancelar</button>
+          <button id="crop-btn" class="primary-button" style="min-width: 100px;">Recortar</button>
+          <button id="save-crop-btn" class="primary-button dark-button" style="min-width: 100px;">Guardar</button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <!-- Cropper.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
     <script src="js/dashboard.js"></script>
   </body>
 </html>

@@ -11,6 +11,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/schedule.css" />
   </head>
   <body>
     <div class="auth-container">
@@ -185,6 +186,49 @@
             />
           </div>
           <div class="form-group">
+            <label
+              id="register-logo-upload-box"
+              class="image-upload-box"
+              for="register-logo-input"
+              style="margin-bottom: 1rem"
+            >
+              <img
+                id="register-logo-preview"
+                src=""
+                alt="Logo del restaurante"
+                style="display: none"
+                class="preview-image"
+              />
+              <div id="register-logo-placeholder" class="image-placeholder">
+                <div class="icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"
+                    />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                </div>
+                <span>Logo del restaurante (opcional)</span>
+              </div>
+            </label>
+            <input
+              type="file"
+              id="register-logo-input"
+              accept="image/png, image/jpeg"
+              style="display: none"
+            />
+          </div>
+          <div class="form-group">
             <input
               type="text"
               name="name"
@@ -200,6 +244,14 @@
               required
               maxlength="300"
             ></textarea>
+          </div>
+          <div class="form-group">
+            <input
+              type="text"
+              name="ruc"
+              placeholder="RUC (opcional)"
+              pattern="[0-9]{11}"
+            />
           </div>
           <div class="form-group">
             <select name="district" required>
@@ -262,6 +314,101 @@
               required
             />
           </div>
+          <div class="form-group">
+            <input
+              type="tel"
+              name="yape"
+              placeholder="Número de Yape (opcional)"
+            />
+          </div>
+          <div class="form-group">
+            <input
+              type="tel"
+              name="phone"
+              placeholder="Teléfono para llamadas (opcional)"
+            />
+          </div>
+          <div class="form-group">
+            <input
+              type="url"
+              name="location"
+              placeholder="Link de ubicación (Google Maps)"
+              required
+            />
+          </div>
+          <div class="form-group" style="display: flex; gap: 1rem">
+            <div style="flex: 1">
+              <label class="switch-label">
+                <span class="switch-text">¿Haces delivery?</span>
+                <div class="switch">
+                  <input type="checkbox" name="delivery"/>
+                  <span class="slider"></span>
+                </div>
+              </label>
+            </div>
+            <div style="flex: 1">
+              <label class="switch-label">
+                <span class="switch-text">¿Atención en el local?</span>
+                <div class="switch">
+                  <input type="checkbox" name="localService"/>
+                  <span class="slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+              <p style="font-weight: bold;">Horario de atención</p>
+              <button
+                type="button"
+                class="sync-button"
+                onclick="syncScheduleWithMonday()"
+                title="Sincronizar todos los horarios con el Lunes"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2"/>
+                </svg>
+                Sincronizar horarios
+              </button>
+            </div>
+            <div class="schedule-container">
+              <div class="schedule-row">
+                <span>Lunes</span>
+                <input type="time" name="mondayFrom" required />
+                <input type="time" name="mondayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Martes</span>
+                <input type="time" name="tuesdayFrom" required />
+                <input type="time" name="tuesdayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Miércoles</span>
+                <input type="time" name="wednesdayFrom" required />
+                <input type="time" name="wednesdayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Jueves</span>
+                <input type="time" name="thursdayFrom" required />
+                <input type="time" name="thursdayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Viernes</span>
+                <input type="time" name="fridayFrom" required />
+                <input type="time" name="fridayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Sábado</span>
+                <input type="time" name="saturdayFrom" required />
+                <input type="time" name="saturdayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Domingo</span>
+                <input type="time" name="sundayFrom" required />
+                <input type="time" name="sundayTo" required />
+              </div>
+            </div>
+          </div>
           <button
             type="submit"
             class="auth-button dark-button"
@@ -304,11 +451,15 @@
       </div>
     </div>
 
-    
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta
+      name="google-signin-client_id"
+      content="92623435008-vgv02v2cps8vb9pio5kgms9ad4hjlb5m.apps.googleusercontent.com"
+    />
     <script src="js/login.js"></script>
   </body>
 </html>
