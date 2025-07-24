@@ -20,6 +20,26 @@ let compressedLogoImageFile = null;
 
 // --- 3. FUNCIONES AUXILIARES DE UI (TOASTS, PANTALLAS, REDIRECCIÓN) ---
 
+// Función para validar tipos de archivo de imagen
+function validateFileType(file) {
+  const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+  const blockedTypes = ['image/avif', 'image/heic', 'image/heif'];
+  
+  // Verificar si el tipo está explícitamente bloqueado
+  if (blockedTypes.includes(file.type.toLowerCase())) {
+    alert('Los archivos AVIF, HEIC y HEIF no están soportados. Solo se permiten archivos JPEG, PNG y WebP');
+    return false;
+  }
+  
+  // Verificar si el tipo está en la lista de permitidos
+  if (!allowedTypes.includes(file.type.toLowerCase())) {
+    alert('Solo se permiten archivos JPEG, PNG y WebP');
+    return false;
+  }
+  
+  return true;
+}
+
 // Función para sincronizar horarios con el lunes
 function syncScheduleWithMonday() {
   const mondayFromInput = document.querySelector('input[name="mondayFrom"]');
@@ -133,9 +153,11 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
   const file = e.target.files[0];
   if (file) {
     try {
-      // Validar el tipo de archivo
-      if (!file.type.match('image.*')) {
-        throw new Error('Por favor selecciona una imagen válida (JPEG, PNG)');
+      // Validar tipo de archivo
+      if (!validateFileType(file)) {
+        e.target.value = "";
+        compressedLogoImageFile = null;
+        return;
       }
       
       // Validar tamaño (máximo 5MB)
@@ -167,6 +189,11 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
 document.getElementById("register-image-input")?.addEventListener("change", function (e) {
   const file = e.target.files[0];
   if (file) {
+    // Validar tipo de archivo
+    if (!validateFileType(file)) {
+      e.target.value = "";
+      return;
+    }
     handleImagePreview(file, "register-image-preview", "register-image-placeholder");
   }
 });
@@ -460,6 +487,13 @@ function setupRegistrationImageUploader() {
   imageInput.onchange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
+    
+    // Validar tipo de archivo
+    if (!validateFileType(file)) {
+      event.target.value = "";
+      return;
+    }
+    
     if (file.size > 3 * 1024 * 1024) {
       alert("La imagen es demasiado grande (máx 3MB).");
       return;
