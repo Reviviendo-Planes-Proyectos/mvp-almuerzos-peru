@@ -550,8 +550,7 @@ document.addEventListener("DOMContentLoaded", () => {
       currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
     }')`;
-    restaurantNameElement.textContent = currentRestaurant.name;
-
+    restaurantNameElement.textContent = currentRestaurant.name.length > 40 ? currentRestaurant.name.substring(0, 40) + '...' : currentRestaurant.name;
     restaurantDescriptionElement.textContent = currentRestaurant.description;
 
     if (shareButton) {

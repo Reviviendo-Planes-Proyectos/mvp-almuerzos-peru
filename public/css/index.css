@@ -49,12 +49,22 @@ body {
   border: none;
   font-size: 20px;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: background-color 0.3s;
   height: 40px;
   font-family: "Nunito", sans-serif;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.header-button--alt {
+  background-color: var(--brand-dark);
+  color: var(--white);
+  font-weight: bold;
+}
+
 .hero-section {
   background-color: var(--brand-yellow);
   text-align: center;
@@ -76,7 +86,8 @@ body {
   margin-bottom: 2rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 2rem; /* Aumentar el espaciado entre elementos */
+  padding: 0.5rem; /* Agregar padding alrededor de todo el contenedor */
 }
 .zone-selector h3 {
   font-size: 1.25rem;
@@ -138,6 +149,12 @@ body {
   font-size: 1.25rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
 }
 .card-content p {
   color: var(--gray-text);
@@ -231,9 +248,12 @@ body {
     align-items: center;
   }
   .header-button {
-    width: 80%;
-    margin-top: 20px;
-    height: 50px;
+    width: auto;
+    flex-grow: 0;
+    margin-top: 0;
+    height: 40px;
+    font-size: 16px;
+    padding: 0.5rem 0.75rem;
   }
 }
 .login-modal-overlay {
@@ -342,4 +362,66 @@ body {
   fill: currentColor;
   stroke: currentColor;
   stroke-width: 1.5;
+}
+
+
+.restaurant-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.restaurant-title h4 {
+  margin: 0; /* elimina espacios indeseados */
+  font-size: 16px; /* ajusta según tu diseño */
+}
+
+.restaurant-likes-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: red;
+  font-size: 14px;
+}
+
+
+
+@media (max-width: 640px) {
+  .zone-selector {
+    flex-direction: row !important;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .zone-selector h3, #district-filter {
+    width: 48%;
+    margin: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Ajuste para el botón de cuenta de usuario */
+  #my-account-btn { 
+    position: relative; 
+    top: 3px; 
+  } 
+  
+  /* Ajuste para el botón de restaurante */
+  #my-restaurant-btn {
+    position: relative;
+    top: 3px;
+  }
+}
+@media (max-width: 480px) {
+  .cont-gen {
+    gap: 5px; /* Reducir el espacio entre botones */
+  }
+  
+  .cont-com, .cont-but {
+    padding: 6px 8px; /* Reducir aún más el padding */
+  }
+  
+  .header-button {
+    font-size: 12px; /* Reducir más el tamaño de fuente */
+    padding: 0.5rem 0.5rem; /* Reducir el padding del botón */
+  }
 }
