@@ -720,6 +720,10 @@ document.addEventListener("DOMContentLoaded", () => {
         '<p style="text-align: center;">No active dishes in this menu category.</p>';
       return;
     }
+    window.activeDishesMap = {};
+    activeDishes.forEach((dish) => {
+      window.activeDishesMap[dish.id] = dish;
+    });
 
     activeDishes.forEach((dish) => {
       const dishItem = document.createElement("div");
@@ -772,6 +776,55 @@ document.addEventListener("DOMContentLoaded", () => {
         button.addEventListener("click", handleDishLikeClick);
         button.dataset.listenersInitialized = true; // Mark as initialized
       });
+  }
+  function openCommentModal(dishId) {
+    const dish = window.activeDishesMap?.[dishId];
+    if (!dish) return;
+
+    document.getElementById("commentDishImage").src =
+      dish.photoUrl || "https://placehold.co/160x160";
+    document.getElementById("commentDishName").textContent = dish.name;
+    document.getElementById("commentText").value = "";
+
+    document.getElementById("commentModalOverlay").style.display = "flex";
+
+    document.getElementById("omitCommentBtn").onclick = () => {
+      document.getElementById("commentModalOverlay").style.display = "none";
+    };
+
+    document.getElementById("submitCommentBtn").onclick = () => {
+      if (!validateContentModal()) return;
+
+      const comment = document.getElementById("commentText").value.trim();
+      console.log(`Comentario enviado:`, comment);
+      document.getElementById("commentModalOverlay").style.display = "none";
+    };
+  }
+
+  function validateContentModal() {
+    const commentEl = document.getElementById("commentText");
+    const comment = commentEl.value.trim();
+
+    // 1. Validar que no esté vacío
+    if (!comment) {
+      alert("Por favor, escribe un comentario antes de enviarlo.");
+      return false;
+    }
+
+    // 2. Validar longitud máxima
+    if (comment.length > 80) {
+      alert("El comentario no debe exceder los 80 caracteres.");
+      return false;
+    }
+
+    // 3. Validar caracteres permitidos (letras, números, espacios y signos comunes)
+    const validRegex = /^[\w\s.,¡!¿?'"()áéíóúÁÉÍÓÚñÑ-]+$/;
+    if (!validRegex.test(comment)) {
+      alert("El comentario contiene caracteres no permitidos.");
+      return false;
+    }
+
+    return true;
   }
 
   initializeMenuPage();
