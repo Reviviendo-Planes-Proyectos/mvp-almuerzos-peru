@@ -384,67 +384,63 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function handleDishLikeClick(event) {
-    const dishId = event.currentTarget.dataset.dishId;
+    const button = event.currentTarget;
+    const dishId = button.dataset.dishId;
     const user = auth.currentUser;
 
     if (!user) {
-      loginModalOverlay.style.display = "flex";
-      showToast("Please log in to like dishes.", "info");
+      showToast("Debes iniciar sesión para dar like.", "warning");
       return;
     }
 
-    const isLiked = currentUserFavorites.has(dishId);
-    const action = isLiked ? "unlike" : "like";
+    const likeDocRef = db
+      .collection("invited")
+      .doc(user.uid)
+      .collection("dailyLikes")
+      .doc(dishId);
 
     try {
-      const idToken = await user.getIdToken();
+      const likeDoc = await likeDocRef.get();
 
-      const response = await fetch(`/api/dishes/${dishId}/like`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ action: action }),
+      if (likeDoc.exists) {
+        const { timestamp } = likeDoc.data();
+        const now = Date.now();
+
+        // 🕒 Bloquear por 24 horas (1 día)
+        if (now - timestamp.toMillis() < 24 * 60 * 60 * 1000) {
+          showToast("Ya diste like hoy. Intenta nuevamente mañana.", "info");
+          return;
+        }
+      }
+
+      // ✅ 1. Guardar el nuevo like
+      await likeDocRef.set({
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(
-          errorData.error ||
-            `Error ${action === "like" ? "liking" : "unliking"} the dish.`
-        );
+      // ✅ 2. Incrementar likesCount del plato
+      await db
+        .collection("dishes")
+        .doc(dishId)
+        .update({
+          likesCount: firebase.firestore.FieldValue.increment(1),
+        });
+
+      // ✅ 3. Cambiar icono en el botón
+      button.innerHTML = "❤️";
+      button.disabled = true;
+
+      // ✅ 4. Actualizar contador de likes en pantalla
+      const likesCountEl = document.getElementById(`likes-count-${dishId}`);
+      if (likesCountEl) {
+        const currentLikes = parseInt(likesCountEl.innerText) || 0;
+        likesCountEl.innerText = `${currentLikes + 1} me gustas`;
       }
 
-      const data = await response.json();
-
-      if (action === "like") {
-        currentUserFavorites.add(dishId);
-      } else {
-        currentUserFavorites.delete(dishId);
-      }
-      updateDishLikeButtons();
-
-      if (favoritesCounter) {
-        favoritesCounter.textContent = currentUserFavorites.size;
-      }
-
-      const likesCountElement = document.getElementById(
-        `likes-count-${dishId}`
-      );
-      if (likesCountElement) {
-        likesCountElement.textContent = `${data.likesCount || 0} me gustas`;
-      }
-
-      showToast(
-        `Plato ${
-          action === "like" ? "añadido a" : "retirado de"
-        } sus favoritos!`,
-        "success"
-      );
+      showToast("¡Gracias por tu like!", "success");
     } catch (error) {
-      console.error("Error sending like/unlike for", dishId, error);
-      showToast(`Error: ${error.message}`, "error");
+      console.error("Error al dar like diario:", error);
+      showToast("Hubo un error al registrar tu like.", "error");
     }
   }
 
@@ -728,12 +724,43 @@ document.addEventListener("DOMContentLoaded", () => {
   function setupLikeControls() {
     document
       .querySelectorAll(".dish-like-control .like-button")
-      .forEach((button) => {
-        // Only attach listener once
+      .forEach(async (button) => {
         if (button.dataset.listenersInitialized) return;
 
+        const dishId = button.dataset.dishId;
+        const user = auth.currentUser;
+
+        if (!user) {
+          button.innerHTML = "🤍";
+          return;
+        }
+
+        const likeDoc = await db
+          .collection("invited")
+          .doc(user.uid)
+          .collection("dailyLikes")
+          .doc(dishId)
+          .get();
+
+        if (likeDoc.exists) {
+          const { timestamp } = likeDoc.data();
+          const now = Date.now();
+
+          if (now - timestamp.toMillis() < 3 * 60 * 1000) {
+            button.innerHTML = "❤️";
+            button.disabled = true;
+          } else {
+            button.innerHTML = "🤍";
+            button.disabled = false;
+          }
+        } else {
+          button.innerHTML = "🤍";
+          button.disabled = false;
+        }
+
+        // Asignar listener
         button.addEventListener("click", handleDishLikeClick);
-        button.dataset.listenersInitialized = true; // Mark as initialized
+        button.dataset.listenersInitialized = true;
       });
   }
 
