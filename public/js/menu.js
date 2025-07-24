@@ -46,6 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let startX;
   let scrollLeft;
 
+  let currentCardId = null;
+
   // --- Funciones auxiliares ---
   function showToast(message, type = "info", duration = 3000) {
     if (!toastNotification) return;
@@ -546,7 +548,10 @@ document.addEventListener("DOMContentLoaded", () => {
       currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
     }')`;
-    restaurantNameElement.textContent = currentRestaurant.name.length > 40 ? currentRestaurant.name.substring(0, 40) + '...' : currentRestaurant.name;
+    restaurantNameElement.textContent =
+      currentRestaurant.name.length > 40
+        ? currentRestaurant.name.substring(0, 40) + "..."
+        : currentRestaurant.name;
     restaurantDescriptionElement.textContent = currentRestaurant.description;
 
     if (shareButton) {
@@ -598,50 +603,101 @@ document.addEventListener("DOMContentLoaded", () => {
       if (index === 0) button.classList.add("active");
       button.textContent = card.name;
       button.dataset.cardId = card.id;
-      button.onclick = () => displayDishesForCard(card.id);
+      button.onclick = () => {
+        currentCardId = card.id;
+        displayDishesForCard(card.id);
+      };
       cardsNav.appendChild(button);
     });
   }
 
+  function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+      navigator.userAgent
+    );
+  }
+
   async function handleShareRestaurant() {
-    if (!currentRestaurant) {
+    if (!currentRestaurant || !currentRestaurant.whatsapp) {
       showToast(
-        "Cannot share: restaurant information not available.",
+        "No se encontró número de WhatsApp del restaurante.",
         "warning"
       );
       return;
     }
 
+    const message = generateWhatsAppMessageSharing(currentRestaurant);
+    const encodedMessage = encodeURIComponent(message);
+
+    const whatsappWebURL = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+
     const shareData = {
-      title: `Discover ${currentRestaurant.name} on Almuerzos Perú!`,
-      text: `Check out the delicious menu of ${currentRestaurant.name} on Almuerzos Perú.`,
-      url: window.location.href,
+      title: `Descubre ${currentRestaurant.name} en Almuerzos Perú`,
+      text: message,
     };
 
     try {
-      if (navigator.share) {
+      if (navigator.share && isMobileDevice()) {
         await navigator.share(shareData);
-        showToast("Restaurant shared successfully!", "success");
+        showToast("¡Restaurante compartido exitosamente!", "success");
       } else {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          await navigator.clipboard.writeText(shareData.url);
-          showToast("Link copied to clipboard. Share it!", "success");
-        } else {
-          showToast(
-            "Your browser does not support direct sharing. Copy and paste the link: " +
-              window.location.href,
-            "info"
-          );
-        }
+        window.open(whatsappWebURL, "_blank");
+        showToast("Abriendo WhatsApp...", "info");
       }
     } catch (error) {
-      console.error("Error sharing:", error);
-      if (error.name === "AbortError") {
-        showToast("Sharing cancelled.", "info");
-      } else {
-        showToast("Error attempting to share.", "error");
-      }
+      console.error("Error al compartir:", error);
+      showToast("Hubo un error al intentar compartir.", "error");
     }
+  }
+
+  function generateWhatsAppMessageSharing(currentRestaurant) {
+    if (!currentRestaurant) {
+      showToast(
+        "No se puede generar el mensaje: restaurante no disponible",
+        "warning"
+      );
+      return "";
+    }
+
+    const name = currentRestaurant.name || "";
+    const link = `https://app-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}`;
+    const yape = currentRestaurant.yape || "No disponible";
+
+    const today = new Date()
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+    const todayHours = currentRestaurant.schedule?.[today] || {};
+    const from = todayHours.from || "—";
+    const to = todayHours.to || "—";
+
+    const fallbackCard =
+      allCardsData?.find((card) => card.id === currentCardId) ||
+      allCardsData[0];
+    const categoryName = fallbackCard?.name || "Almuerzos";
+    const dishes = fallbackCard?.dishes || [];
+
+    let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en *${name}* 🍽️\n\n`;
+
+    if (link) {
+      message += `📌 Puedes ver nuestra carta aquí: 👉 ${link}\n\n`;
+    }
+
+    message += `🍽️ *${categoryName}*\n`;
+
+    if (dishes.length === 0) {
+      message += `❌ Actualmente no hay platos disponibles para esta categoría.\n`;
+    } else {
+      dishes.forEach((dish) => {
+        message += `❤️ ${dish.name} – S/ ${dish.price.toFixed(2)}\n`;
+      });
+    }
+
+    message += `\n🕒 *Horario de atención (hoy):*\n${from} – ${to}\n`;
+    message += `📱 *Yape:* ${yape}\n\n`;
+    message += `📥 ¿Quieres separar tu plato? Escríbenos por aquí y te lo dejamos listo 🤗\n\n`;
+    message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
+
+    return message;
   }
 
   async function displayDishesForCard(cardId) {
