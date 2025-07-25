@@ -120,6 +120,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const message = generateWhatsAppMessage();
 
     if (message) {
+      // Obtener platos previamente comentados del localStorage
+      const previousDishes = JSON.parse(localStorage.getItem("commentedDishes")) || [];
+      const commentedDishesSet = new Set(previousDishes);
+
       Object.keys(shoppingCart).forEach((dishId) => {
         const quantity = shoppingCart[dishId];
         if (quantity > 0) {
@@ -143,8 +147,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             commentContainer.appendChild(commentIcon);
           }
+
+          // Agregar a set (evita duplicados)
+          commentedDishesSet.add(dishId);
         }
       });
+
+      // Guardar platos comentados actualizados en localStorage
+      localStorage.setItem(
+        "commentedDishes",
+        JSON.stringify(Array.from(commentedDishesSet))
+      );
 
       // Abrir WhatsApp al final
       const encoded = encodeURIComponent(message);
@@ -153,10 +166,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   function renderCommentIcons() {
-    Object.keys(shoppingCart).forEach((dishId) => {
-      const quantity = shoppingCart[dishId];
+    const commentedDishes = JSON.parse(localStorage.getItem("commentedDishes")) || [];
 
-      if (quantity > 0 && !window.sentComments[dishId]) {
+    const allDishIds = new Set([
+      ...Object.keys(shoppingCart || {}),
+      ...commentedDishes
+    ]);
+
+    allDishIds.forEach((dishId) => {
+      const quantity = shoppingCart?.[dishId] || 0;
+      const hasComment = commentedDishes.includes(dishId);
+
+      // Mostrar ícono si hay cantidad o si está guardado en localStorage
+      if ((quantity > 0 || hasComment) && !window.sentComments?.[dishId]) {
         const commentContainer = document.querySelector(
           `.comment-button-container[data-dish-id="${dishId}"]`
         );
@@ -243,7 +265,7 @@ document.addEventListener("DOMContentLoaded", () => {
       minusBtn.onclick = () => {
         const newQuantity = (shoppingCart[dishId] || 0) - 1;
         updateCart(dishId, newQuantity, control);
-        toggleCommentIcon(dishId, newQuantity);
+        //toggleCommentIcon(dishId, newQuantity);
       };
 
       plusBtn.onclick = () => {
@@ -954,6 +976,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Marcar como enviado
       window.sentComments[dishId] = true;
+
+      // Eliminar el dishId del localStorage
+      const stored = JSON.parse(localStorage.getItem("commentedDishes")) || [];
+      const updated = stored.filter((id) => id !== dishId);
+      localStorage.setItem("commentedDishes", JSON.stringify(updated));
 
       setTimeout(() => {
         submitBtn.textContent = "Enviar comentario";
