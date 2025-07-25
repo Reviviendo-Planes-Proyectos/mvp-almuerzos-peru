@@ -364,12 +364,6 @@ document.addEventListener("DOMContentLoaded", () => {
       tomSelectInstance.clearOptions();
       
       // Volver a agregar las opciones
-      // Agregar opción "Todos los Distritos" primero
-      tomSelectInstance.addOption({
-        value: '',
-        text: 'Todos los Distritos'
-      });
-      
       districts.forEach(district => {
         tomSelectInstance.addOption({
           value: district,
