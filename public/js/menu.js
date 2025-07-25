@@ -149,6 +149,33 @@ document.addEventListener("DOMContentLoaded", () => {
       window.open(link, "_blank");
     }
   }
+  function renderCommentIcons() {
+    Object.keys(shoppingCart).forEach((dishId) => {
+      const quantity = shoppingCart[dishId];
+      if (quantity > 0) {
+        const commentContainer = document.querySelector(
+          `.comment-button-container[data-dish-id="${dishId}"]`
+        );
+
+        if (
+          commentContainer &&
+          !commentContainer.querySelector(".comment-icon")
+        ) {
+          const commentIcon = document.createElement("span");
+          commentIcon.className = "comment-icon";
+          commentIcon.innerHTML = "🗨️";
+          commentIcon.setAttribute("data-dish-id", dishId);
+          commentIcon.style.cursor = "pointer";
+
+          commentIcon.addEventListener("click", () => {
+            openCommentModal(dishId);
+          });
+
+          commentContainer.appendChild(commentIcon);
+        }
+      }
+    });
+  }
 
   function generateWhatsAppMessage() {
     if (Object.keys(shoppingCart).length === 0) {
@@ -720,6 +747,7 @@ document.addEventListener("DOMContentLoaded", () => {
         '<p style="text-align: center;">No active dishes in this menu category.</p>';
       return;
     }
+
     window.activeDishesMap = {};
     activeDishes.forEach((dish) => {
       window.activeDishesMap[dish.id] = dish;
@@ -738,33 +766,35 @@ document.addEventListener("DOMContentLoaded", () => {
       const heartIcon = currentUserFavorites.has(dish.id) ? "❤️" : "🤍";
 
       dishItem.innerHTML = `
-                                <div class="dish-image-wrapper">
-                                    <img src="${imageUrl}" alt="${dish.name}">
-                                    <div class="dish-like-control">
-                                        <button class="like-button dish-like-btn" data-dish-id="${dish.id}">${heartIcon}</button>
-                                    </div>
-                                </div>
-                                <div class="dish-details">
-                                    <h3>${dish.name}</h3>
-                                    <p>S/. ${dish.price.toFixed(2)}</p>
-                                    <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gustas</p> 
-                                </div>
-                                <div class="quantity-container">
-                                <div class="quantity-control" data-dish-id="${dish.id}" data-dish-name="${dish.name}" data-dish-price="${dish.price}">
-                                    <button class="quantity-btn add-btn">+</button>
-                                    <div class="quantity-selector">
-                                        <button class="quantity-btn minus-btn">-</button>
-                                        <span class="quantity-display">${shoppingCart[dish.id] || 0}</span>
-                                        <button class="quantity-btn plus-btn">+</button>
-                                    </div>
-                                    </div>
-                                    <div class="comment-button-container" data-dish-id="${dish.id}"></div>
-                                </div>
-                            `;
+      <div class="dish-image-wrapper">
+          <img src="${imageUrl}" alt="${dish.name}">
+          <div class="dish-like-control">
+              <button class="like-button dish-like-btn" data-dish-id="${dish.id}">${heartIcon}</button>
+          </div>
+      </div>
+      <div class="dish-details">
+          <h3>${dish.name}</h3>
+          <p>S/. ${dish.price.toFixed(2)}</p>
+          <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gustas</p> 
+      </div>
+      <div class="quantity-container">
+        <div class="quantity-control" data-dish-id="${dish.id}" data-dish-name="${dish.name}" data-dish-price="${dish.price}">
+            <button class="quantity-btn add-btn">+</button>
+            <div class="quantity-selector">
+                <button class="quantity-btn minus-btn">-</button>
+                <span class="quantity-display">${shoppingCart[dish.id] || 0}</span>
+                <button class="quantity-btn plus-btn">+</button>
+            </div>
+        </div>
+        <div class="comment-button-container" data-dish-id="${dish.id}"></div>
+      </div>
+    `;
       dishesContainer.appendChild(dishItem);
     });
+
     setupQuantityControls();
     setupLikeControls();
+    renderCommentIcons(); // <-- ✅ AÑADIR ESTA LÍNEA
   }
   function setupLikeControls() {
     document
@@ -785,6 +815,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dish.photoUrl || "https://placehold.co/160x160";
     document.getElementById("commentDishName").textContent = dish.name;
     document.getElementById("commentText").value = "";
+    resetCommentUI();
 
     document.getElementById("commentModalOverlay").style.display = "flex";
 
@@ -793,48 +824,35 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     document.getElementById("submitCommentBtn").onclick = () => {
-      if (!validateContentModal()) return;
-
       const comment = document.getElementById("commentText").value.trim();
       const user = firebase.auth().currentUser;
-      commentContent = {
+      const submitBtn = document.getElementById("submitCommentBtn");
+
+      // Cambiar estado visual del botón
+      submitBtn.textContent = "Enviando...";
+      submitBtn.classList.add("sending");
+
+      const commentContent = {
         invitedId: user.uid,
         dishId: dishId,
         content: comment,
         restaurantId: currentRestaurantId,
       };
-      document.getElementById("commentModalOverlay").style.display = "none";
-      showCustomToast("Comentario enviado con éxito");
+
+      // Simular envío o usar await si es una función async
       submitDishComment(commentContent);
-      toggleCommentIcon(dishId, 0);
+
+      // Opcional: Restaurar botón después de enviar
+      setTimeout(() => {
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        document.getElementById("commentModalOverlay").style.display = "none";
+        showCustomToast("Comentario enviado con éxito");
+        toggleCommentIcon(dishId, 0);
+      }, 1000); // 1 segundo simulado (ajusta si usas await)
     };
   }
 
-  function validateContentModal() {
-    const commentEl = document.getElementById("commentText");
-    const comment = commentEl.value.trim();
-
-    // 1. Validar que no esté vacío
-    if (!comment) {
-      alert("Por favor, escribe un comentario antes de enviarlo.");
-      return false;
-    }
-
-    // 2. Validar longitud máxima
-    if (comment.length > 80) {
-      alert("El comentario no debe exceder los 80 caracteres.");
-      return false;
-    }
-
-    // 3. Validar caracteres permitidos (letras, números, espacios y signos comunes)
-    const validRegex = /^[\w\s.,¡!¿?'"()áéíóúÁÉÍÓÚñÑ-]+$/;
-    if (!validRegex.test(comment)) {
-      alert("El comentario contiene caracteres no permitidos.");
-      return false;
-    }
-
-    return true;
-  }
   function showCustomToast(message) {
     const toast = document.getElementById("custom-toast");
     toast.textContent = message;
@@ -846,7 +864,7 @@ document.addEventListener("DOMContentLoaded", () => {
       toast.classList.add("hidden");
     }, 3000);
   }
-  async function submitDishComment({invitedId,  dishId, content}) {
+  async function submitDishComment({ invitedId, dishId, content }) {
     try {
       const user = firebase.auth().currentUser;
       if (!user) {
@@ -875,6 +893,54 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("❌ Error al enviar comentario:", err.message);
       throw err;
     }
+  }
+  const commentText = document.getElementById('commentText');
+  const progressBar = document.getElementById('progressBar');
+  const charCounter = document.getElementById('charCounter'); // Asegúrate de tener este elemento en el HTML
+  const maxLength = commentText.maxLength;
+
+  commentText.addEventListener('input', () => {
+    const length = commentText.value.length;
+    const progress = (length / maxLength) * 100;
+
+    // Actualizar barra
+    progressBar.style.width = `${progress}%`;
+
+    // Actualizar contador de caracteres
+    charCounter.textContent = `${length} / ${maxLength}`;
+
+    // Resetear clases de color
+    commentText.classList.remove('border-green', 'border-yellow', 'border-red');
+    charCounter.classList.remove('text-green', 'text-yellow', 'text-red'); // si usas colores dinámicos en texto
+    progressBar.classList.remove('bg-green', 'bg-yellow', 'bg-red'); // opcional si usas clases para color
+
+    // Aplicar color según el progreso
+    if (progress < 50) {
+      progressBar.style.backgroundColor = '#4caf50'; // verde
+      commentText.classList.add('border-green');
+      charCounter.classList.add('text-green');
+    } else if (progress < 90) {
+      progressBar.style.backgroundColor = '#ffc107'; // amarillo
+      commentText.classList.add('border-yellow');
+      charCounter.classList.add('text-yellow');
+    } else {
+      progressBar.style.backgroundColor = '#f44336'; // rojo
+      commentText.classList.add('border-red');
+      charCounter.classList.add('text-red');
+    }
+  });
+  function resetCommentUI() {
+    const textarea = document.getElementById("commentText");
+    const progressBar = document.getElementById("progressBar");
+
+    textarea.value = "";
+    progressBar.style.width = "0%";
+    progressBar.style.backgroundColor = "#f7bd00"; // color inicial
+
+    // Reset de clases de borde
+    textarea.classList.remove("border-green", "border-yellow", "border-red");
+    textarea.classList.add("border-yellow"); // color por defecto
+    charCounter.textContent = `0 / ${maxLength}`;
   }
   initializeMenuPage();
   setupMyRestaurantButton();

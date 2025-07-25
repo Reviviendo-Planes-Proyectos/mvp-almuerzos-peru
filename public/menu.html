@@ -131,14 +131,19 @@
     <img id="commentDishImage" src="" alt="Plato" class="modal-image" />
     <h2 id="commentDishName"></h2>
     <p>¿Qué tal te pareció el platillo? ¿Cómo podríamos mejorarlo?</p>
-    <textarea id="commentText" rows="4" maxlength="150" placeholder="Escribe tu comentario aquí..."></textarea>
-    <div class="modal-buttons">
+    <textarea id="commentText" rows="4" maxlength="120" placeholder="Escribe tu comentario aquí..."></textarea>
+    <div class="progress-row">
+    <div class="progress-container">
+      <div id="progressBar" class="progress-bar"></div>
+        </div>
+          <span id="charCounter" class="char-counter">0 / 120</span>
+        </div>
+      <div class="modal-buttons">
       <button id="omitCommentBtn">Omitir</button>
       <button id="submitCommentBtn">Enviar comentario</button>
     </div>
   </div>
-</div>
-
+  </div>
 </body>
 
 </html>

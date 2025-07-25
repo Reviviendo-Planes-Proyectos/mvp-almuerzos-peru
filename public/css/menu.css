@@ -520,22 +520,65 @@ body {
 }
 
 textarea {
-  font-family: "Nunito", sans-serif;
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #f7bd00;
-  background: #fefce8;
-  border-radius: 10px;
-  resize: none;
-  margin-top: 10px;
-  font-size: 16px;
-  height: 100px;
-}
+    font-family: "Nunito", sans-serif;
+    width: 100%;
+    padding: 10px;
+    border: 2px solid #f7bd00;
+    background: #fefce8;
+    border-radius: 10px;
+    resize: none;
+    margin-top: 10px;
+    font-size: 16px;
+    height: 100px;
+    transition: border-color 0.3s ease;
+  }
 
-textarea:focus {
-  outline: none;
-  border-color: #f7bd00;
-}
+  textarea:focus {
+    outline: none;
+    border-color: #f7bd00;
+  }
+.progress-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 5px;
+  }
+
+  .progress-container {
+    width: 100%;
+    height: 6px;
+    background-color: #eee;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-right: 10px;
+  }
+
+  .progress-bar {
+    height: 100%;
+    width: 0%;
+    background-color: #f7bd00;
+    transition: width 0.2s ease, background-color 0.3s ease;
+  }
+
+  .char-counter {
+    font-size: 14px;
+    color: #555;
+    white-space: nowrap;
+    min-width: 55px;
+    text-align: right;
+  }
+  /* Bordes de advertencia */
+  .border-green {
+    border-color: #4caf50 !important;
+  }
+
+  .border-yellow {
+    border-color: #f7bd00 !important;
+  }
+
+  .border-red {
+    border-color: #f44336 !important;
+  }
 
 .modal-buttons {
   margin-top: 15px;
@@ -592,4 +635,11 @@ textarea:focus {
 
 .hidden {
   display: none;
+}
+
+#submitCommentBtn.sending {
+  background-color: #ccc !important; /* Gris claro */
+  color: #666 !important;
+  cursor: not-allowed;
+  pointer-events: none;
 }
