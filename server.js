@@ -331,10 +331,10 @@ app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
         const {
             userId,
             name,
-            description,
+            description = null,
             district,
             whatsapp,
-            photoUrl,
+            photoUrl = null,
             logoUrl = null,
             ruc = null,
             yape = null,
@@ -580,7 +580,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
             return res.status(403).json({ error: 'Forbidden: You do not own this restaurant.' });
         }
 
-        if (!name || !description || !district || !whatsapp) {
+        if (!name || !district || !whatsapp) {
             return res.status(400).json({ error: 'All fields are required.' });
         }
 
@@ -589,7 +589,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
         const oldPhotoUrl = oldData.photoUrl;
         const updatedData = {
             name: name ?? '',
-            description: description ?? '',
+            description: description ?? null,
             district: district ?? '',
             whatsapp: whatsapp ?? '',
             photoUrl: photoUrl ?? null,
