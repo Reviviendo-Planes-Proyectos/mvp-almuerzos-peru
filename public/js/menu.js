@@ -660,7 +660,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const name = currentRestaurant.name || "";
-    const link = `https://app-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}`;
+    const link = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}`;
     const yape = currentRestaurant.yape || "No disponible";
 
     const today = new Date()
