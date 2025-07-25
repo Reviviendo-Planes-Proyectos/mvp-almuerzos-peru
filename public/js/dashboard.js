@@ -556,7 +556,53 @@ function clearDishImageState() {
 }
 function setupImageUploader() {
   const imageInput = document.getElementById("dish-image-input");
+  const cameraInput = document.getElementById("camera-input");
+  const galleryInput = document.getElementById("gallery-input");
+  const cameraBtn = document.getElementById("camera-btn");
+  const galleryBtn = document.getElementById("gallery-btn");
+  
+  // Configuración para modal de nuevo plato
   imageInput.addEventListener("change", handleImageSelection);
+  cameraInput.addEventListener("change", handleImageSelection);
+  galleryInput.addEventListener("change", handleImageSelection);
+  
+  if (cameraBtn) {
+    cameraBtn.addEventListener("click", () => {
+      openCameraCapture();
+    });
+  }
+  
+  if (galleryBtn) {
+    galleryBtn.addEventListener("click", () => {
+      galleryInput.click();
+    });
+  }
+  
+  // Configuración para modal de editar plato
+  const editCameraInput = document.getElementById("edit-camera-input");
+  const editGalleryInput = document.getElementById("edit-gallery-input");
+  const editCameraBtn = document.getElementById("edit-camera-btn");
+  const editGalleryBtn = document.getElementById("edit-gallery-btn");
+  
+  if (editCameraInput) {
+    editCameraInput.addEventListener("change", handleEditImageSelection);
+  }
+  
+  if (editGalleryInput) {
+    editGalleryInput.addEventListener("change", handleEditImageSelection);
+  }
+  
+  if (editCameraBtn) {
+    editCameraBtn.addEventListener("click", () => {
+      openCameraCapture(true);
+    });
+  }
+  
+  if (editGalleryBtn) {
+    editGalleryBtn.addEventListener("click", () => {
+      editGalleryInput.click();
+    });
+  }
 }
 // Función auxiliar para obtener dimensiones de la imagen
 function getImageDimensions(file) {
@@ -593,6 +639,259 @@ function validateFileType(file) {
   }
 
   return true;
+}
+
+// Función para abrir la captura de cámara
+async function openCameraCapture(isEditMode = false) {
+  try {
+    // Verificar si el navegador soporta getUserMedia
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Tu navegador no soporta el acceso a la cámara. Por favor, usa el botón de galería.');
+      return;
+    }
+
+    // Solicitar acceso a la cámara
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment', // Preferir cámara trasera en móviles
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    });
+
+    // Crear el modal de cámara
+    createCameraModal(stream, isEditMode);
+
+  } catch (error) {
+    console.error('Error al acceder a la cámara:', error);
+    
+    if (error.name === 'NotAllowedError') {
+      alert('Acceso a la cámara denegado. Por favor, permite el acceso a la cámara en tu navegador y vuelve a intentarlo.');
+    } else if (error.name === 'NotFoundError') {
+      alert('No se encontró ninguna cámara en tu dispositivo. Por favor, usa el botón de galería.');
+    } else if (error.name === 'NotReadableError') {
+      alert('La cámara está siendo usada por otra aplicación. Por favor, ciérrala y vuelve a intentarlo.');
+    } else {
+      alert('Error al acceder a la cámara. Por favor, usa el botón de galería como alternativa.');
+    }
+  }
+}
+
+// Función para crear el modal de cámara
+function createCameraModal(stream, isEditMode = false) {
+  // Crear el modal
+  const modal = document.createElement('div');
+  modal.id = 'camera-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  `;
+
+  // Crear el contenedor del video
+  const videoContainer = document.createElement('div');
+  videoContainer.style.cssText = `
+    position: relative;
+    max-width: 90vw;
+    max-height: 70vh;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+  `;
+
+  // Crear el elemento video
+  const video = document.createElement('video');
+  video.style.cssText = `
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  `;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.srcObject = stream;
+
+  // Crear los controles
+  const controls = document.createElement('div');
+  controls.style.cssText = `
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+  `;
+
+  // Botón de captura
+  const captureBtn = document.createElement('button');
+  captureBtn.innerHTML = '📸 Tomar Foto';
+  captureBtn.style.cssText = `
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+  `;
+
+  // Botón de cerrar
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '❌ Cerrar';
+  closeBtn.style.cssText = `
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+  `;
+
+  // Eventos
+  captureBtn.addEventListener('click', () => {
+    capturePhoto(video, stream, modal, isEditMode);
+  });
+
+  closeBtn.addEventListener('click', () => {
+    closeCameraModal(stream, modal);
+  });
+
+  // Ensamblar el modal
+  videoContainer.appendChild(video);
+  controls.appendChild(captureBtn);
+  controls.appendChild(closeBtn);
+  modal.appendChild(videoContainer);
+  modal.appendChild(controls);
+  document.body.appendChild(modal);
+}
+
+// Función para capturar la foto
+function capturePhoto(video, stream, modal, isEditMode = false) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  
+  // Establecer las dimensiones del canvas
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  
+  // Dibujar el frame actual del video en el canvas
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  // Convertir a blob
+  canvas.toBlob((blob) => {
+    if (blob) {
+      // Crear un archivo desde el blob
+      const file = new File([blob], `camera-photo-${Date.now()}.jpg`, {
+        type: 'image/jpeg',
+        lastModified: Date.now()
+      });
+      
+      // Procesar la imagen capturada
+      if (isEditMode) {
+        processEditCapturedImage(file);
+      } else {
+        processCapturedImage(file);
+      }
+      
+      // Cerrar el modal
+      closeCameraModal(stream, modal);
+    }
+  }, 'image/jpeg', 0.9);
+}
+
+// Función para procesar la imagen capturada (nuevo plato)
+async function processCapturedImage(file) {
+  try {
+    const { width, height } = await getImageDimensions(file);
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      showModalAlert(`La resolución de la imagen es muy baja`);
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      return;
+    }
+
+    const preview = document.getElementById("dish-image-preview");
+    const placeholder = document.getElementById("image-upload-placeholder");
+    const cameraInput = document.getElementById("camera-input");
+    
+    // Simular la selección de archivo
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    cameraInput.files = dataTransfer.files;
+    
+    // Abrir el modal de recorte
+    openCropperModal(file, cameraInput, preview, placeholder);
+
+  } catch (error) {
+    console.error("Error al procesar la imagen capturada:", error);
+    alert("Hubo un error al procesar la imagen capturada.");
+  }
+}
+
+// Función para procesar la imagen capturada (editar plato)
+async function processEditCapturedImage(file) {
+  try {
+    const { width, height } = await getImageDimensions(file);
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      showModalAlert(`La resolución de la imagen es muy baja`);
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      return;
+    }
+
+    const preview = document.getElementById("edit-dish-image-preview");
+    const placeholder = document.getElementById("edit-image-upload-placeholder");
+    const editCameraInput = document.getElementById("edit-camera-input");
+    
+    // Simular la selección de archivo
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    editCameraInput.files = dataTransfer.files;
+    
+    // Abrir el modal de recorte
+    openCropperModal(file, editCameraInput, preview, placeholder);
+
+  } catch (error) {
+    console.error("Error al procesar la imagen capturada:", error);
+    alert("Hubo un error al procesar la imagen capturada.");
+  }
+}
+
+// Función para cerrar el modal de cámara
+function closeCameraModal(stream, modal) {
+  // Detener el stream de video
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+  
+  // Remover el modal
+  if (modal && modal.parentNode) {
+    modal.parentNode.removeChild(modal);
+  }
 }
 
 // Modificación en handleImageSelection
@@ -642,6 +941,55 @@ async function handleImageSelection(event) {
     event.target.value = "";
   }
 }
+
+// Función para manejar la selección de imagen en el modal de editar plato
+async function handleEditImageSelection(event) {
+  const preview = document.getElementById("edit-dish-image-preview");
+  const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validar tipo de archivo
+  if (!validateFileType(file)) {
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Elige una de menos de 5MB.");
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    const { width, height } = await getImageDimensions(file);
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      showModalAlert(`La resolución de la imagen es muy baja`);
+      event.target.value = "";
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      event.target.value = "";
+      return;
+    }
+
+    // Abrir el modal de recorte
+    openCropperModal(file, event.target, preview, placeholder);
+
+  } catch (error) {
+    console.error("Error al procesar la imagen:", error);
+    alert("Hubo un error al procesar la imagen.");
+    event.target.value = "";
+  }
+}
+
 function compressImage(file, quality = 0.7, maxWidth = 800) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -846,46 +1194,27 @@ function openEditDishModal(dish) {
   document.getElementById("edit-dish-name").value = dish.name;
   document.getElementById("edit-dish-price").value = dish.price;
   const preview = document.getElementById("edit-dish-image-preview");
-  preview.src =
-    dish.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Img`;
+  const placeholder = document.getElementById("edit-image-upload-placeholder");
+  
+  // Mostrar la imagen actual del plato
+  if (dish.photoUrl && dish.photoUrl !== "/images/default-dish.jpg.png") {
+    preview.src = dish.photoUrl;
+    preview.style.display = "block";
+    placeholder.style.display = "none";
+  } else {
+    preview.style.display = "none";
+    placeholder.style.display = "flex";
+  }
+  
   compressedDishImageFile = null;
   document.getElementById("edit-dish-image-input").value = "";
+  document.getElementById("edit-camera-input").value = "";
+  document.getElementById("edit-gallery-input").value = "";
+  
   editImageInput.onchange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      alert("La imagen es demasiado grande (máx 5MB).");
-      return;
-    }
-
-    try {
-      const { width, height } = await getImageDimensions(file);
-      const minWidth = 160;
-      const minHeight = 120;
-      const maxWidth = 2560;
-      const maxHeight = 1440;
-
-      if (width < minWidth || height < minHeight) {
-        showModalAlert(`La resolución de la imagen es muy baja`);
-        event.target.value = "";
-        return;
-      }
-
-      if (width > maxWidth || height > maxHeight) {
-        showModalAlert(`La resolución de la imagen es demasiado alta`);
-        event.target.value = "";
-        return;
-      }
-
-      // Abrir el modal de recorte
-      openCropperModal(file, event.target, preview, null);
-
-    } catch (error) {
-      console.error("Error al procesar la imagen:", error);
-      alert("Hubo un error al procesar la imagen.");
-      event.target.value = "";
-    }
+    await handleEditImageSelection(event);
   };
+  
   document.getElementById("open-delete-dish-alert-btn").onclick = () => {
     openModal("deleteDishAlert");
   };
