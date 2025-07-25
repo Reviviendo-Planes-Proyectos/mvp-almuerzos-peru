@@ -817,8 +817,7 @@ async function handleUpdateRestaurant(event) {
       hasDelivery: form.elements.restaurantDelivery.checked,
       hasLocalService: form.elements.restaurantLocalService.checked,
       schedule: schedule
-    };
-
+    }; 
     const idToken = await currentUser.getIdToken();
     const response = await fetch(`/api/restaurants/${currentRestaurant.id}`, {
       method: "PUT",
