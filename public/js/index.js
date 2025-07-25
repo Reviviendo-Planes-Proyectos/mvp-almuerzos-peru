@@ -193,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutText.addEventListener("click", async () => {
       try {
         await auth.signOut();
+        localStorage.removeItem("commentedDishes");
         showToast("You have been logged out.", "info");
       } catch (error) {
         console.error("Error during logout:", error);
