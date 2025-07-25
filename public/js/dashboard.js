@@ -907,8 +907,8 @@ async function handleImageSelection(event) {
     return;
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert("La imagen es demasiado grande. Elige una de menos de 5MB.");
+  if (file.size > 50 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
     event.target.value = "";
     return;
   }
@@ -955,8 +955,8 @@ async function handleEditImageSelection(event) {
     return;
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert("La imagen es demasiado grande. Elige una de menos de 5MB.");
+  if (file.size > 50 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
     event.target.value = "";
     return;
   }
@@ -990,62 +990,38 @@ async function handleEditImageSelection(event) {
   }
 }
 
-function compressImage(file, quality = 0.7, maxWidth = 800) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-
-        // Determinar el tamaño del cuadrado para el recorte (usar el lado más pequeño)
-        const size = Math.min(img.width, img.height);
-
-        // Calcular las coordenadas para centrar el recorte
-        const startX = (img.width - size) / 2;
-        const startY = (img.height - size) / 2;
-
-        // Establecer el tamaño del canvas para el cuadrado recortado
-        let finalSize = size;
-        if (finalSize > maxWidth) {
-          finalSize = maxWidth;
-        }
-
-        canvas.width = finalSize;
-        canvas.height = finalSize;
-
-        const ctx = canvas.getContext("2d");
-
-        // Dibujar la imagen recortada y centrada
-        ctx.drawImage(
-          img,
-          startX, startY, size, size, // Área de origen (recorte cuadrado centrado)
-          0, 0, finalSize, finalSize  // Área de destino (canvas cuadrado)
-        );
-
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(
-                new File([blob], file.name, {
-                  type: "image/jpeg",
-                  lastModified: Date.now(),
-                })
-              );
-            } else {
-              reject(new Error("Error al crear el blob de la imagen."));
-            }
-          },
-          "image/jpeg",
-          quality
-        );
-      };
-      img.onerror = (error) => reject(error);
+async function compressImage(file, quality = 0.7, maxWidth = 800) {
+  try {
+    // Configuración para browser-image-compression
+    const options = {
+      maxSizeMB: 3, // Garantizar que el archivo final sea menor a 3MB
+      maxWidthOrHeight: maxWidth, // Mantener el ancho máximo
+      useWebWorker: true, // Usar Web Workers para mejor rendimiento
+      fileType: 'image/jpeg', // Convertir a JPEG
+      initialQuality: quality // Calidad inicial
     };
-    reader.onerror = (error) => reject(error);
-  });
+
+    // Comprimir la imagen usando browser-image-compression
+    const compressedFile = await imageCompression(file, options);
+    
+    // Verificar que el archivo comprimido sea menor a 3MB
+    if (compressedFile.size > 3 * 1024 * 1024) {
+      // Si aún es muy grande, intentar con configuración más agresiva
+      const aggressiveOptions = {
+        maxSizeMB: 2.5,
+        maxWidthOrHeight: Math.min(maxWidth, 600),
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        initialQuality: 0.6
+      };
+      return await imageCompression(file, aggressiveOptions);
+    }
+    
+    return compressedFile;
+  } catch (error) {
+    console.error('Error al comprimir imagen:', error);
+    throw new Error('No se pudo comprimir la imagen. Por favor, intenta con otra imagen.');
+  }
 }
 function openEditRestaurantModal() {
   if (!currentRestaurant) return;
@@ -1403,8 +1379,8 @@ async function handleRestaurantImageSelection(event) {
     return;
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert("La imagen es demasiado grande. Elige una de menos de 5MB.");
+  if (file.size > 50 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
     event.target.value = "";
     return;
   }
@@ -1450,8 +1426,8 @@ async function handleRestaurantLogoSelection(event) {
     return;
   }
 
-  if (file.size > 5 * 1024 * 1024) {
-    alert("El logo es demasiado grande. Elige uno de menos de 5MB.");
+  if (file.size > 50 * 1024 * 1024) {
+    alert("El logo es demasiado grande. Elige uno de menos de 50MB.");
     event.target.value = "";
     return;
   }
