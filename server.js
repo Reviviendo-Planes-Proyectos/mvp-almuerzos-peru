@@ -1053,6 +1053,7 @@ app.post('/api/comments', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
     console.log(`📱 Aplicación lista para usar`);
+});
 
 module.exports = app;
 
