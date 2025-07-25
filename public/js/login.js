@@ -178,7 +178,7 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
       console.log('Logo procesado correctamente');
     } catch (error) {
       console.error('Error al procesar el logo:', error);
-      alert(error.message || 'Error al procesar la imagen');
+      alert(error.message || '¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       // Limpiar el input
       e.target.value = '';
       compressedLogoImageFile = null;

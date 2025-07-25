@@ -646,7 +646,7 @@ async function openCameraCapture(isEditMode = false) {
   try {
     // Verificar si el navegador soporta getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      alert('Tu navegador no soporta el acceso a la cámara. Por favor, usa el botón de galería.');
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
       return;
     }
 
@@ -666,13 +666,13 @@ async function openCameraCapture(isEditMode = false) {
     console.error('Error al acceder a la cámara:', error);
     
     if (error.name === 'NotAllowedError') {
-      alert('Acceso a la cámara denegado. Por favor, permite el acceso a la cámara en tu navegador y vuelve a intentarlo.');
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
     } else if (error.name === 'NotFoundError') {
-      alert('No se encontró ninguna cámara en tu dispositivo. Por favor, usa el botón de galería.');
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
     } else if (error.name === 'NotReadableError') {
-      alert('La cámara está siendo usada por otra aplicación. Por favor, ciérrala y vuelve a intentarlo.');
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
     } else {
-      alert('Error al acceder a la cámara. Por favor, usa el botón de galería como alternativa.');
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
     }
   }
 }
@@ -840,7 +840,7 @@ async function processCapturedImage(file) {
 
   } catch (error) {
     console.error("Error al procesar la imagen capturada:", error);
-    alert("Hubo un error al procesar la imagen capturada.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
   }
 }
 
@@ -877,7 +877,7 @@ async function processEditCapturedImage(file) {
 
   } catch (error) {
     console.error("Error al procesar la imagen capturada:", error);
-    alert("Hubo un error al procesar la imagen capturada.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
   }
 }
 
@@ -937,7 +937,7 @@ async function handleImageSelection(event) {
 
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
-    alert("Hubo un error al procesar la imagen.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
 }
@@ -985,7 +985,7 @@ async function handleEditImageSelection(event) {
 
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
-    alert("Hubo un error al procesar la imagen.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
 }
@@ -1020,7 +1020,7 @@ async function compressImage(file, quality = 0.7, maxWidth = 800) {
     return compressedFile;
   } catch (error) {
     console.error('Error al comprimir imagen:', error);
-    throw new Error('No se pudo comprimir la imagen. Por favor, intenta con otra imagen.');
+    throw new Error('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
 function openEditRestaurantModal() {
@@ -1409,7 +1409,7 @@ async function handleRestaurantImageSelection(event) {
 
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
-    alert("Hubo un error al procesar la imagen.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
 }
@@ -1456,7 +1456,7 @@ async function handleRestaurantLogoSelection(event) {
 
   } catch (error) {
     console.error("Error al procesar el logo:", error);
-    alert("Hubo un error al procesar el logo.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
 }
@@ -1568,7 +1568,7 @@ function cropImage() {
 
 async function saveCroppedImage() {
   if (!cropper) {
-    alert('Error: No se ha inicializado el recortador de imagen.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
 
@@ -1605,12 +1605,12 @@ async function saveCroppedImage() {
         showToast('Imagen recortada y guardada correctamente');
       } catch (error) {
         console.error('Error al procesar la imagen recortada:', error);
-        alert('Error al procesar la imagen recortada');
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       }
     }, 'image/jpeg', 0.8);
   } catch (error) {
     console.error('Error al obtener la imagen recortada:', error);
-    alert('Error al procesar la imagen. Por favor, inténtalo de nuevo.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
 
@@ -1701,7 +1701,7 @@ function cropRestaurantImage() {
 
 async function saveRestaurantCroppedImage() {
   if (!cropper) {
-    alert('Error: No se ha inicializado el recortador de imagen.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
 
@@ -1733,12 +1733,12 @@ async function saveRestaurantCroppedImage() {
         showToast('Imagen del restaurante recortada y guardada correctamente');
       } catch (error) {
         console.error('Error al procesar la imagen recortada:', error);
-        alert('Error al procesar la imagen recortada');
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       }
     }, 'image/jpeg', 0.8);
   } catch (error) {
     console.error('Error al obtener la imagen recortada:', error);
-    alert('Error al procesar la imagen. Por favor, inténtalo de nuevo.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
 
@@ -1829,7 +1829,7 @@ function cropLogoImage() {
 
 async function saveLogoCroppedImage() {
   if (!cropper) {
-    alert('Error: No se ha inicializado el recortador de imagen.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
 
@@ -1861,11 +1861,11 @@ async function saveLogoCroppedImage() {
         showToast('Logo del restaurante recortado y guardado correctamente');
       } catch (error) {
         console.error('Error al procesar el logo recortado:', error);
-        alert('Error al procesar el logo recortado');
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       }
     }, 'image/jpeg', 0.8);
   } catch (error) {
     console.error('Error al obtener el logo recortado:', error);
-    alert('Error al procesar el logo. Por favor, inténtalo de nuevo.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
