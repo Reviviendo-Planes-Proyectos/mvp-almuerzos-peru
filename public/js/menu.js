@@ -9,6 +9,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore(); // Necesario para gestionar los favoritos en Firestore
+window.sentComments = window.sentComments || {};
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- Referencias DOM existentes para el menú ---
@@ -101,17 +102,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleOrderClick() {
-    // 1. VERIFICAR LA SESIÓN PRIMERO
-    const user = auth.currentUser; // Usamos el método de Firebase, que es más seguro
+    const user = auth.currentUser;
 
     if (!user) {
-      // 2. SI NO HAY USUARIO, ABRIR EL MODAL DE LOGIN
       loginModalOverlay.style.display = "flex";
       showToast("Por favor, inicia sesión para realizar un pedido.", "info");
-      return; // Detenemos la función aquí
+      return;
     }
 
-    // 3. SI HAY USUARIO, CONTINUAMOS CON TU LÓGICA ORIGINAL
     if (!currentRestaurant || !currentRestaurant.whatsapp) {
       return showToast(
         "No se encontró el número de WhatsApp del restaurante.",
@@ -119,14 +117,65 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    // Tu función original para crear el mensaje detallado
     const message = generateWhatsAppMessage();
 
     if (message) {
+      Object.keys(shoppingCart).forEach((dishId) => {
+        const quantity = shoppingCart[dishId];
+        if (quantity > 0) {
+          const commentContainer = document.querySelector(
+            `.comment-button-container[data-dish-id="${dishId}"]`
+          );
+
+          if (
+            commentContainer &&
+            !commentContainer.querySelector(".comment-icon")
+          ) {
+            const commentIcon = document.createElement("span");
+            commentIcon.className = "comment-icon";
+            commentIcon.innerHTML = "🗨️";
+            commentIcon.setAttribute("data-dish-id", dishId);
+            commentIcon.style.cursor = "pointer";
+
+            commentIcon.addEventListener("click", () => {
+              openCommentModal(dishId);
+            });
+
+            commentContainer.appendChild(commentIcon);
+          }
+        }
+      });
+
+      // Abrir WhatsApp al final
       const encoded = encodeURIComponent(message);
       const link = `https://api.whatsapp.com/send?phone=${currentRestaurant.whatsapp}&text=${encoded}`;
       window.open(link, "_blank");
     }
+  }
+  function renderCommentIcons() {
+    Object.keys(shoppingCart).forEach((dishId) => {
+      const quantity = shoppingCart[dishId];
+
+      if (quantity > 0 && !window.sentComments[dishId]) {
+        const commentContainer = document.querySelector(
+          `.comment-button-container[data-dish-id="${dishId}"]`
+        );
+
+        if (commentContainer && !commentContainer.querySelector(".comment-icon")) {
+          const commentIcon = document.createElement("span");
+          commentIcon.className = "comment-icon";
+          commentIcon.innerHTML = "🗨️";
+          commentIcon.setAttribute("data-dish-id", dishId);
+          commentIcon.style.cursor = "pointer";
+
+          commentIcon.addEventListener("click", () => {
+            openCommentModal(dishId);
+          });
+
+          commentContainer.appendChild(commentIcon);
+        }
+      }
+    });
   }
 
   function generateWhatsAppMessage() {
@@ -151,9 +200,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dishFound) break;
       }
       if (dishFound) {
-        message += `  • ${quantity} ${
-          dishFound.name
-        } - S/.${dishFound.price.toFixed(2)}\n`;
+        message += `  • ${quantity} ${dishFound.name
+          } - S/.${dishFound.price.toFixed(2)}\n`;
         total += quantity * dishFound.price;
       }
     }
@@ -188,13 +236,41 @@ document.addEventListener("DOMContentLoaded", () => {
         display.textContent = "0";
       }
 
-      addBtn.onclick = () => updateCart(dishId, 1, control);
-      minusBtn.onclick = () =>
-        updateCart(dishId, (shoppingCart[dishId] || 0) - 1, control);
-      plusBtn.onclick = () =>
-        updateCart(dishId, (shoppingCart[dishId] || 0) + 1, control);
+      addBtn.onclick = () => {
+        updateCart(dishId, 1, control);
+      };
+
+      minusBtn.onclick = () => {
+        const newQuantity = (shoppingCart[dishId] || 0) - 1;
+        updateCart(dishId, newQuantity, control);
+        toggleCommentIcon(dishId, newQuantity);
+      };
+
+      plusBtn.onclick = () => {
+        const newQuantity = (shoppingCart[dishId] || 0) + 1;
+        updateCart(dishId, newQuantity, control);
+      };
       control.dataset.listenersInitialized = true; // Marcar como inicializado
     });
+  }
+  function toggleCommentIcon(dishId, quantity) {
+    if (quantity !== 0) return; // Solo actuamos si la cantidad es exactamente 0
+
+    const commentContainer = document.querySelector(
+      `.comment-button-container[data-dish-id="${dishId}"]`
+    );
+
+    if (!commentContainer) return;
+
+    const existingIcon = commentContainer.querySelector(".comment-icon");
+
+    if (existingIcon) {
+      existingIcon.remove();
+
+      // 🔒 Marcar que ya se envió comentario para evitar volver a mostrarlo
+      window.sentComments = window.sentComments || {};
+      window.sentComments[dishId] = true;
+    }
   }
 
   function updateCart(dishId, quantity, control) {
@@ -402,6 +478,24 @@ document.addEventListener("DOMContentLoaded", () => {
       .doc(dishId);
 
     try {
+      const idToken = await user.getIdToken();
+
+      const response = await fetch(`/api/dishes/${dishId}/like`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({ action: action }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error ||
+          `Error ${action === "like" ? "liking" : "unliking"} the dish.`
+        );
+      }
       const likeDoc = await likeDocRef.get();
 
       if (likeDoc.exists) {
@@ -438,7 +532,6 @@ document.addEventListener("DOMContentLoaded", () => {
         const currentLikes = parseInt(likesCountEl.innerText) || 0;
         likesCountEl.innerText = `${currentLikes + 1} me gustas`;
       }
-
       showToast("¡Gracias por tu like!", "success");
     } catch (error) {
       console.error("Error al dar like diario:", error);
@@ -544,10 +637,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateUI() {
     if (!currentRestaurant) return;
 
-    menuBanner.style.backgroundImage = `url('${
-      currentRestaurant.photoUrl ||
+    menuBanner.style.backgroundImage = `url('${currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
-    }')`;
+      }')`;
     restaurantNameElement.textContent =
       currentRestaurant.name.length > 40
         ? currentRestaurant.name.substring(0, 40) + "..."
@@ -637,12 +729,20 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     try {
-      if (navigator.share && isMobileDevice()) {
+      if (navigator.share) {
         await navigator.share(shareData);
-        showToast("¡Restaurante compartido exitosamente!", "success");
+        showToast("Restaurant shared successfully!", "success");
       } else {
-        window.open(whatsappWebURL, "_blank");
-        showToast("Abriendo WhatsApp...", "info");
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareData.url);
+          showToast("Link copied to clipboard. Share it!", "success");
+        } else {
+          showToast(
+            "Your browser does not support direct sharing. Copy and paste the link: " +
+            window.location.href,
+            "info"
+          );
+        }
       }
     } catch (error) {
       console.error("Error al compartir:", error);
@@ -728,6 +828,11 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    window.activeDishesMap = {};
+    activeDishes.forEach((dish) => {
+      window.activeDishesMap[dish.id] = dish;
+    });
+
     activeDishes.forEach((dish) => {
       const dishItem = document.createElement("div");
       dishItem.className = "dish-item";
@@ -741,40 +846,35 @@ document.addEventListener("DOMContentLoaded", () => {
       const heartIcon = currentUserFavorites.has(dish.id) ? "❤️" : "🤍";
 
       dishItem.innerHTML = `
-                                <div class="dish-image-wrapper">
-                                    <img src="${imageUrl}" alt="${dish.name}">
-                                    <div class="dish-like-control">
-                                        <button class="like-button dish-like-btn" data-dish-id="${
-                                          dish.id
-                                        }">${heartIcon}</button>
-                                    </div>
-                                </div>
-                                <div class="dish-details">
-                                    <h3>${dish.name}</h3>
-                                    <p>S/. ${dish.price.toFixed(2)}</p>
-                                    <p class="likes-count" id="likes-count-${
-                                      dish.id
-                                    }">${dish.likesCount || 0} me gustas</p> 
-                                </div>
-                                <div class="quantity-control" data-dish-id="${
-                                  dish.id
-                                }" data-dish-name="${
-        dish.name
-      }" data-dish-price="${dish.price}">
-                                    <button class="quantity-btn add-btn">+</button>
-                                    <div class="quantity-selector">
-                                        <button class="quantity-btn minus-btn">-</button>
-                                        <span class="quantity-display">${
-                                          shoppingCart[dish.id] || 0
-                                        }</span>
-                                        <button class="quantity-btn plus-btn">+</button>
-                                    </div>
-                                </div>
-                            `;
+      <div class="dish-image-wrapper">
+          <img src="${imageUrl}" alt="${dish.name}">
+          <div class="dish-like-control">
+              <button class="like-button dish-like-btn" data-dish-id="${dish.id}">${heartIcon}</button>
+          </div>
+      </div>
+      <div class="dish-details">
+          <h3>${dish.name}</h3>
+          <p>S/. ${dish.price.toFixed(2)}</p>
+          <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gustas</p> 
+      </div>
+      <div class="quantity-container">
+        <div class="quantity-control" data-dish-id="${dish.id}" data-dish-name="${dish.name}" data-dish-price="${dish.price}">
+            <button class="quantity-btn add-btn">+</button>
+            <div class="quantity-selector">
+                <button class="quantity-btn minus-btn">-</button>
+                <span class="quantity-display">${shoppingCart[dish.id] || 0}</span>
+                <button class="quantity-btn plus-btn">+</button>
+            </div>
+        </div>
+        <div class="comment-button-container" data-dish-id="${dish.id}"></div>
+      </div>
+    `;
       dishesContainer.appendChild(dishItem);
     });
+
     setupQuantityControls();
     setupLikeControls();
+    renderCommentIcons(); // <-- ✅ AÑADIR ESTA LÍNEA
   }
   function setupLikeControls() {
     document
@@ -818,7 +918,142 @@ document.addEventListener("DOMContentLoaded", () => {
         button.dataset.listenersInitialized = true;
       });
   }
+  function openCommentModal(dishId) {
+    const dish = window.activeDishesMap?.[dishId];
+    if (!dish) return;
 
+    document.getElementById("commentDishImage").src =
+      dish.photoUrl || "https://placehold.co/160x160";
+    document.getElementById("commentDishName").textContent = dish.name;
+    document.getElementById("commentText").value = "";
+    resetCommentUI();
+
+    document.getElementById("commentModalOverlay").style.display = "flex";
+
+    document.getElementById("omitCommentBtn").onclick = () => {
+      document.getElementById("commentModalOverlay").style.display = "none";
+    };
+
+    document.getElementById("submitCommentBtn").onclick = () => {
+      const comment = document.getElementById("commentText").value.trim();
+      const user = firebase.auth().currentUser;
+      const submitBtn = document.getElementById("submitCommentBtn");
+
+      // Cambiar estado visual del botón
+      submitBtn.textContent = "Enviando...";
+      submitBtn.classList.add("sending");
+
+      const commentContent = {
+        invitedId: user.uid,
+        dishId: dishId,
+        content: comment,
+        restaurantId: currentRestaurantId,
+      };
+
+      submitDishComment(commentContent);
+
+      // Marcar como enviado
+      window.sentComments[dishId] = true;
+
+      setTimeout(() => {
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        document.getElementById("commentModalOverlay").style.display = "none";
+        showCustomToast("Comentario enviado con éxito");
+        toggleCommentIcon(dishId, 0);
+      }, 1000);
+    };
+  }
+
+  function showCustomToast(message) {
+    const toast = document.getElementById("custom-toast");
+    toast.textContent = message;
+    toast.classList.remove("hidden");
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+      toast.classList.add("hidden");
+    }, 3000);
+  }
+  async function submitDishComment({ invitedId, dishId, content }) {
+    try {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        throw new Error("Usuario no autenticado.");
+      }
+
+      const response = await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dishId,
+          content,
+          invitedId
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Error al guardar el comentario.");
+      }
+      return data;
+    } catch (err) {
+      console.error("❌ Error al enviar comentario:", err.message);
+      throw err;
+    }
+  }
+  const commentText = document.getElementById('commentText');
+  const progressBar = document.getElementById('progressBar');
+  const charCounter = document.getElementById('charCounter'); // Asegúrate de tener este elemento en el HTML
+  const maxLength = commentText.maxLength;
+
+  commentText.addEventListener('input', () => {
+    const length = commentText.value.length;
+    const progress = (length / maxLength) * 100;
+
+    // Actualizar barra
+    progressBar.style.width = `${progress}%`;
+
+    // Actualizar contador de caracteres
+    charCounter.textContent = `${length} / ${maxLength}`;
+
+    // Resetear clases de color
+    commentText.classList.remove('border-green', 'border-yellow', 'border-red');
+    charCounter.classList.remove('text-green', 'text-yellow', 'text-red'); // si usas colores dinámicos en texto
+    progressBar.classList.remove('bg-green', 'bg-yellow', 'bg-red'); // opcional si usas clases para color
+
+    // Aplicar color según el progreso
+    if (progress < 50) {
+      progressBar.style.backgroundColor = '#4caf50'; // verde
+      commentText.classList.add('border-green');
+      charCounter.classList.add('text-green');
+    } else if (progress < 90) {
+      progressBar.style.backgroundColor = '#ffc107'; // amarillo
+      commentText.classList.add('border-yellow');
+      charCounter.classList.add('text-yellow');
+    } else {
+      progressBar.style.backgroundColor = '#f44336'; // rojo
+      commentText.classList.add('border-red');
+      charCounter.classList.add('text-red');
+    }
+  });
+  function resetCommentUI() {
+    const textarea = document.getElementById("commentText");
+    const progressBar = document.getElementById("progressBar");
+
+    textarea.value = "";
+    progressBar.style.width = "0%";
+    progressBar.style.backgroundColor = "#f7bd00"; // color inicial
+
+    // Reset de clases de borde
+    textarea.classList.remove("border-green", "border-yellow", "border-red");
+    textarea.classList.add("border-yellow"); // color por defecto
+    charCounter.textContent = `0 / ${maxLength}`;
+  }
   initializeMenuPage();
   setupMyRestaurantButton();
 });
