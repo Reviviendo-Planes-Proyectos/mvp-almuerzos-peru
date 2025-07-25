@@ -21,8 +21,16 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
         process.exit(1);
     }
 } else {
-    console.error('❌ No service account environment variable found.');
-    process.exit(1);
+     // Desarrollo local: usar archivo serviceAccountKey.json
+    try {
+        serviceAccount = require('./serviceAccountKey.json');
+        console.log('✅ Using Firebase credentials from serviceAccountKey.json');
+    } catch (error) {
+        console.error('❌ Error loading serviceAccountKey.json:', error.message);
+        console.error('💡 Para desarrollo local, crea el archivo serviceAccountKey.json en la raíz del proyecto');
+        console.error('💡 Para producción, configura la variable de entorno FIREBASE_SERVICE_ACCOUNT_BASE64');
+        process.exit(1);
+    }
 }
 
 admin.initializeApp({
@@ -1041,4 +1049,10 @@ app.post('/api/comments', async (req, res) => {
     }
 });
 
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`📱 Aplicación lista para usar`);
+
 module.exports = app;
+
