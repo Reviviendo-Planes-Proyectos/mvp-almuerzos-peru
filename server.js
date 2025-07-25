@@ -2,6 +2,8 @@
 const express = require('express');
 const path = require('path');
 const admin = require('firebase-admin');
+const sharp = require('sharp');
+const fs = require('fs').promises;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -9,21 +11,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-if (process.env.SERVICE_ACCOUNT_KEY) {
-
-    const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: "cashma-8adfb.appspot.com"
-    });
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    try {
+        const jsonString = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
+        serviceAccount = JSON.parse(jsonString);
+    } catch (error) {
+        console.error('❌ Error decoding FIREBASE_SERVICE_ACCOUNT_BASE64:', error.message);
+        process.exit(1);
+    }
 } else {
-
-    const serviceAccount = require('./serviceAccountKey.json');
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: "cashma-8adfb.appspot.com"
-    });
+    console.error('❌ No service account environment variable found.');
+    process.exit(1);
 }
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: 'cashma-8adfb.appspot.com'
+});
+
 
 const db = admin.firestore();
 const authAdmin = admin.auth();
@@ -65,6 +71,144 @@ async function authenticateAndAuthorize(req, res, next) {
         return res.status(401).json({ error: 'Unauthorized: Invalid token or authentication error.' });
     }
 }
+
+// Función para optimizar imágenes con Sharp
+async function optimizeImage(inputPath, outputPath, options = {}) {
+    const {
+        width = 800,
+        quality = 80,
+        format = 'jpeg'
+    } = options;
+
+    try {
+        // Verificar si el archivo existe
+        const stats = await fs.stat(inputPath);
+        const fileSizeInMB = stats.size / (1024 * 1024);
+
+        // Verificar si el archivo original excede 5MB
+        if (fileSizeInMB > 5) {
+            console.error('\x1b[31m%s\x1b[0m', `❌ ERROR: La imagen es demasiado grande (${fileSizeInMB.toFixed(2)}MB). El tamaño máximo permitido es 5MB.`);
+            return {
+                success: false,
+                error: 'Imagen demasiado grande para procesar',
+                originalSize: fileSizeInMB
+            };
+        }
+
+        // Validar formato
+        const allowedFormats = ['jpeg', 'png', 'webp'];
+        const blockedFormats = ['avif', 'heic', 'heif'];
+        const formatLower = format.toLowerCase();
+        
+        // Verificar formatos explícitamente bloqueados
+        if (blockedFormats.includes(formatLower)) {
+            console.error('\x1b[31m%s\x1b[0m', `❌ ERROR: El formato ${format.toUpperCase()} no está soportado. Los formatos AVIF, HEIC y HEIF no son compatibles.`);
+            return {
+                success: false,
+                error: `Formato ${format.toUpperCase()} no soportado. Solo se permiten JPEG, PNG o WebP.`
+            };
+        }
+        
+        // Verificar formatos permitidos
+        if (!allowedFormats.includes(formatLower)) {
+            console.error('\x1b[31m%s\x1b[0m', '❌ ERROR: Solo se permiten formatos JPEG, PNG o WebP.');
+            return {
+                success: false,
+                error: 'Formato no permitido. Solo JPEG, PNG o WebP.'
+            };
+        }
+
+        // Procesar la imagen con Sharp
+        let sharpInstance = sharp(inputPath)
+            .resize(width, null, {
+                withoutEnlargement: true,
+                fit: 'inside'
+            });
+
+        // Aplicar formato y compresión
+        if (format.toLowerCase() === 'jpeg') {
+            sharpInstance = sharpInstance.jpeg({ quality });
+        } else if (format.toLowerCase() === 'png') {
+            sharpInstance = sharpInstance.png({ quality });
+        } else if (format.toLowerCase() === 'webp') {
+            sharpInstance = sharpInstance.webp({ quality });
+        }
+
+        // Guardar la imagen optimizada
+        await sharpInstance.toFile(outputPath);
+
+        // Verificar el tamaño del archivo optimizado
+        const optimizedStats = await fs.stat(outputPath);
+        const optimizedSizeInMB = optimizedStats.size / (1024 * 1024);
+
+        // Verificar si el archivo optimizado aún excede 5MB
+        if (optimizedSizeInMB > 5) {
+            await fs.unlink(outputPath); // Eliminar archivo si es muy grande
+            console.error('\x1b[31m%s\x1b[0m', `❌ ERROR: La imagen optimizada sigue siendo demasiado grande (${optimizedSizeInMB.toFixed(2)}MB).`);
+            return {
+                success: false,
+                error: 'Imagen optimizada aún excede el límite de 5MB',
+                optimizedSize: optimizedSizeInMB
+            };
+        }
+
+        console.log('\x1b[32m%s\x1b[0m', `✅ ÉXITO: Imagen optimizada correctamente.`);
+        console.log(`📊 Tamaño original: ${fileSizeInMB.toFixed(2)}MB`);
+        console.log(`📊 Tamaño optimizado: ${optimizedSizeInMB.toFixed(2)}MB`);
+        console.log(`📊 Reducción: ${((fileSizeInMB - optimizedSizeInMB) / fileSizeInMB * 100).toFixed(1)}%`);
+
+        return {
+            success: true,
+            originalSize: fileSizeInMB,
+            optimizedSize: optimizedSizeInMB,
+            reduction: ((fileSizeInMB - optimizedSizeInMB) / fileSizeInMB * 100).toFixed(1),
+            outputPath
+        };
+
+    } catch (error) {
+        console.error('\x1b[31m%s\x1b[0m', `❌ ERROR al procesar la imagen: ${error.message}`);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Endpoint para optimizar imágenes
+app.post('/api/optimize-image', async (req, res) => {
+    try {
+        const { inputPath, outputPath, width, quality, format } = req.body;
+
+        if (!inputPath || !outputPath) {
+            return res.status(400).json({ 
+                error: 'Se requieren las rutas de entrada y salida' 
+            });
+        }
+
+        const result = await optimizeImage(inputPath, outputPath, {
+            width: width || 800,
+            quality: quality || 80,
+            format: format || 'jpeg'
+        });
+
+        if (result.success) {
+            res.status(200).json({
+                message: 'Imagen optimizada exitosamente',
+                ...result
+            });
+        } else {
+            res.status(400).json({
+                error: result.error,
+                ...result
+            });
+        }
+    } catch (error) {
+        console.error('Error en endpoint de optimización:', error);
+        res.status(500).json({ 
+            error: 'Error interno del servidor' 
+        });
+    }
+});
 
 
 
@@ -339,6 +483,27 @@ app.get('/api/restaurants-paginated', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching paginated restaurants with likes:', error);
+        res.status(500).json({ error: 'An error occurred on the server.' });
+    }
+});
+
+// Endpoint para obtener distritos únicos donde hay restaurantes registrados
+app.get('/api/districts', async (req, res) => {
+    try {
+        const snapshot = await db.collection('restaurants').get();
+        const districts = new Set();
+        
+        snapshot.forEach(doc => {
+            const district = doc.data().district;
+            if (district && district.trim() !== '') {
+                districts.add(district.trim());
+            }
+        });
+        
+        const sortedDistricts = Array.from(districts).sort();
+        res.status(200).json(sortedDistricts);
+    } catch (error) {
+        console.error('Error fetching districts:', error);
         res.status(500).json({ error: 'An error occurred on the server.' });
     }
 });
@@ -876,7 +1041,4 @@ app.post('/api/comments', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
-
+module.exports = app;

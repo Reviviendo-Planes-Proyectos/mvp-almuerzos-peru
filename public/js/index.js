@@ -27,8 +27,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const favoritesCounter = document.getElementById("favorites-counter");
 
   let lastVisibleDocId = null;
-  let currentDistrictFilter = "Todos";
+  let currentDistrictFilter = "";
   let currentUserFavorites = new Set();
+  let tomSelectInstance = null;
 
   function showToast(message, type, duration = 3000) {
     const toast = document.getElementById("toast-notification");
@@ -44,12 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (loadMoreBtn) {
     loadMoreBtn.addEventListener("click", () => loadRestaurants(false));
   }
-  if (districtFilter) {
-    districtFilter.addEventListener("change", (event) => {
-      currentDistrictFilter = event.target.value;
-      loadRestaurants(true);
-    });
-  }
+  
+  // Inicializar Tom Select y cargar distritos
+  initializeDistrictFilter();
+  
   if (myRestaurantButton) {
     setupMyRestaurantButton();
   }
@@ -301,6 +300,96 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Función para cargar distritos desde el backend
+  async function loadDistricts() {
+    try {
+      const response = await fetch('/api/districts');
+      if (!response.ok) {
+        throw new Error('Error al cargar distritos');
+      }
+      const districts = await response.json();
+      return districts;
+    } catch (error) {
+      console.error('Error loading districts:', error);
+      return [];
+    }
+  }
+
+  // Función para inicializar Tom Select
+  async function initializeDistrictFilter() {
+    if (!districtFilter) return;
+
+    try {
+      // Cargar distritos desde el backend
+      const districts = await loadDistricts();
+      
+      // Limpiar opciones existentes
+      districtFilter.innerHTML = '';
+      
+      // Agregar opción "Todos los Distritos" primero
+      const allOption = document.createElement('option');
+      allOption.value = '';
+      allOption.textContent = 'Todos los Distritos';
+      districtFilter.appendChild(allOption);
+      
+      // Agregar distritos dinámicamente
+      districts.forEach(district => {
+        const option = document.createElement('option');
+        option.value = district;
+        option.textContent = district;
+        districtFilter.appendChild(option);
+      });
+
+      // Inicializar Tom Select
+      tomSelectInstance = new TomSelect(districtFilter, {
+        placeholder: 'Buscar distrito...',
+        searchField: ['text', 'value'],
+        maxOptions: null,
+        create: false,
+        allowEmptyOption: true,
+        onChange: function(value) {
+          currentDistrictFilter = value || '';
+          loadRestaurants(true);
+        },
+        onClick: function() {
+          // Permitir abrir el dropdown al hacer click
+          if (!this.isOpen) {
+            this.open();
+          }
+        }
+      });
+      
+      // Forzar que inicie vacío y muestre el placeholder
+      tomSelectInstance.clear();
+      tomSelectInstance.clearOptions();
+      
+      // Volver a agregar las opciones
+      // Agregar opción "Todos los Distritos" primero
+      tomSelectInstance.addOption({
+        value: '',
+        text: 'Todos los Distritos'
+      });
+      
+      districts.forEach(district => {
+        tomSelectInstance.addOption({
+          value: district,
+          text: district
+        });
+      });
+      
+      // Asegurar que no hay valor seleccionado
+      tomSelectInstance.setValue('');
+      
+    } catch (error) {
+      console.error('Error initializing district filter:', error);
+      // Fallback: usar select normal si Tom Select falla
+      districtFilter.addEventListener('change', (event) => {
+        currentDistrictFilter = event.target.value;
+        loadRestaurants(true);
+      });
+    }
+  }
+
   async function loadRestaurants(reset = false) {
     if (reset) {
       if (restaurantsList)
@@ -314,7 +403,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (lastVisibleDocId) {
       url += `&lastDocId=${lastVisibleDocId}`;
     }
-    if (currentDistrictFilter !== "Todos") {
+    if (currentDistrictFilter && currentDistrictFilter.trim() !== "") {
       url += `&district=${encodeURIComponent(currentDistrictFilter)}`;
     }
     try {
@@ -340,19 +429,21 @@ document.addEventListener("DOMContentLoaded", () => {
           const totalLikes = restaurant.totalLikes || 0;
 
           restaurantCard.innerHTML = `
-                                        <img src="${imageUrl}" alt="${restaurant.name}" class="restaurant-card-image">
-                                        
-                                        <div class="restaurant-likes-overlay">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                            <span>${totalLikes}</span>
-                                        </div>
-
-                                        <div class="card-content">
-                                            <h4>${restaurant.name}</h4>
-                                            <p>${restaurant.description}</p>
-                                            <a href="/menu.html?restaurantId=${restaurant.id}" class="card-button">Ver menú</a>
-                                        </div>
-                                    `;
+            <img src="${imageUrl}" alt="${restaurant.name}" class="restaurant-card-image">
+            <div class="card-content">
+              <div class="restaurant-title">
+                <h4>${restaurant.name.length > 35 ? restaurant.name.substring(0, 35) + '...' : restaurant.name}</h4>
+                <span class="restaurant-likes-inline">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                  </svg>
+                  <span>${totalLikes}</span>
+                </span>
+              </div>
+              <p>${restaurant.description.length > 30 ? restaurant.description.substring(0, 30) + '...' : restaurant.description}</p>
+              <a href="/menu.html?restaurantId=${restaurant.id}" class="card-button">Ver menú</a>
+            </div>
+          `;
           restaurantsList.appendChild(restaurantCard);
           setTimeout(() => {
             restaurantCard.classList.add("is-visible");

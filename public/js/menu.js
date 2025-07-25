@@ -46,6 +46,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let startX;
   let scrollLeft;
 
+  let currentCardId = null;
+
   // --- Funciones auxiliares ---
   function showToast(message, type = "info", duration = 3000) {
     if (!toastNotification) return;
@@ -457,17 +459,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function handleDishLikeClick(event) {
-    const dishId = event.currentTarget.dataset.dishId;
+    const button = event.currentTarget;
+    const dishId = button.dataset.dishId;
     const user = auth.currentUser;
 
     if (!user) {
-      loginModalOverlay.style.display = "flex";
-      showToast("Please log in to like dishes.", "info");
+      showToast("Debes iniciar sesión para dar like.", "warning");
       return;
     }
 
-    const isLiked = currentUserFavorites.has(dishId);
-    const action = isLiked ? "unlike" : "like";
+    const likeDocRef = db
+      .collection("invited")
+      .doc(user.uid)
+      .collection("dailyLikes")
+      .doc(dishId);
 
     try {
       const idToken = await user.getIdToken();
@@ -488,35 +493,46 @@ document.addEventListener("DOMContentLoaded", () => {
           `Error ${action === "like" ? "liking" : "unliking"} the dish.`
         );
       }
+      const likeDoc = await likeDocRef.get();
 
-      const data = await response.json();
+      if (likeDoc.exists) {
+        const { timestamp } = likeDoc.data();
+        const now = Date.now();
 
-      if (action === "like") {
-        currentUserFavorites.add(dishId);
-      } else {
-        currentUserFavorites.delete(dishId);
-      }
-      updateDishLikeButtons();
-
-      if (favoritesCounter) {
-        favoritesCounter.textContent = currentUserFavorites.size;
-      }
-
-      const likesCountElement = document.getElementById(
-        `likes-count-${dishId}`
-      );
-      if (likesCountElement) {
-        likesCountElement.textContent = `${data.likesCount || 0} me gustas`;
+        // 🕒 Bloquear por 24 horas (1 día)
+        if (now - timestamp.toMillis() < 24 * 60 * 60 * 1000) {
+          showToast("Ya diste like hoy. Intenta nuevamente mañana.", "info");
+          return;
+        }
       }
 
-      showToast(
-        `Plato ${action === "like" ? "añadido a" : "retirado de"
-        } sus favoritos!`,
-        "success"
-      );
+      // ✅ 1. Guardar el nuevo like
+      await likeDocRef.set({
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+
+      // ✅ 2. Incrementar likesCount del plato
+      await db
+        .collection("dishes")
+        .doc(dishId)
+        .update({
+          likesCount: firebase.firestore.FieldValue.increment(1),
+        });
+
+      // ✅ 3. Cambiar icono en el botón
+      button.innerHTML = "❤️";
+      button.disabled = true;
+
+      // ✅ 4. Actualizar contador de likes en pantalla
+      const likesCountEl = document.getElementById(`likes-count-${dishId}`);
+      if (likesCountEl) {
+        const currentLikes = parseInt(likesCountEl.innerText) || 0;
+        likesCountEl.innerText = `${currentLikes + 1} me gustas`;
+      }
+      showToast("¡Gracias por tu like!", "success");
     } catch (error) {
-      console.error("Error sending like/unlike for", dishId, error);
-      showToast(`Error: ${error.message}`, "error");
+      console.error("Error al dar like diario:", error);
+      showToast("Hubo un error al registrar tu like.", "error");
     }
   }
 
@@ -620,9 +636,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     menuBanner.style.backgroundImage = `url('${currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
-      }')`;
-    restaurantNameElement.textContent = currentRestaurant.name;
-
+    }')`;
+    restaurantNameElement.textContent =
+      currentRestaurant.name.length > 40
+        ? currentRestaurant.name.substring(0, 40) + "..."
+        : currentRestaurant.name;
     restaurantDescriptionElement.textContent = currentRestaurant.description;
 
     if (shareButton) {
@@ -674,24 +692,37 @@ document.addEventListener("DOMContentLoaded", () => {
       if (index === 0) button.classList.add("active");
       button.textContent = card.name;
       button.dataset.cardId = card.id;
-      button.onclick = () => displayDishesForCard(card.id);
+      button.onclick = () => {
+        currentCardId = card.id;
+        displayDishesForCard(card.id);
+      };
       cardsNav.appendChild(button);
     });
   }
 
+  function isMobileDevice() {
+    return /Android|iPhone|iPad|iPod|Opera Mini|IEMobile|WPDesktop/i.test(
+      navigator.userAgent
+    );
+  }
+
   async function handleShareRestaurant() {
-    if (!currentRestaurant) {
+    if (!currentRestaurant || !currentRestaurant.whatsapp) {
       showToast(
-        "Cannot share: restaurant information not available.",
+        "No se encontró número de WhatsApp del restaurante.",
         "warning"
       );
       return;
     }
 
+    const message = generateWhatsAppMessageSharing(currentRestaurant);
+    const encodedMessage = encodeURIComponent(message);
+
+    const whatsappWebURL = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+
     const shareData = {
-      title: `Discover ${currentRestaurant.name} on Almuerzos Perú!`,
-      text: `Check out the delicious menu of ${currentRestaurant.name} on Almuerzos Perú.`,
-      url: window.location.href,
+      title: `Descubre ${currentRestaurant.name} en Almuerzos Perú`,
+      text: message,
     };
 
     try {
@@ -705,19 +736,65 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           showToast(
             "Your browser does not support direct sharing. Copy and paste the link: " +
-            window.location.href,
+              window.location.href,
             "info"
           );
         }
       }
     } catch (error) {
-      console.error("Error sharing:", error);
-      if (error.name === "AbortError") {
-        showToast("Sharing cancelled.", "info");
-      } else {
-        showToast("Error attempting to share.", "error");
-      }
+      console.error("Error al compartir:", error);
+      showToast("Hubo un error al intentar compartir.", "error");
     }
+  }
+
+  function generateWhatsAppMessageSharing(currentRestaurant) {
+    if (!currentRestaurant) {
+      showToast(
+        "No se puede generar el mensaje: restaurante no disponible",
+        "warning"
+      );
+      return "";
+    }
+
+    const name = currentRestaurant.name || "";
+    const link = `https://app-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}`;
+    const yape = currentRestaurant.yape || "No disponible";
+
+    const today = new Date()
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+    const todayHours = currentRestaurant.schedule?.[today] || {};
+    const from = todayHours.from || "—";
+    const to = todayHours.to || "—";
+
+    const fallbackCard =
+      allCardsData?.find((card) => card.id === currentCardId) ||
+      allCardsData[0];
+    const categoryName = fallbackCard?.name || "Almuerzos";
+    const dishes = fallbackCard?.dishes || [];
+
+    let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en *${name}* 🍽️\n\n`;
+
+    if (link) {
+      message += `📌 Puedes ver nuestra carta aquí: 👉 ${link}\n\n`;
+    }
+
+    message += `🍽️ *${categoryName}*\n`;
+
+    if (dishes.length === 0) {
+      message += `❌ Actualmente no hay platos disponibles para esta categoría.\n`;
+    } else {
+      dishes.forEach((dish) => {
+        message += `❤️ ${dish.name} – S/ ${dish.price.toFixed(2)}\n`;
+      });
+    }
+
+    message += `\n🕒 *Horario de atención (hoy):*\n${from} – ${to}\n`;
+    message += `📱 *Yape:* ${yape}\n\n`;
+    message += `📥 ¿Quieres separar tu plato? Escríbenos por aquí y te lo dejamos listo 🤗\n\n`;
+    message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
+
+    return message;
   }
 
   async function displayDishesForCard(cardId) {
@@ -799,12 +876,43 @@ document.addEventListener("DOMContentLoaded", () => {
   function setupLikeControls() {
     document
       .querySelectorAll(".dish-like-control .like-button")
-      .forEach((button) => {
-        // Only attach listener once
+      .forEach(async (button) => {
         if (button.dataset.listenersInitialized) return;
 
+        const dishId = button.dataset.dishId;
+        const user = auth.currentUser;
+
+        if (!user) {
+          button.innerHTML = "🤍";
+          return;
+        }
+
+        const likeDoc = await db
+          .collection("invited")
+          .doc(user.uid)
+          .collection("dailyLikes")
+          .doc(dishId)
+          .get();
+
+        if (likeDoc.exists) {
+          const { timestamp } = likeDoc.data();
+          const now = Date.now();
+
+          if (now - timestamp.toMillis() < 3 * 60 * 1000) {
+            button.innerHTML = "❤️";
+            button.disabled = true;
+          } else {
+            button.innerHTML = "🤍";
+            button.disabled = false;
+          }
+        } else {
+          button.innerHTML = "🤍";
+          button.disabled = false;
+        }
+
+        // Asignar listener
         button.addEventListener("click", handleDishLikeClick);
-        button.dataset.listenersInitialized = true; // Mark as initialized
+        button.dataset.listenersInitialized = true;
       });
   }
   function openCommentModal(dishId) {

@@ -49,12 +49,22 @@ body {
   border: none;
   font-size: 20px;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   cursor: pointer;
   transition: background-color 0.3s;
   height: 40px;
   font-family: "Nunito", sans-serif;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.header-button--alt {
+  background-color: var(--brand-dark);
+  color: var(--white);
+  font-weight: bold;
+}
+
 .hero-section {
   background-color: var(--brand-yellow);
   text-align: center;
@@ -76,7 +86,8 @@ body {
   margin-bottom: 2rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 2rem; /* Aumentar el espaciado entre elementos */
+  padding: 0.5rem; /* Agregar padding alrededor de todo el contenedor */
 }
 .zone-selector h3 {
   font-size: 1.25rem;
@@ -138,6 +149,12 @@ body {
   font-size: 1.25rem;
   font-weight: 800;
   margin-bottom: 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
 }
 .card-content p {
   color: var(--gray-text);
@@ -217,12 +234,17 @@ body {
     padding: 0 1rem;
   }
   .zone-selector {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
     gap: 1rem;
   }
+  .zone-selector h3 {
+    flex-shrink: 0;
+    margin: 0;
+  }
   #district-filter {
-    width: 100%;
+    flex: 1;
     max-width: none;
   }
   .header-content {
@@ -231,9 +253,12 @@ body {
     align-items: center;
   }
   .header-button {
-    width: 80%;
-    margin-top: 20px;
-    height: 50px;
+    width: auto;
+    flex-grow: 0;
+    margin-top: 0;
+    height: 40px;
+    font-size: 16px;
+    padding: 0.5rem 0.75rem;
   }
 }
 .login-modal-overlay {
@@ -342,4 +367,139 @@ body {
   fill: currentColor;
   stroke: currentColor;
   stroke-width: 1.5;
+}
+
+
+.restaurant-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.restaurant-title h4 {
+  margin: 0; /* elimina espacios indeseados */
+  font-size: 16px; /* ajusta según tu diseño */
+}
+
+.restaurant-likes-inline {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: red;
+  font-size: 14px;
+}
+
+
+
+.restaurant-likes-inline {
+  margin: 0;
+}
+
+/* Estilos personalizados para Tom Select */
+.ts-control {
+  border: 2px solid var(--gray-light) !important;
+  border-radius: 8px !important;
+  background-color: var(--white) !important;
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 1rem !important;
+  padding: 0.75rem 1rem !important;
+  min-height: 48px !important;
+  min-width: 250px !important;
+  width: 250px !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.ts-control:focus {
+  border-color: var(--brand-color) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
+  outline: none !important;
+}
+
+.ts-control.single .ts-input {
+  color: var(--text-dark) !important;
+  font-weight: 500 !important;
+}
+
+.ts-dropdown {
+  border: 2px solid var(--gray-light) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  background-color: var(--white) !important;
+  font-family: 'Nunito', sans-serif !important;
+  z-index: 1000 !important;
+}
+
+.ts-dropdown .ts-option {
+  padding: 0.75rem 1rem !important;
+  font-size: 1rem !important;
+  color: var(--text-dark) !important;
+  border-bottom: 1px solid var(--gray-light) !important;
+  transition: background-color 0.2s ease !important;
+}
+
+.ts-dropdown .ts-option:last-child {
+  border-bottom: none !important;
+}
+
+.ts-dropdown .ts-option.active {
+  background-color: var(--brand-color) !important;
+  color: var(--white) !important;
+}
+
+.ts-dropdown .ts-option:hover {
+  background-color: var(--gray-light) !important;
+}
+
+.ts-dropdown .ts-option.active:hover {
+  background-color: var(--brand-color) !important;
+}
+
+.ts-control .ts-input {
+  font-family: 'Nunito', sans-serif !important;
+  font-size: 1rem !important;
+}
+
+/* Responsive para Tom Select */
+@media (max-width: 640px) {
+  .ts-control {
+    width: 180px !important;
+    min-width: 180px !important;
+    min-height: 48px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+  
+  .ts-dropdown .ts-option {
+    padding: 0.75rem 1rem !important;
+    font-size: 1rem !important;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Ajuste para el botón de cuenta de usuario */
+  #my-account-btn { 
+    position: relative; 
+    top: 3px; 
+  } 
+  
+  /* Ajuste para el botón de restaurante */
+  #my-restaurant-btn {
+    position: relative;
+    top: 3px;
+  }
+}
+@media (max-width: 480px) {
+  .cont-gen {
+    gap: 5px; /* Reducir el espacio entre botones */
+  }
+  
+  .cont-com, .cont-but {
+    padding: 6px 8px; /* Reducir aún más el padding */
+  }
+  
+  .header-button {
+    font-size: 12px; /* Reducir más el tamaño de fuente */
+    padding: 0.5rem 0.5rem; /* Reducir el padding del botón */
+  }
 }
