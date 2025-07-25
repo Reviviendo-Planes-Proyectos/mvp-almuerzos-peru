@@ -24,19 +24,19 @@ let compressedLogoImageFile = null;
 function validateFileType(file) {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   const blockedTypes = ['image/avif', 'image/heic', 'image/heif'];
-  
+
   // Verificar si el tipo está explícitamente bloqueado
   if (blockedTypes.includes(file.type.toLowerCase())) {
     alert('Los archivos AVIF, HEIC y HEIF no están soportados. Solo se permiten archivos JPEG, PNG y WebP');
     return false;
   }
-  
+
   // Verificar si el tipo está en la lista de permitidos
   if (!allowedTypes.includes(file.type.toLowerCase())) {
     alert('Solo se permiten archivos JPEG, PNG y WebP');
     return false;
   }
-  
+
   return true;
 }
 
@@ -44,7 +44,7 @@ function validateFileType(file) {
 function syncScheduleWithMonday() {
   const mondayFromInput = document.querySelector('input[name="mondayFrom"]');
   const mondayToInput = document.querySelector('input[name="mondayTo"]');
-  
+
   if (!mondayFromInput.value || !mondayToInput.value) {
     alert('Por favor, primero establece el horario del día Lunes');
     return;
@@ -57,7 +57,7 @@ function syncScheduleWithMonday() {
   days.forEach(day => {
     const fromInput = document.querySelector(`input[name="${day}From"]`);
     const toInput = document.querySelector(`input[name="${day}To"]`);
-    
+
     fromInput.value = mondayFrom;
     toInput.value = mondayTo;
   });
@@ -105,16 +105,16 @@ async function compressImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    
-    reader.onload = function(e) {
+
+    reader.onload = function (e) {
       const img = new Image();
       img.src = e.target.result;
-      
-      img.onload = function() {
+
+      img.onload = function () {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        
+
         // Si la imagen es más grande que 800x800, redimensionarla
         const MAX_SIZE = 800;
         if (width > MAX_SIZE || height > MAX_SIZE) {
@@ -126,13 +126,13 @@ async function compressImage(file) {
             height = MAX_SIZE;
           }
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
+
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        
+
         // Convertir a blob
         canvas.toBlob((blob) => {
           const compressedFile = new File([blob], file.name, {
@@ -143,7 +143,7 @@ async function compressImage(file) {
         }, 'image/jpeg', 0.7); // 0.7 es la calidad de compresión
       };
     };
-    
+
     reader.onerror = reject;
   });
 }
@@ -159,7 +159,7 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
         compressedLogoImageFile = null;
         return;
       }
-      
+
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('La imagen es demasiado grande. Máximo 5MB');
@@ -168,17 +168,17 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
       // Mostrar estado de carga
       const placeholder = document.getElementById("register-logo-placeholder");
       placeholder.innerHTML = 'Procesando imagen...';
-      
+
       // Comprimir la imagen
       compressedLogoImageFile = await compressImage(file);
-      
+
       // Mostrar vista previa
       handleImagePreview(compressedLogoImageFile, "register-logo-preview", "register-logo-placeholder");
-      
+
       console.log('Logo procesado correctamente');
     } catch (error) {
       console.error('Error al procesar el logo:', error);
-      alert(error.message || 'Error al procesar la imagen');
+      alert(error.message || '¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       // Limpiar el input
       e.target.value = '';
       compressedLogoImageFile = null;
@@ -314,10 +314,10 @@ async function signIn() {
   try {
     // Mostrar algún indicador de carga
     document.getElementById('loading-screen').classList.add('active');
-    
+
     const result = await auth.signInWithPopup(googleProvider);
     console.log("signInWithPopup successful. onAuthStateChanged will handle redirection.");
-    
+
     // Si el inicio de sesión es exitoso, verificamos el rol del usuario
     if (result.user) {
       await determineUserRoleAndRedirect(result.user);
@@ -325,7 +325,7 @@ async function signIn() {
   } catch (error) {
     // Ocultar el indicador de carga
     document.getElementById('loading-screen').classList.remove('active');
-    
+
     if (error.code === "auth/popup-closed-by-user") {
       console.log("User closed the popup");
     } else if (error.code === "auth/cancelled-popup-request") {
@@ -487,15 +487,15 @@ function setupRegistrationImageUploader() {
   imageInput.onchange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     // Validar tipo de archivo
     if (!validateFileType(file)) {
       event.target.value = "";
       return;
     }
-    
+
     if (file.size > 3 * 1024 * 1024) {
-      alert("La imagen es demasiado grande (máx 3MB).");
+      alert("La imagen es demasiado grande (máx 5MB).");
       return;
     }
     compressImage(file).then((compressedFile) => {
