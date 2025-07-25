@@ -9,6 +9,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore(); // Necesario para gestionar los favoritos en Firestore
+window.sentComments = window.sentComments || {};
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- Referencias DOM existentes para el menú ---
@@ -154,15 +155,13 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderCommentIcons() {
     Object.keys(shoppingCart).forEach((dishId) => {
       const quantity = shoppingCart[dishId];
-      if (quantity > 0) {
+
+      if (quantity > 0 && !window.sentComments[dishId]) {
         const commentContainer = document.querySelector(
           `.comment-button-container[data-dish-id="${dishId}"]`
         );
 
-        if (
-          commentContainer &&
-          !commentContainer.querySelector(".comment-icon")
-        ) {
+        if (commentContainer && !commentContainer.querySelector(".comment-icon")) {
           const commentIcon = document.createElement("span");
           commentIcon.className = "comment-icon";
           commentIcon.innerHTML = "🗨️";
@@ -267,6 +266,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (existingIcon) {
       existingIcon.remove();
+
+      // 🔒 Marcar que ya se envió comentario para evitar volver a mostrarlo
+      window.sentComments = window.sentComments || {};
+      window.sentComments[dishId] = true;
     }
   }
 
@@ -636,7 +639,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     menuBanner.style.backgroundImage = `url('${currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
-    }')`;
+      }')`;
     restaurantNameElement.textContent =
       currentRestaurant.name.length > 40
         ? currentRestaurant.name.substring(0, 40) + "..."
@@ -736,7 +739,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           showToast(
             "Your browser does not support direct sharing. Copy and paste the link: " +
-              window.location.href,
+            window.location.href,
             "info"
           );
         }
@@ -947,17 +950,18 @@ document.addEventListener("DOMContentLoaded", () => {
         restaurantId: currentRestaurantId,
       };
 
-      // Simular envío o usar await si es una función async
       submitDishComment(commentContent);
 
-      // Opcional: Restaurar botón después de enviar
+      // Marcar como enviado
+      window.sentComments[dishId] = true;
+
       setTimeout(() => {
         submitBtn.textContent = "Enviar comentario";
         submitBtn.classList.remove("sending");
         document.getElementById("commentModalOverlay").style.display = "none";
         showCustomToast("Comentario enviado con éxito");
         toggleCommentIcon(dishId, 0);
-      }, 1000); // 1 segundo simulado (ajusta si usas await)
+      }, 1000);
     };
   }
 
