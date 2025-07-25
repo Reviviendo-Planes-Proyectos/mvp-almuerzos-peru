@@ -20,7 +20,7 @@ if (process.env.SERVICE_ACCOUNT_KEY) {
     });
 } else {
 
-    const serviceAccount = require('./serviceAccountKey.json');
+    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
         storageBucket: "cashma-8adfb.appspot.com"
@@ -995,7 +995,4 @@ app.post('/api/dishes/:dishId/like', async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
-
+module.exports = app;
