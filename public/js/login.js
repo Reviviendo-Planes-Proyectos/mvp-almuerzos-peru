@@ -494,7 +494,7 @@ function setupRegistrationImageUploader() {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 3 * 1024 * 1024) {
       alert("La imagen es demasiado grande (máx 5MB).");
       return;
     }

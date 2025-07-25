@@ -11,21 +11,25 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-if (process.env.SERVICE_ACCOUNT_KEY) {
-
-    const serviceAccount = JSON.parse(process.env.SERVICE_ACCOUNT_KEY);
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: "cashma-8adfb.appspot.com"
-    });
+let serviceAccount;
+if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    try {
+        const jsonString = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
+        serviceAccount = JSON.parse(jsonString);
+    } catch (error) {
+        console.error('❌ Error decoding FIREBASE_SERVICE_ACCOUNT_BASE64:', error.message);
+        process.exit(1);
+    }
 } else {
-
-    const serviceAccount = require('./serviceAccountKey.json');
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        storageBucket: "cashma-8adfb.appspot.com"
-    });
+    console.error('❌ No service account environment variable found.');
+    process.exit(1);
 }
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: 'cashma-8adfb.appspot.com'
+});
+
 
 const db = admin.firestore();
 const authAdmin = admin.auth();
@@ -995,7 +999,4 @@ app.post('/api/dishes/:dishId/like', async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
-
+module.exports = app;
