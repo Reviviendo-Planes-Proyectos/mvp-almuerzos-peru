@@ -295,40 +295,107 @@
         <!-- Reemplaza el <form> dentro del div#newDishModal con esto -->
         <form id="new-dish-form">
           <div class="modal-form-group">
-            <!-- Este es el cargador de imagen interactivo -->
-            <label
+            <!-- Contenedor con líneas punteadas que rodea todo -->
+            <div
               id="image-upload-box"
               class="image-upload-box"
-              for="dish-image-input"
+              style="flex-direction: column; align-items: stretch; gap: 0.75rem;"
             >
-              <img
-                id="dish-image-preview"
-                src=""
-                alt="Previsualización del plato"
-                style="
-                  display: none;
-                  width: 60px;
-                  height: 60px;
-                  object-fit: cover;
-                  border-radius: 0.5rem;
-                "
-              />
-
-              <!-- Este es el contenedor que se muestra por defecto -->
-              <div
-                id="image-upload-placeholder"
-                style="
-                  display: flex;
-                  align-items: center;
-                  gap: 1rem;
-                  width: 100%;
-                "
-              >
-                <div class="icon">
+              <!-- Área de imagen con preview -->
+               <label
+                 for="dish-image-input"
+                 style="
+                   display: flex;
+                   flex-direction: column;
+                   align-items: center;
+                   justify-content: center;
+                   cursor: pointer;
+                 "
+               >
+                 <img
+                   id="dish-image-preview"
+                   src=""
+                   alt="Previsualización del plato"
+                   style="
+                     display: none;
+                     width: 60px;
+                     height: 60px;
+                     object-fit: cover;
+                     border-radius: 0.5rem;
+                   "
+                 />
+ 
+                 <!-- Este es el contenedor que se muestra por defecto -->
+                 <div
+                   id="image-upload-placeholder"
+                   style="
+                     display: flex;
+                     flex-direction: column;
+                     align-items: center;
+                     gap: 0.5rem;
+                     width: 100%;
+                   "
+                 >
+                   <div class="icon">
+                     <svg
+                       xmlns="http://www.w3.org/2000/svg"
+                       width="24"
+                       height="24"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       stroke-linecap="round"
+                       stroke-linejoin="round"
+                     >
+                       <rect
+                         x="3"
+                         y="3"
+                         width="18"
+                         height="18"
+                         rx="2"
+                         ry="2"
+                       ></rect>
+                       <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                       <polyline points="21 15 16 10 5 21"></polyline>
+                     </svg>
+                   </div>
+                   <span>Foto del plato (opcional)</span>
+                 </div>
+               </label>
+               
+               <!-- Mensaje informativo -->
+               <small style="color: #666; text-align: center;">
+                 Si no seleccionas una imagen, se usará una imagen por defecto.
+               </small>
+               
+               <!-- Botones de cámara y galería -->
+               <div style="display: flex; gap: 0.75rem;">
+                <button
+                  type="button"
+                  id="camera-btn"
+                  style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #00b44e;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  "
+                  onmouseover="this.style.backgroundColor='#009a42'"
+                  onmouseout="this.style.backgroundColor='#00b44e'"
+                >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
+                    width="18"
+                    height="18"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
@@ -336,22 +403,54 @@
                     stroke-linecap="round"
                     stroke-linejoin="round"
                   >
-                    <rect
-                      x="3"
-                      y="3"
-                      width="18"
-                      height="18"
-                      rx="2"
-                      ry="2"
-                    ></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
+                    <path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"/>
+                    <circle cx="12" cy="13" r="3"/>
                   </svg>
-                </div>
-                <span>Foto del plato (opcional)</span>
-              </div>
-            </label>
-            <!-- Después del input de archivo -->
+                  Tomar foto
+                </button>
+                
+                <button
+                  type="button"
+                  id="gallery-btn"
+                  style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  "
+                  onmouseover="this.style.backgroundColor='#1976d2'"
+                  onmouseout="this.style.backgroundColor='#2196f3'"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  Galería
+                </button>
+               </div>
+             </div>
+            
+            <!-- Inputs de archivo ocultos -->
             <input
               type="file"
               id="dish-image-input"
@@ -359,9 +458,19 @@
               accept="image/png, image/jpeg, image/webp"
               style="display: none"
             />
-            <small style="display: block; margin-top: 0.5rem; color: #666;">
-              Si no seleccionas una imagen, se usará una imagen por defecto.
-            </small>
+            <input
+              type="file"
+              id="camera-input"
+              accept="image/*"
+              capture="environment"
+              style="display: none"
+            />
+            <input
+              type="file"
+              id="gallery-input"
+              accept="image/png, image/jpeg, image/webp"
+              style="display: none"
+            />
           </div>
           <div class="modal-form-group">
             <input
@@ -418,47 +527,179 @@
         <h2>Editar plato</h2>
         <form id="edit-dish-form">
           <div class="modal-form-group">
-            <label
+            <!-- Nueva estructura centrada para editar plato -->
+            <div
               id="edit-image-upload-box"
               class="image-upload-box"
-              for="edit-dish-image-input"
+              style="flex-direction: column; align-items: stretch; gap: 0.75rem;"
             >
-              <img
-                id="edit-dish-image-preview"
-                src=""
-                alt="Previsualización del plato"
-                style="
-                  width: 60px;
-                  height: 60px;
-                  object-fit: cover;
-                  border-radius: 0.25rem;
-                "
-              />
-              <div class="edit-image-overlay">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+              <!-- Área de imagen con preview -->
+               <label
+                 for="edit-dish-image-input"
+                 style="
+                   display: flex;
+                   flex-direction: column;
+                   align-items: center;
+                   justify-content: center;
+                   cursor: pointer;
+                 "
+               >
+                 <img
+                   id="edit-dish-image-preview"
+                   src=""
+                   alt="Previsualización del plato"
+                   style="
+                     display: none;
+                     width: 60px;
+                     height: 60px;
+                     object-fit: cover;
+                     border-radius: 0.5rem;
+                   "
+                 />
+ 
+                 <!-- Este es el contenedor que se muestra por defecto -->
+                 <div
+                   id="edit-image-upload-placeholder"
+                   style="
+                     display: flex;
+                     flex-direction: column;
+                     align-items: center;
+                     gap: 0.5rem;
+                     width: 100%;
+                   "
+                 >
+                   <div class="icon">
+                     <svg
+                       xmlns="http://www.w3.org/2000/svg"
+                       width="24"
+                       height="24"
+                       viewBox="0 0 24 24"
+                       fill="none"
+                       stroke="currentColor"
+                       stroke-width="2"
+                       stroke-linecap="round"
+                       stroke-linejoin="round"
+                     >
+                       <rect
+                         x="3"
+                         y="3"
+                         width="18"
+                         height="18"
+                         rx="2"
+                         ry="2"
+                       ></rect>
+                       <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                       <polyline points="21 15 16 10 5 21"></polyline>
+                     </svg>
+                   </div>
+                   <span>Foto del plato (opcional)</span>
+                 </div>
+               </label>
+               
+               <!-- Mensaje informativo -->
+               <small style="color: #666; text-align: center;">
+                 Si no seleccionas una imagen, se mantendrá la imagen actual.
+               </small>
+               
+               <!-- Botones de cámara y galería -->
+               <div style="display: flex; gap: 0.75rem;">
+                <button
+                  type="button"
+                  id="edit-camera-btn"
+                  style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #00b44e;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  "
+                  onmouseover="this.style.backgroundColor='#009a42'"
+                  onmouseout="this.style.backgroundColor='#00b44e'"
                 >
-                  <path
-                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  ></path>
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                  ></path>
-                </svg>
-              </div>
-            </label>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"/>
+                    <circle cx="12" cy="13" r="3"/>
+                  </svg>
+                  Tomar foto
+                </button>
+                
+                <button
+                  type="button"
+                  id="edit-gallery-btn"
+                  style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  "
+                  onmouseover="this.style.backgroundColor='#1976d2'"
+                  onmouseout="this.style.backgroundColor='#2196f3'"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                  Galería
+                </button>
+               </div>
+             </div>
+            
+            <!-- Inputs de archivo ocultos -->
             <input
               type="file"
               id="edit-dish-image-input"
               name="dishImage"
+              accept="image/png, image/jpeg, image/webp"
+              style="display: none"
+            />
+            <input
+              type="file"
+              id="edit-camera-input"
+              accept="image/*"
+              capture="environment"
+              style="display: none"
+            />
+            <input
+              type="file"
+              id="edit-gallery-input"
               accept="image/png, image/jpeg, image/webp"
               style="display: none"
             />
@@ -640,7 +881,6 @@
               name="restaurantDescription"
               rows="3"
               maxlength="300"
-              required
               placeholder="Descripción del restaurante"
               style="
                 width: 100%;
@@ -716,7 +956,7 @@
             />
           </div>
           <div class="modal-form-group">
-            <label for="edit-restaurant-whatsapp">Whatsapp</label>
+            <label for="edit-restaurant-whatsapp">Whatsapp para Pedidos de Clientes</label>
             <input
               type="tel"
               id="edit-restaurant-whatsapp"
@@ -741,13 +981,12 @@
           </div>
           <div class="modal-form-group">
             <label for="edit-restaurant-location"
-              >Link de ubicación (Google Maps)</label
+              >Link de ubicación (opcional)</label
             >
             <input
               type="url"
               id="edit-restaurant-location"
               name="restaurantLocation"
-              required
             />
           </div>
           <div class="modal-form-group">
@@ -1128,6 +1367,8 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <!-- Cropper.js JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <!-- Browser Image Compression -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
     <script src="js/dashboard.js"></script>
   </body>
 </html>

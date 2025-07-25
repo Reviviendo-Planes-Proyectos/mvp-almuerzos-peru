@@ -314,20 +314,20 @@ async function handleCreateCard(event) {
 async function handleCreateDish(event) {
   event.preventDefault();
   if (!currentCardId) return alert("No se ha seleccionado una carta.");
-  
+
   const form = event.target;
   const dishName = form.elements.dishName.value;
   const dishPrice = form.elements.dishPrice.value;
   const submitButton = form.querySelector('button[type="submit"]');
-  
+
   if (!dishName.trim() || !dishPrice.trim()) return;
-  
+
   submitButton.disabled = true;
   submitButton.textContent = compressedDishImageFile ? "Subiendo imagen..." : "Guardando plato...";
-  
+
   try {
     let photoUrl = "/images/default-dish.jpg.png"; // Default image path from images folder
-    
+
     // Solo subir imagen si se ha seleccionado una
     if (compressedDishImageFile) {
       const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
@@ -338,7 +338,7 @@ async function handleCreateDish(event) {
       const uploadTask = await storageRef.put(compressedDishImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
     }
-    
+
     submitButton.textContent = "Guardando plato...";
     const dishData = {
       cardId: currentCardId,
@@ -356,11 +356,11 @@ async function handleCreateDish(event) {
       },
       body: JSON.stringify(dishData),
     });
-    
+
     if (!response.ok) {
       throw new Error("Error al guardar los datos del plato.");
     }
-    
+
     form.reset();
     document.getElementById("dish-image-preview").style.display = "none";
     document.getElementById("image-upload-placeholder").style.display = "flex";
@@ -368,7 +368,7 @@ async function handleCreateDish(event) {
     closeModal(null, "newDishModal");
     showToast("Plato creado con éxito.");
     await loadDishes(currentCardId);
-    
+
   } catch (error) {
     console.error("Error en el proceso de creación del plato:", error);
     alert("No se pudo crear el plato. Por favor, inténtalo de nuevo.");
@@ -489,7 +489,7 @@ function openModal(modalId) {
   if (modal) {
     modal.style.display = "flex";
     currentlyOpenModal = modal;
-    
+
     // Limpiar estado de imagen del plato cuando se abra el modal "Nuevo plato"
     if (modalId === "newDishModal") {
       clearDishImageState();
@@ -507,7 +507,7 @@ function closeModal(event, forceModalId = null) {
   }
   if (modalToClose) {
     modalToClose.style.display = "none";
-    
+
     // Limpiar estado de imagen del plato cuando se cierre el modal "Nuevo plato"
     if (modalToClose.id === "newDishModal") {
       clearDishImageState();
@@ -519,35 +519,35 @@ function closeModal(event, forceModalId = null) {
 function clearDishImageState() {
   // Limpiar la variable global de la imagen comprimida
   compressedDishImageFile = null;
-  
+
   // Limpiar el input de archivo
   const imageInput = document.getElementById("dish-image-input");
   if (imageInput) {
     imageInput.value = "";
   }
-  
+
   // Restablecer el preview a la imagen por defecto
   const preview = document.getElementById("dish-image-preview");
   const placeholder = document.getElementById("image-upload-placeholder");
-  
+
   if (preview && placeholder) {
     preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Imagen";
     preview.style.display = "none";
     placeholder.style.display = "block";
   }
-  
+
   // Limpiar el formulario completo
   const form = document.getElementById("new-dish-form");
   if (form) {
     form.reset();
   }
-  
+
   // Cerrar el cropper si está abierto
   if (cropper) {
     cropper.destroy();
     cropper = null;
   }
-  
+
   // Cerrar el modal de cropper si está abierto
   const cropperModal = document.getElementById("cropperModal");
   if (cropperModal && cropperModal.style.display !== "none") {
@@ -556,7 +556,53 @@ function clearDishImageState() {
 }
 function setupImageUploader() {
   const imageInput = document.getElementById("dish-image-input");
+  const cameraInput = document.getElementById("camera-input");
+  const galleryInput = document.getElementById("gallery-input");
+  const cameraBtn = document.getElementById("camera-btn");
+  const galleryBtn = document.getElementById("gallery-btn");
+  
+  // Configuración para modal de nuevo plato
   imageInput.addEventListener("change", handleImageSelection);
+  cameraInput.addEventListener("change", handleImageSelection);
+  galleryInput.addEventListener("change", handleImageSelection);
+  
+  if (cameraBtn) {
+    cameraBtn.addEventListener("click", () => {
+      openCameraCapture();
+    });
+  }
+  
+  if (galleryBtn) {
+    galleryBtn.addEventListener("click", () => {
+      galleryInput.click();
+    });
+  }
+  
+  // Configuración para modal de editar plato
+  const editCameraInput = document.getElementById("edit-camera-input");
+  const editGalleryInput = document.getElementById("edit-gallery-input");
+  const editCameraBtn = document.getElementById("edit-camera-btn");
+  const editGalleryBtn = document.getElementById("edit-gallery-btn");
+  
+  if (editCameraInput) {
+    editCameraInput.addEventListener("change", handleEditImageSelection);
+  }
+  
+  if (editGalleryInput) {
+    editGalleryInput.addEventListener("change", handleEditImageSelection);
+  }
+  
+  if (editCameraBtn) {
+    editCameraBtn.addEventListener("click", () => {
+      openCameraCapture(true);
+    });
+  }
+  
+  if (editGalleryBtn) {
+    editGalleryBtn.addEventListener("click", () => {
+      editGalleryInput.click();
+    });
+  }
 }
 // Función auxiliar para obtener dimensiones de la imagen
 function getImageDimensions(file) {
@@ -579,20 +625,273 @@ function getImageDimensions(file) {
 function validateFileType(file) {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   const blockedTypes = ['image/avif', 'image/heic', 'image/heif'];
-  
+
   // Verificar si el tipo está explícitamente bloqueado
   if (blockedTypes.includes(file.type.toLowerCase())) {
     showModalAlert('Los archivos AVIF, HEIC y HEIF no están soportados. Solo se permiten archivos JPEG, PNG y WebP');
     return false;
   }
-  
+
   // Verificar si el tipo está en la lista de permitidos
   if (!allowedTypes.includes(file.type.toLowerCase())) {
     showModalAlert('Solo se permiten archivos JPEG, PNG y WebP');
     return false;
   }
-  
+
   return true;
+}
+
+// Función para abrir la captura de cámara
+async function openCameraCapture(isEditMode = false) {
+  try {
+    // Verificar si el navegador soporta getUserMedia
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
+      return;
+    }
+
+    // Solicitar acceso a la cámara
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: {
+        facingMode: 'environment', // Preferir cámara trasera en móviles
+        width: { ideal: 1280 },
+        height: { ideal: 720 }
+      }
+    });
+
+    // Crear el modal de cámara
+    createCameraModal(stream, isEditMode);
+
+  } catch (error) {
+    console.error('Error al acceder a la cámara:', error);
+    
+    if (error.name === 'NotAllowedError') {
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
+    } else if (error.name === 'NotFoundError') {
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
+    } else if (error.name === 'NotReadableError') {
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
+    } else {
+      alert('Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador.');
+    }
+  }
+}
+
+// Función para crear el modal de cámara
+function createCameraModal(stream, isEditMode = false) {
+  // Crear el modal
+  const modal = document.createElement('div');
+  modal.id = 'camera-modal';
+  modal.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+  `;
+
+  // Crear el contenedor del video
+  const videoContainer = document.createElement('div');
+  videoContainer.style.cssText = `
+    position: relative;
+    max-width: 90vw;
+    max-height: 70vh;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+  `;
+
+  // Crear el elemento video
+  const video = document.createElement('video');
+  video.style.cssText = `
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  `;
+  video.autoplay = true;
+  video.playsInline = true;
+  video.srcObject = stream;
+
+  // Crear los controles
+  const controls = document.createElement('div');
+  controls.style.cssText = `
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+  `;
+
+  // Botón de captura
+  const captureBtn = document.createElement('button');
+  captureBtn.innerHTML = '📸 Tomar Foto';
+  captureBtn.style.cssText = `
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+  `;
+
+  // Botón de cerrar
+  const closeBtn = document.createElement('button');
+  closeBtn.innerHTML = '❌ Cerrar';
+  closeBtn.style.cssText = `
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 600;
+  `;
+
+  // Eventos
+  captureBtn.addEventListener('click', () => {
+    capturePhoto(video, stream, modal, isEditMode);
+  });
+
+  closeBtn.addEventListener('click', () => {
+    closeCameraModal(stream, modal);
+  });
+
+  // Ensamblar el modal
+  videoContainer.appendChild(video);
+  controls.appendChild(captureBtn);
+  controls.appendChild(closeBtn);
+  modal.appendChild(videoContainer);
+  modal.appendChild(controls);
+  document.body.appendChild(modal);
+}
+
+// Función para capturar la foto
+function capturePhoto(video, stream, modal, isEditMode = false) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  
+  // Establecer las dimensiones del canvas
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  
+  // Dibujar el frame actual del video en el canvas
+  context.drawImage(video, 0, 0, canvas.width, canvas.height);
+  
+  // Convertir a blob
+  canvas.toBlob((blob) => {
+    if (blob) {
+      // Crear un archivo desde el blob
+      const file = new File([blob], `camera-photo-${Date.now()}.jpg`, {
+        type: 'image/jpeg',
+        lastModified: Date.now()
+      });
+      
+      // Procesar la imagen capturada
+      if (isEditMode) {
+        processEditCapturedImage(file);
+      } else {
+        processCapturedImage(file);
+      }
+      
+      // Cerrar el modal
+      closeCameraModal(stream, modal);
+    }
+  }, 'image/jpeg', 0.9);
+}
+
+// Función para procesar la imagen capturada (nuevo plato)
+async function processCapturedImage(file) {
+  try {
+    const { width, height } = await getImageDimensions(file);
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      showModalAlert(`La resolución de la imagen es muy baja`);
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      return;
+    }
+
+    const preview = document.getElementById("dish-image-preview");
+    const placeholder = document.getElementById("image-upload-placeholder");
+    const cameraInput = document.getElementById("camera-input");
+    
+    // Simular la selección de archivo
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    cameraInput.files = dataTransfer.files;
+    
+    // Abrir el modal de recorte
+    openCropperModal(file, cameraInput, preview, placeholder);
+
+  } catch (error) {
+    console.error("Error al procesar la imagen capturada:", error);
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
+  }
+}
+
+// Función para procesar la imagen capturada (editar plato)
+async function processEditCapturedImage(file) {
+  try {
+    const { width, height } = await getImageDimensions(file);
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      showModalAlert(`La resolución de la imagen es muy baja`);
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      return;
+    }
+
+    const preview = document.getElementById("edit-dish-image-preview");
+    const placeholder = document.getElementById("edit-image-upload-placeholder");
+    const editCameraInput = document.getElementById("edit-camera-input");
+    
+    // Simular la selección de archivo
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    editCameraInput.files = dataTransfer.files;
+    
+    // Abrir el modal de recorte
+    openCropperModal(file, editCameraInput, preview, placeholder);
+
+  } catch (error) {
+    console.error("Error al procesar la imagen capturada:", error);
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
+  }
+}
+
+// Función para cerrar el modal de cámara
+function closeCameraModal(stream, modal) {
+  // Detener el stream de video
+  if (stream) {
+    stream.getTracks().forEach(track => track.stop());
+  }
+  
+  // Remover el modal
+  if (modal && modal.parentNode) {
+    modal.parentNode.removeChild(modal);
+  }
 }
 
 // Modificación en handleImageSelection
@@ -601,19 +900,19 @@ async function handleImageSelection(event) {
   const placeholder = document.getElementById("image-upload-placeholder");
   const file = event.target.files[0];
   if (!file) return;
-  
+
   // Validar tipo de archivo
   if (!validateFileType(file)) {
     event.target.value = "";
     return;
   }
-  
-  if (file.size > 3 * 1024 * 1024) {
-    alert("La imagen es demasiado grande. Elige una de menos de 3MB.");
+
+  if (file.size > 50 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
     event.target.value = "";
     return;
   }
-  
+
   try {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
@@ -635,69 +934,94 @@ async function handleImageSelection(event) {
 
     // Abrir el modal de recorte en lugar de mostrar directamente la imagen
     openCropperModal(file, event.target, preview, placeholder);
-    
+
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
-    alert("Hubo un error al procesar la imagen.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
 }
-function compressImage(file, quality = 0.7, maxWidth = 800) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target.result;
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        
-        // Determinar el tamaño del cuadrado para el recorte (usar el lado más pequeño)
-        const size = Math.min(img.width, img.height);
-        
-        // Calcular las coordenadas para centrar el recorte
-        const startX = (img.width - size) / 2;
-        const startY = (img.height - size) / 2;
-        
-        // Establecer el tamaño del canvas para el cuadrado recortado
-        let finalSize = size;
-        if (finalSize > maxWidth) {
-          finalSize = maxWidth;
-        }
-        
-        canvas.width = finalSize;
-        canvas.height = finalSize;
-        
-        const ctx = canvas.getContext("2d");
-        
-        // Dibujar la imagen recortada y centrada
-        ctx.drawImage(
-          img,
-          startX, startY, size, size, // Área de origen (recorte cuadrado centrado)
-          0, 0, finalSize, finalSize  // Área de destino (canvas cuadrado)
-        );
-        
-        canvas.toBlob(
-          (blob) => {
-            if (blob) {
-              resolve(
-                new File([blob], file.name, {
-                  type: "image/jpeg",
-                  lastModified: Date.now(),
-                })
-              );
-            } else {
-              reject(new Error("Error al crear el blob de la imagen."));
-            }
-          },
-          "image/jpeg",
-          quality
-        );
-      };
-      img.onerror = (error) => reject(error);
+
+// Función para manejar la selección de imagen en el modal de editar plato
+async function handleEditImageSelection(event) {
+  const preview = document.getElementById("edit-dish-image-preview");
+  const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const file = event.target.files[0];
+  if (!file) return;
+
+  // Validar tipo de archivo
+  if (!validateFileType(file)) {
+    event.target.value = "";
+    return;
+  }
+
+  if (file.size > 50 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    const { width, height } = await getImageDimensions(file);
+    const minWidth = 160;
+    const minHeight = 120;
+    const maxWidth = 2560;
+    const maxHeight = 1440;
+
+    if (width < minWidth || height < minHeight) {
+      showModalAlert(`La resolución de la imagen es muy baja`);
+      event.target.value = "";
+      return;
+    }
+
+    if (width > maxWidth || height > maxHeight) {
+      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      event.target.value = "";
+      return;
+    }
+
+    // Abrir el modal de recorte
+    openCropperModal(file, event.target, preview, placeholder);
+
+  } catch (error) {
+    console.error("Error al procesar la imagen:", error);
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
+    event.target.value = "";
+  }
+}
+
+async function compressImage(file, quality = 0.7, maxWidth = 800) {
+  try {
+    // Configuración para browser-image-compression
+    const options = {
+      maxSizeMB: 3, // Garantizar que el archivo final sea menor a 3MB
+      maxWidthOrHeight: maxWidth, // Mantener el ancho máximo
+      useWebWorker: true, // Usar Web Workers para mejor rendimiento
+      fileType: 'image/jpeg', // Convertir a JPEG
+      initialQuality: quality // Calidad inicial
     };
-    reader.onerror = (error) => reject(error);
-  });
+
+    // Comprimir la imagen usando browser-image-compression
+    const compressedFile = await imageCompression(file, options);
+    
+    // Verificar que el archivo comprimido sea menor a 3MB
+    if (compressedFile.size > 3 * 1024 * 1024) {
+      // Si aún es muy grande, intentar con configuración más agresiva
+      const aggressiveOptions = {
+        maxSizeMB: 2.5,
+        maxWidthOrHeight: Math.min(maxWidth, 600),
+        useWebWorker: true,
+        fileType: 'image/jpeg',
+        initialQuality: 0.6
+      };
+      return await imageCompression(file, aggressiveOptions);
+    }
+    
+    return compressedFile;
+  } catch (error) {
+    console.error('Error al comprimir imagen:', error);
+    throw new Error('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
+  }
 }
 function openEditRestaurantModal() {
   if (!currentRestaurant) return;
@@ -817,8 +1141,7 @@ async function handleUpdateRestaurant(event) {
       hasDelivery: form.elements.restaurantDelivery.checked,
       hasLocalService: form.elements.restaurantLocalService.checked,
       schedule: schedule
-    };
-
+    }; 
     const idToken = await currentUser.getIdToken();
     const response = await fetch(`/api/restaurants/${currentRestaurant.id}`, {
       method: "PUT",
@@ -846,46 +1169,27 @@ function openEditDishModal(dish) {
   document.getElementById("edit-dish-name").value = dish.name;
   document.getElementById("edit-dish-price").value = dish.price;
   const preview = document.getElementById("edit-dish-image-preview");
-  preview.src =
-    dish.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Img`;
+  const placeholder = document.getElementById("edit-image-upload-placeholder");
+  
+  // Mostrar la imagen actual del plato
+  if (dish.photoUrl && dish.photoUrl !== "/images/default-dish.jpg.png") {
+    preview.src = dish.photoUrl;
+    preview.style.display = "block";
+    placeholder.style.display = "none";
+  } else {
+    preview.style.display = "none";
+    placeholder.style.display = "flex";
+  }
+  
   compressedDishImageFile = null;
   document.getElementById("edit-dish-image-input").value = "";
+  document.getElementById("edit-camera-input").value = "";
+  document.getElementById("edit-gallery-input").value = "";
+  
   editImageInput.onchange = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-    if (file.size > 3 * 1024 * 1024) {
-      alert("La imagen es demasiado grande (máx 3MB).");
-      return;
-    }
-    
-    try {
-      const { width, height } = await getImageDimensions(file);
-      const minWidth = 160;
-      const minHeight = 120;
-      const maxWidth = 2560;
-      const maxHeight = 1440;
-
-      if (width < minWidth || height < minHeight) {
-        showModalAlert(`La resolución de la imagen es muy baja`);
-        event.target.value = "";
-        return;
-      }
-
-      if (width > maxWidth || height > maxHeight) {
-        showModalAlert(`La resolución de la imagen es demasiado alta`);
-        event.target.value = "";
-        return;
-      }
-
-      // Abrir el modal de recorte
-      openCropperModal(file, event.target, preview, null);
-      
-    } catch (error) {
-      console.error("Error al procesar la imagen:", error);
-      alert("Hubo un error al procesar la imagen.");
-      event.target.value = "";
-    }
+    await handleEditImageSelection(event);
   };
+  
   document.getElementById("open-delete-dish-alert-btn").onclick = () => {
     openModal("deleteDishAlert");
   };
@@ -997,14 +1301,14 @@ function showToast(message) {
 function showModalAlert(message, type = 'error') {
   // Buscar el modal activo
   const activeModal = document.querySelector('.modal-backdrop[style*="flex"], .modal-backdrop[style*="block"]');
-  
+
   if (activeModal) {
     // Remover alerta anterior si existe
     const existingAlert = activeModal.querySelector('.modal-alert');
     if (existingAlert) {
       existingAlert.remove();
     }
-    
+
     // Crear el contenedor de alerta
     const alertContainer = document.createElement('div');
     alertContainer.className = 'modal-alert';
@@ -1020,9 +1324,9 @@ function showModalAlert(message, type = 'error') {
       opacity: 0;
       transition: opacity 0.3s ease;
     `;
-    
+
     alertContainer.textContent = message;
-    
+
     // Buscar dónde insertar la alerta (entre imagen y nombre)
     const modalContent = activeModal.querySelector('.modal-content');
     if (modalContent) {
@@ -1041,12 +1345,12 @@ function showModalAlert(message, type = 'error') {
         modalContent.insertBefore(alertContainer, modalContent.firstChild);
       }
     }
-    
+
     // Mostrar la alerta con animación
     setTimeout(() => {
       alertContainer.style.opacity = '1';
     }, 10);
-    
+
     // Ocultar la alerta después de 4 segundos
     setTimeout(() => {
       alertContainer.style.opacity = '0';
@@ -1067,19 +1371,19 @@ async function handleRestaurantImageSelection(event) {
   const preview = document.getElementById("edit-restaurant-image-preview");
   const file = event.target.files[0];
   if (!file) return;
-  
+
   // Validar tipo de archivo
   if (!validateFileType(file)) {
     event.target.value = "";
     return;
   }
-  
-  if (file.size > 3 * 1024 * 1024) {
-    alert("La imagen es demasiado grande. Elige una de menos de 3MB.");
+
+  if (file.size > 50 * 1024 * 1024) {
+    alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
     event.target.value = "";
     return;
   }
-  
+
   try {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
@@ -1101,10 +1405,10 @@ async function handleRestaurantImageSelection(event) {
 
     // Abrir el modal de recorte rectangular para restaurante
     openRestaurantCropperModal(file, event.target, preview);
-    
+
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
-    alert("Hubo un error al procesar la imagen.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
 }
@@ -1114,19 +1418,19 @@ async function handleRestaurantLogoSelection(event) {
   const preview = document.getElementById("edit-restaurant-logo-preview");
   const file = event.target.files[0];
   if (!file) return;
-  
+
   // Validar tipo de archivo
   if (!validateFileType(file)) {
     event.target.value = "";
     return;
   }
-  
-  if (file.size > 3 * 1024 * 1024) {
-    alert("El logo es demasiado grande. Elige uno de menos de 3MB.");
+
+  if (file.size > 50 * 1024 * 1024) {
+    alert("El logo es demasiado grande. Elige uno de menos de 50MB.");
     event.target.value = "";
     return;
   }
-  
+
   try {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
@@ -1148,10 +1452,10 @@ async function handleRestaurantLogoSelection(event) {
 
     // Abrir el modal de recorte cuadrado para logo
     openLogoCropperModal(file, event.target, preview);
-    
+
   } catch (error) {
     console.error("Error al procesar el logo:", error);
-    alert("Hubo un error al procesar el logo.");
+    alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
 }
@@ -1161,23 +1465,23 @@ function openCropperModal(file, imageInput, preview, placeholder) {
   currentImageInput = imageInput;
   currentPreview = preview;
   currentPlaceholder = placeholder;
-  
+
   const cropperModal = document.getElementById('cropperModal');
   const cropperImage = document.getElementById('cropper-image');
-  
+
   // Crear URL para la imagen
   const imageUrl = URL.createObjectURL(file);
   cropperImage.src = imageUrl;
-  
+
   // Mostrar el modal
   cropperModal.style.display = 'flex';
-  
+
   // Inicializar Cropper.js después de que la imagen se cargue
-  cropperImage.onload = function() {
+  cropperImage.onload = function () {
     if (cropper) {
       cropper.destroy();
     }
-    
+
     cropper = new Cropper(cropperImage, {
       aspectRatio: 1, // Área cuadrada
       viewMode: 1,
@@ -1194,7 +1498,7 @@ function openCropperModal(file, imageInput, preview, placeholder) {
       checkOrientation: false
     });
   };
-  
+
   // Event listeners para los botones
   setupCropperButtons();
 }
@@ -1203,17 +1507,17 @@ function setupCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
   const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
-  
+
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
   cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
-  
+
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
   const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
-  
+
   newCancelBtn.addEventListener('click', closeCropperModal);
   newCropBtn.addEventListener('click', cropImage);
   newSaveBtn.addEventListener('click', saveCroppedImage);
@@ -1222,17 +1526,17 @@ function setupCropperButtons() {
 function closeCropperModal() {
   const cropperModal = document.getElementById('cropperModal');
   cropperModal.style.display = 'none';
-  
+
   if (cropper) {
     cropper.destroy();
     cropper = null;
   }
-  
+
   // Limpiar el input
   if (currentImageInput) {
     currentImageInput.value = '';
   }
-  
+
   // Limpiar variables
   currentImageInput = null;
   currentPreview = null;
@@ -1241,7 +1545,7 @@ function closeCropperModal() {
 
 function cropImage() {
   if (!cropper) return;
-  
+
   // Obtener el área recortada
   const canvas = cropper.getCroppedCanvas({
     width: 400,
@@ -1249,11 +1553,11 @@ function cropImage() {
     imageSmoothingEnabled: true,
     imageSmoothingQuality: 'high'
   });
-  
+
   // Mostrar la imagen recortada en el cropper
   const cropperImage = document.getElementById('cropper-image');
   cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-  
+
   // Destruir el cropper actual
   if (cropper) {
     cropper.destroy();
@@ -1263,10 +1567,10 @@ function cropImage() {
 
 async function saveCroppedImage() {
   if (!cropper) {
-    alert('Error: No se ha inicializado el recortador de imagen.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
-  
+
   try {
     // Obtener el área recortada directamente del cropper
     const canvas = cropper.getCroppedCanvas({
@@ -1275,37 +1579,37 @@ async function saveCroppedImage() {
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high'
     });
-    
+
     canvas.toBlob(async (blob) => {
       try {
         // Comprimir la imagen
         const compressedFile = await compressImage(new File([blob], 'cropped-image.jpg', { type: 'image/jpeg' }));
         compressedDishImageFile = compressedFile;
-        
+
         // Actualizar la vista previa
         if (currentPreview) {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
           currentPreview.style.display = 'block';
-          
+
           // Solo ocultar placeholder si existe (para el modal de nuevo plato)
           if (currentPlaceholder) {
             currentPlaceholder.style.display = 'none';
           }
         }
-        
+
         // Cerrar el modal
         closeCropperModal();
-        
+
         showToast('Imagen recortada y guardada correctamente');
       } catch (error) {
         console.error('Error al procesar la imagen recortada:', error);
-        alert('Error al procesar la imagen recortada');
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       }
     }, 'image/jpeg', 0.8);
   } catch (error) {
     console.error('Error al obtener la imagen recortada:', error);
-    alert('Error al procesar la imagen. Por favor, inténtalo de nuevo.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
 
@@ -1314,25 +1618,25 @@ function openRestaurantCropperModal(file, imageInput, preview) {
   currentImageInput = imageInput;
   currentPreview = preview;
   currentPlaceholder = null; // No hay placeholder para imagen de restaurante
-  
+
   const cropperModal = document.getElementById('cropperModal');
   const cropperImage = document.getElementById('cropper-image');
-  
+
   // Crear URL para la imagen
   const imageUrl = URL.createObjectURL(file);
   cropperImage.src = imageUrl;
-  
+
   // Mostrar el modal
   cropperModal.style.display = 'flex';
-  
+
   // Inicializar Cropper.js después de que la imagen se cargue
-  cropperImage.onload = function() {
+  cropperImage.onload = function () {
     if (cropper) {
       cropper.destroy();
     }
-    
+
     cropper = new Cropper(cropperImage, {
-      aspectRatio: 16/9, // Área rectangular para banner
+      aspectRatio: 16 / 9, // Área rectangular para banner
       viewMode: 1,
       dragMode: 'move',
       autoCropArea: 0.8,
@@ -1347,7 +1651,7 @@ function openRestaurantCropperModal(file, imageInput, preview) {
       checkOrientation: false
     });
   };
-  
+
   // Event listeners para los botones
   setupRestaurantCropperButtons();
 }
@@ -1356,17 +1660,17 @@ function setupRestaurantCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
   const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
-  
+
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
   cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
-  
+
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
   const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
-  
+
   newCancelBtn.addEventListener('click', closeCropperModal);
   newCropBtn.addEventListener('click', cropRestaurantImage);
   newSaveBtn.addEventListener('click', saveRestaurantCroppedImage);
@@ -1374,7 +1678,7 @@ function setupRestaurantCropperButtons() {
 
 function cropRestaurantImage() {
   if (!cropper) return;
-  
+
   // Obtener el área recortada
   const canvas = cropper.getCroppedCanvas({
     width: 800,
@@ -1382,11 +1686,11 @@ function cropRestaurantImage() {
     imageSmoothingEnabled: true,
     imageSmoothingQuality: 'high'
   });
-  
+
   // Mostrar la imagen recortada en el cropper
   const cropperImage = document.getElementById('cropper-image');
   cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-  
+
   // Destruir el cropper actual
   if (cropper) {
     cropper.destroy();
@@ -1396,10 +1700,10 @@ function cropRestaurantImage() {
 
 async function saveRestaurantCroppedImage() {
   if (!cropper) {
-    alert('Error: No se ha inicializado el recortador de imagen.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
-  
+
   try {
     // Obtener el área recortada directamente del cropper
     const canvas = cropper.getCroppedCanvas({
@@ -1408,32 +1712,32 @@ async function saveRestaurantCroppedImage() {
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high'
     });
-    
+
     canvas.toBlob(async (blob) => {
       try {
         // Comprimir la imagen
         const compressedFile = await compressImage(new File([blob], 'cropped-restaurant-image.jpg', { type: 'image/jpeg' }));
         compressedRestaurantImageFile = compressedFile;
-        
+
         // Actualizar la vista previa
         if (currentPreview) {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
           currentPreview.style.display = 'block';
         }
-        
+
         // Cerrar el modal
         closeCropperModal();
-        
+
         showToast('Imagen del restaurante recortada y guardada correctamente');
       } catch (error) {
         console.error('Error al procesar la imagen recortada:', error);
-        alert('Error al procesar la imagen recortada');
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       }
     }, 'image/jpeg', 0.8);
   } catch (error) {
     console.error('Error al obtener la imagen recortada:', error);
-    alert('Error al procesar la imagen. Por favor, inténtalo de nuevo.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
 
@@ -1442,23 +1746,23 @@ function openLogoCropperModal(file, imageInput, preview) {
   currentImageInput = imageInput;
   currentPreview = preview;
   currentPlaceholder = null; // No hay placeholder para logo de restaurante
-  
+
   const cropperModal = document.getElementById('cropperModal');
   const cropperImage = document.getElementById('cropper-image');
-  
+
   // Crear URL para la imagen
   const imageUrl = URL.createObjectURL(file);
   cropperImage.src = imageUrl;
-  
+
   // Mostrar el modal
   cropperModal.style.display = 'flex';
-  
+
   // Inicializar Cropper.js después de que la imagen se cargue
-  cropperImage.onload = function() {
+  cropperImage.onload = function () {
     if (cropper) {
       cropper.destroy();
     }
-    
+
     cropper = new Cropper(cropperImage, {
       aspectRatio: 1, // Área cuadrada para logo
       viewMode: 1,
@@ -1475,7 +1779,7 @@ function openLogoCropperModal(file, imageInput, preview) {
       checkOrientation: false
     });
   };
-  
+
   // Event listeners para los botones
   setupLogoCropperButtons();
 }
@@ -1484,17 +1788,17 @@ function setupLogoCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
   const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
-  
+
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
   cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
-  
+
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
   const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
-  
+
   newCancelBtn.addEventListener('click', closeCropperModal);
   newCropBtn.addEventListener('click', cropLogoImage);
   newSaveBtn.addEventListener('click', saveLogoCroppedImage);
@@ -1502,7 +1806,7 @@ function setupLogoCropperButtons() {
 
 function cropLogoImage() {
   if (!cropper) return;
-  
+
   // Obtener el área recortada
   const canvas = cropper.getCroppedCanvas({
     width: 400,
@@ -1510,11 +1814,11 @@ function cropLogoImage() {
     imageSmoothingEnabled: true,
     imageSmoothingQuality: 'high'
   });
-  
+
   // Mostrar la imagen recortada en el cropper
   const cropperImage = document.getElementById('cropper-image');
   cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-  
+
   // Destruir el cropper actual
   if (cropper) {
     cropper.destroy();
@@ -1524,10 +1828,10 @@ function cropLogoImage() {
 
 async function saveLogoCroppedImage() {
   if (!cropper) {
-    alert('Error: No se ha inicializado el recortador de imagen.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
-  
+
   try {
     // Obtener el área recortada directamente del cropper
     const canvas = cropper.getCroppedCanvas({
@@ -1536,31 +1840,31 @@ async function saveLogoCroppedImage() {
       imageSmoothingEnabled: true,
       imageSmoothingQuality: 'high'
     });
-    
+
     canvas.toBlob(async (blob) => {
       try {
         // Comprimir la imagen
         const compressedFile = await compressImage(new File([blob], 'cropped-restaurant-logo.jpg', { type: 'image/jpeg' }));
         compressedRestaurantLogoFile = compressedFile;
-        
+
         // Actualizar la vista previa
         if (currentPreview) {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
           currentPreview.style.display = 'block';
         }
-        
+
         // Cerrar el modal
         closeCropperModal();
-        
+
         showToast('Logo del restaurante recortado y guardado correctamente');
       } catch (error) {
         console.error('Error al procesar el logo recortado:', error);
-        alert('Error al procesar el logo recortado');
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       }
     }, 'image/jpeg', 0.8);
   } catch (error) {
     console.error('Error al obtener el logo recortado:', error);
-    alert('Error al procesar el logo. Por favor, inténtalo de nuevo.');
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }

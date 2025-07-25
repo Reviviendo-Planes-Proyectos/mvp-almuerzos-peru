@@ -13,15 +13,19 @@ app.use(express.urlencoded({ extended: true }));
 
 let serviceAccount;
 if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    // Producción: usar variable de entorno (Vercel)
     try {
         const jsonString = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf-8');
         serviceAccount = JSON.parse(jsonString);
+        console.log('✅ Using Firebase credentials from environment variable');
     } catch (error) {
         console.error('❌ Error decoding FIREBASE_SERVICE_ACCOUNT_BASE64:', error.message);
         process.exit(1);
     }
 } else {
-     // Desarrollo local: usar archivo serviceAccountKey.json
+
+    // Desarrollo local: usar archivo serviceAccountKey.json
+
     try {
         serviceAccount = require('./serviceAccountKey.json');
         console.log('✅ Using Firebase credentials from serviceAccountKey.json');
@@ -327,10 +331,10 @@ app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
         const {
             userId,
             name,
-            description,
+            description = null,
             district,
             whatsapp,
-            photoUrl,
+            photoUrl = null,
             logoUrl = null,
             ruc = null,
             yape = null,
@@ -576,7 +580,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
             return res.status(403).json({ error: 'Forbidden: You do not own this restaurant.' });
         }
 
-        if (!name || !description || !district || !whatsapp) {
+        if (!name || !district || !whatsapp) {
             return res.status(400).json({ error: 'All fields are required.' });
         }
 
@@ -585,7 +589,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
         const oldPhotoUrl = oldData.photoUrl;
         const updatedData = {
             name: name ?? '',
-            description: description ?? '',
+            description: description ?? null,
             district: district ?? '',
             whatsapp: whatsapp ?? '',
             photoUrl: photoUrl ?? null,
@@ -1047,6 +1051,12 @@ app.post('/api/comments', async (req, res) => {
         console.error('Error al guardar comentario:', error);
         res.status(500).json({ error: 'Ocurrió un error en el servidor.' });
     }
+});
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`📱 Aplicación lista para usar`);
 });
 
 // Iniciar el servidor
