@@ -1,1374 +1,870 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mi perfil - Almuerzos Perú</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
-      rel="stylesheet"
-    />
 
-    <link rel="stylesheet" href="css/dashboard.css" />
-    <style>
-      /* Estilos para el switch */
-      .switch {
-        position: relative;
-        display: inline-block;
-        width: 48px;
-        height: 24px;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi perfil - Almuerzos Perú</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet" />
 
-      .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <style>
+    /* Estilos para el switch */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
 
-      .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: 0.4s;
-      }
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
 
-      .slider:before {
-        position: absolute;
-        content: "";
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.4s;
-      }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+    }
 
-      input:checked + .slider {
-        background-color: #00b44e;
-      }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.4s;
+    }
 
-      input:focus + .slider {
-        box-shadow: 0 0 1px #00b44e;
-      }
+    input:checked+.slider {
+      background-color: #00b44e;
+    }
 
-      input:checked + .slider:before {
-        transform: translateX(24px);
-      }
+    input:focus+.slider {
+      box-shadow: 0 0 1px #00b44e;
+    }
 
-      .slider.round {
-        border-radius: 34px;
-      }
+    input:checked+.slider:before {
+      transform: translateX(24px);
+    }
 
-      .slider.round:before {
-        border-radius: 50%;
-      }
+    .slider.round {
+      border-radius: 34px;
+    }
 
-      /* Estilos adicionales para el estado activo del switch */
-      .switch.active .slider {
-        background-color: #2196f3;
-      }
+    .slider.round:before {
+      border-radius: 50%;
+    }
 
-      .switch input:checked + .slider:before {
-        transform: translateX(24px);
-      }
+    /* Estilos adicionales para el estado activo del switch */
+    .switch.active .slider {
+      background-color: #2196f3;
+    }
 
-      /* Animación suave para el cambio de estado */
-      .switch .slider:before {
-        transition: transform 0.3s ease-in-out;
-      }
+    .switch input:checked+.slider:before {
+      transform: translateX(24px);
+    }
 
-      /* Estilos para el botón de sincronizar horarios */
-      .sync-button {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 0.5rem;
-        color: #495057;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-      }
+    /* Animación suave para el cambio de estado */
+    .switch .slider:before {
+      transition: transform 0.3s ease-in-out;
+    }
 
-      .sync-button:hover {
-        background-color: #e9ecef;
-        border-color: #ced4da;
-        color: #212529;
-      }
+    /* Estilos para el botón de sincronizar horarios */
+    .sync-button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 0.5rem;
+      color: #495057;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+    }
 
-      .sync-button svg {
-        transition: transform 0.3s ease;
-      }
+    .sync-button:hover {
+      background-color: #e9ecef;
+      border-color: #ced4da;
+      color: #212529;
+    }
 
-      .sync-button:hover svg {
-        transform: rotate(180deg);
-      }
+    .sync-button svg {
+      transition: transform 0.3s ease;
+    }
 
-      .sync-button:active {
-        transform: scale(0.98);
-      }
-    </style>
-    <!-- Cropper.js CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
-  </head>
-  <body>
-    <div id="toast-notification" class="toast">
-      <span id="toast-message"></span>
-    </div>
+    .sync-button:hover svg {
+      transform: rotate(180deg);
+    }
 
-    <div
-      id="loading-overlay"
-      style="
+    .sync-button:active {
+      transform: scale(0.98);
+    }
+  </style>
+  <!-- Cropper.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+</head>
+
+<body>
+  <div id="toast-notification" class="toast">
+    <span id="toast-message"></span>
+  </div>
+
+  <div id="loading-overlay" style="
         display: flex;
         justify-content: center;
         align-items: center;
         height: 100vh;
-      "
-    >
-      <p style="font-weight: 700; font-size: 1.25rem">Cargando Dashboard...</p>
-    </div>
-    <div id="main-content">
-      <section id="cards-section">
-        <header class="main-header">
-          <a href="index.html">
-            <img style="width: 250px" src="images/logo.png" />
-          </a>
-          <button class="logout-button" onclick="logout()">
-            Cerrar sesión
-          </button>
-        </header>
-
-        <div class="container">
-          <div
-            id="restaurant-banner"
-            class="restaurant-banner"
-            style="background-size: cover; background-position: center"
-          >
-            <h2 id="restaurant-name">Cargando...</h2>
-            <button
-              class="edit-restaurant-btn"
-              onclick="openEditRestaurantModal()"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                ></path>
-                <path
-                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                ></path>
-              </svg>
-            </button>
-          </div>
-
-          <div style="text-align: center; margin: 2rem 0">
-            <button class="primary-button" onclick="openModal('newCardModal')">
-              Nueva carta +
-            </button>
-          </div>
-
-          <div id="cards-list">
-            <p id="loading-cards-message">Cargando cartas...</p>
-          </div>
-        </div>
-      </section>
-
-      <section id="dishes-section">
-        <div class="container">
-          <div class="dishes-header">
-            <button class="back-button" onclick="showCards()">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M19 12H5"></path>
-                <path d="M12 19l-7-7 7-7"></path>
-              </svg>
-            </button>
-            <button id="delete-card-button" class="delete-button">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path
-                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                ></path>
-              </svg>
-            </button>
-          </div>
-
-          <div class="dish-list-container">
-            <input type="text" id="card-name-input" class="card-name-input" />
-
-            <div style="text-align: center; margin-bottom: 1.5rem">
-              <button
-                class="primary-button"
-                onclick="openModal('newDishModal')"
-              >
-                Nuevo plato +
-              </button>
-            </div>
-
-            <div id="dishes-list"></div>
-
-            <div style="text-align: center; margin-top: 2rem">
-              <button
-                id="save-card-changes-btn"
-                class="primary-button dark-button"
-                style="width: 100%"
-                disabled
-              >
-                Guardar cambios
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- Modal: Nueva Carta -->
-    <div id="newCardModal" class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal-content">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
+      ">
+    <p style="font-weight: 700; font-size: 1.25rem">Cargando Dashboard...</p>
+  </div>
+  <div id="main-content">
+    <section id="cards-section">
+      <header class="main-header">
+        <a href="index.html">
+          <img style="width: 250px" src="images/logo.png" />
+        </a>
+        <button class="logout-button" onclick="logout()">
+          Cerrar sesión
         </button>
-        <h2>Nueva carta</h2>
-        <form id="new-card-form">
-          <div class="modal-form-group">
-            <input
-              type="text"
-              name="cardName"
-              placeholder="Nombre de la carta"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            class="primary-button dark-button"
-            style="width: 100%; margin-top: 1rem"
-          >
-            Agregar Carta
+      </header>
+
+      <div class="container">
+        <div id="restaurant-banner" class="restaurant-banner"
+          style="background-size: cover; background-position: center">
+          <h2 id="restaurant-name">Cargando...</h2>
+          <button class="edit-restaurant-btn" onclick="openEditRestaurantModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
           </button>
-        </form>
+        </div>
+
+        <div style="text-align: center; margin: 2rem 0">
+          <button class="primary-button" onclick="openModal('newCardModal')">
+            Nueva carta +
+          </button>
+        </div>
+
+        <div id="cards-list">
+          <p id="loading-cards-message">Cargando cartas...</p>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Modal: Nuevo Plato -->
-    <div id="newDishModal" class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal-content">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
+    <section id="dishes-section">
+      <div class="container">
+        <div class="dishes-header">
+          <button class="back-button" onclick="showCards()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"></path>
+              <path d="M12 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+          <button id="delete-card-button" class="delete-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+            </svg>
+          </button>
+        </div>
+
+        <div class="dish-list-container">
+          <input type="text" id="card-name-input" class="card-name-input" />
+
+          <div style="text-align: center; margin-bottom: 1.5rem">
+            <button class="primary-button" onclick="openModal('newDishModal')">
+              Nuevo plato +
+            </button>
+          </div>
+
+          <div id="dishes-list"></div>
+
+          <div style="text-align: center; margin-top: 2rem">
+            <button id="save-card-changes-btn" class="primary-button dark-button" style="width: 100%" disabled>
+              Guardar cambios
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Modal: Nueva Carta -->
+  <div id="newCardModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>Nueva carta</h2>
+      <form id="new-card-form">
+        <div class="modal-form-group">
+          <input type="text" name="cardName" placeholder="Nombre de la carta" required />
+        </div>
+        <button type="submit" class="primary-button dark-button" style="width: 100%; margin-top: 1rem">
+          Agregar Carta
         </button>
-        <h2>Nuevo plato</h2>
-        <!-- Reemplaza el <form> dentro del div#newDishModal con esto -->
-        <form id="new-dish-form">
-          <div class="modal-form-group">
-            <!-- Contenedor con líneas punteadas que rodea todo -->
-            <div
-              id="image-upload-box"
-              class="image-upload-box"
-              style="flex-direction: column; align-items: stretch; gap: 0.75rem;"
-            >
-              <!-- Área de imagen con preview -->
-               <label
-                 for="dish-image-input"
-                 style="
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Nuevo Plato -->
+  <div id="newDishModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>Nuevo plato</h2>
+      <!-- Reemplaza el <form> dentro del div#newDishModal con esto -->
+      <form id="new-dish-form">
+        <div class="modal-form-group">
+          <!-- Contenedor con líneas punteadas que rodea todo -->
+          <div id="image-upload-box" class="image-upload-box"
+            style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
+            <!-- Área de imagen con preview -->
+            <label for="dish-image-input" style="
                    display: flex;
                    flex-direction: column;
                    align-items: center;
                    justify-content: center;
                    cursor: pointer;
-                 "
-               >
-                 <img
-                   id="dish-image-preview"
-                   src=""
-                   alt="Previsualización del plato"
-                   style="
+                 ">
+              <img id="dish-image-preview" src="" alt="Previsualización del plato" style="
                      display: none;
                      width: 60px;
                      height: 60px;
                      object-fit: cover;
                      border-radius: 0.5rem;
-                   "
-                 />
- 
-                 <!-- Este es el contenedor que se muestra por defecto -->
-                 <div
-                   id="image-upload-placeholder"
-                   style="
+                   " />
+
+              <!-- Este es el contenedor que se muestra por defecto -->
+              <div id="image-upload-placeholder" style="
                      display: flex;
                      flex-direction: column;
                      align-items: center;
                      gap: 0.5rem;
                      width: 100%;
-                   "
-                 >
-                   <div class="icon">
-                     <svg
-                       xmlns="http://www.w3.org/2000/svg"
-                       width="24"
-                       height="24"
-                       viewBox="0 0 24 24"
-                       fill="none"
-                       stroke="currentColor"
-                       stroke-width="2"
-                       stroke-linecap="round"
-                       stroke-linejoin="round"
-                     >
-                       <rect
-                         x="3"
-                         y="3"
-                         width="18"
-                         height="18"
-                         rx="2"
-                         ry="2"
-                       ></rect>
-                       <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                       <polyline points="21 15 16 10 5 21"></polyline>
-                     </svg>
-                   </div>
-                   <span>Foto del plato (opcional)</span>
-                 </div>
-               </label>
-               
-               <!-- Mensaje informativo -->
-               <small style="color: #666; text-align: center;">
-                 Si no seleccionas una imagen, se usará una imagen por defecto.
-               </small>
-               
-               <!-- Botones de cámara y galería -->
-               <div style="display: flex; gap: 0.75rem;">
-                <button
-                  type="button"
-                  id="camera-btn"
-                  style="
-                    flex: 1;
-                    padding: 0.75rem;
-                    background-color: #00b44e;
-                    color: white;
-                    border: none;
-                    border-radius: 0.5rem;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#009a42'"
-                  onmouseout="this.style.backgroundColor='#00b44e'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"/>
-                    <circle cx="12" cy="13" r="3"/>
+                   ">
+                <div class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
                   </svg>
-                  Tomar foto
-                </button>
-                
-                <button
-                  type="button"
-                  id="gallery-btn"
-                  style="
-                    flex: 1;
-                    padding: 0.75rem;
-                    background-color: #2196f3;
-                    color: white;
-                    border: none;
-                    border-radius: 0.5rem;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#1976d2'"
-                  onmouseout="this.style.backgroundColor='#2196f3'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21 15 16 10 5 21"/>
-                  </svg>
-                  Galería
-                </button>
-               </div>
-             </div>
-            
-            <!-- Inputs de archivo ocultos -->
-            <input
-              type="file"
-              id="dish-image-input"
-              name="dishImage"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="camera-input"
-              accept="image/*"
-              capture="environment"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="gallery-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-          </div>
-          <div class="modal-form-group">
-            <input
-              type="text"
-              name="dishName"
-              placeholder="Nombre del plato"
-              required
-            />
-          </div>
-          <div class="modal-form-group">
-            <input
-              type="number"
-              step="0.01"
-              name="dishPrice"
-              placeholder="Precio del plato (S/.)"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            class="primary-button dark-button"
-            style="width: 100%; margin-top: 1rem"
-          >
-            Agregar plato
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <div id="editDishModal" class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal-content">
-        <button id="open-delete-dish-alert-btn" class="delete-icon">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <polyline points="3 6 5 6 21 6"></polyline>
-            <path
-              d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-            ></path>
-          </svg>
-        </button>
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <!-- Aquí podría ir un futuro botón de eliminar plato -->
-        <h2>Editar plato</h2>
-        <form id="edit-dish-form">
-          <div class="modal-form-group">
-            <!-- Nueva estructura centrada para editar plato -->
-            <div
-              id="edit-image-upload-box"
-              class="image-upload-box"
-              style="flex-direction: column; align-items: stretch; gap: 0.75rem;"
-            >
-              <!-- Área de imagen con preview -->
-               <label
-                 for="edit-dish-image-input"
-                 style="
-                   display: flex;
-                   flex-direction: column;
-                   align-items: center;
-                   justify-content: center;
-                   cursor: pointer;
-                 "
-               >
-                 <img
-                   id="edit-dish-image-preview"
-                   src=""
-                   alt="Previsualización del plato"
-                   style="
-                     display: none;
-                     width: 60px;
-                     height: 60px;
-                     object-fit: cover;
-                     border-radius: 0.5rem;
-                   "
-                 />
- 
-                 <!-- Este es el contenedor que se muestra por defecto -->
-                 <div
-                   id="edit-image-upload-placeholder"
-                   style="
-                     display: flex;
-                     flex-direction: column;
-                     align-items: center;
-                     gap: 0.5rem;
-                     width: 100%;
-                   "
-                 >
-                   <div class="icon">
-                     <svg
-                       xmlns="http://www.w3.org/2000/svg"
-                       width="24"
-                       height="24"
-                       viewBox="0 0 24 24"
-                       fill="none"
-                       stroke="currentColor"
-                       stroke-width="2"
-                       stroke-linecap="round"
-                       stroke-linejoin="round"
-                     >
-                       <rect
-                         x="3"
-                         y="3"
-                         width="18"
-                         height="18"
-                         rx="2"
-                         ry="2"
-                       ></rect>
-                       <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                       <polyline points="21 15 16 10 5 21"></polyline>
-                     </svg>
-                   </div>
-                   <span>Foto del plato (opcional)</span>
-                 </div>
-               </label>
-               
-               <!-- Mensaje informativo -->
-               <small style="color: #666; text-align: center;">
-                 Si no seleccionas una imagen, se mantendrá la imagen actual.
-               </small>
-               
-               <!-- Botones de cámara y galería -->
-               <div style="display: flex; gap: 0.75rem;">
-                <button
-                  type="button"
-                  id="edit-camera-btn"
-                  style="
-                    flex: 1;
-                    padding: 0.75rem;
-                    background-color: #00b44e;
-                    color: white;
-                    border: none;
-                    border-radius: 0.5rem;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#009a42'"
-                  onmouseout="this.style.backgroundColor='#00b44e'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"/>
-                    <circle cx="12" cy="13" r="3"/>
-                  </svg>
-                  Tomar foto
-                </button>
-                
-                <button
-                  type="button"
-                  id="edit-gallery-btn"
-                  style="
-                    flex: 1;
-                    padding: 0.75rem;
-                    background-color: #2196f3;
-                    color: white;
-                    border: none;
-                    border-radius: 0.5rem;
-                    font-weight: 600;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 0.5rem;
-                    cursor: pointer;
-                    transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#1976d2'"
-                  onmouseout="this.style.backgroundColor='#2196f3'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                    <circle cx="8.5" cy="8.5" r="1.5"/>
-                    <polyline points="21 15 16 10 5 21"/>
-                  </svg>
-                  Galería
-                </button>
-               </div>
-             </div>
-            
-            <!-- Inputs de archivo ocultos -->
-            <input
-              type="file"
-              id="edit-dish-image-input"
-              name="dishImage"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-camera-input"
-              accept="image/*"
-              capture="environment"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-gallery-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-dish-name">Nombre del plato</label>
-            <input type="text" id="edit-dish-name" name="dishName" required />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-dish-price">Precio del plato (S/.)</label>
-            <input
-              type="number"
-              step="0.01"
-              id="edit-dish-price"
-              name="dishPrice"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            class="primary-button dark-button"
-            style="width: 100%; margin-top: 1rem"
-          >
-            Guardar cambios
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Alerta: Eliminar Carta -->
-    <div
-      id="deleteCardAlert"
-      class="modal-backdrop"
-      onclick="closeModal(event)"
-    >
-      <div class="modal-content alert-modal">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <h2>¿Segur@ quieres eliminar esta carta?</h2>
-        <p style="margin-bottom: 1.5rem; color: var(--gray-text)">
-          Esta acción no se puede deshacer. Se eliminarán todos los platos de
-          esta carta.
-        </p>
-        <button
-          id="confirm-delete-card-btn"
-          class="primary-button delete-confirm-btn"
-        >
-          Eliminar
-        </button>
-      </div>
-    </div>
-
-    <!-- Añade este nuevo modal en dashboard.html -->
-
-    <!-- Modal: Editar Restaurante -->
-    <div
-      id="editRestaurantModal"
-      class="modal-backdrop"
-      onclick="closeModal(event)"
-    >
-      <div
-        class="modal-content"
-        style="max-width: 600px; max-height: 90vh; overflow-y: auto"
-      >
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <h2 style="text-align: center">Editar restaurante</h2>
-        <form id="edit-restaurant-form">
-          <div class="modal-form-group">
-            <label
-              id="edit-restaurant-image-box"
-              class="image-upload-box"
-              for="edit-restaurant-image-input"
-              style="margin-bottom: 1rem"
-            >
-              <img
-                id="edit-restaurant-image-preview"
-                src=""
-                alt="Previsualización del local"
-                style="
-                  width: 60px;
-                  height: 60px;
-                  object-fit: cover;
-                  border-radius: 0.25rem;
-                "
-              />
-              <div class="edit-image-overlay">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  ></path>
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                  ></path>
-                </svg>
+                </div>
+                <span>Foto del plato </span>
               </div>
             </label>
-            <input
-              type="file"
-              id="edit-restaurant-image-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-          </div>
-          <div class="modal-form-group">
-            <label
-              id="edit-restaurant-logo-box"
-              class="image-upload-box"
-              for="edit-restaurant-logo-input"
-              style="margin-bottom: 1rem"
-            >
-              <img
-                id="edit-restaurant-logo-preview"
-                src=""
-                alt="Logo del restaurante"
-                style="
-                  width: 60px;
-                  height: 60px;
-                  object-fit: cover;
-                  border-radius: 0.25rem;
-                "
-              />
-              <div class="edit-image-overlay">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2.5"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
+
+            <!-- Mensaje informativo -->
+            <small style="color: #666; text-align: center;">
+              Si no seleccionas una imagen, se usará una imagen por defecto.
+            </small>
+
+            <!-- Botones de cámara y galería -->
+            <div style="display: flex; gap: 0.75rem;">
+              <button type="button" id="camera-btn" style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #00b44e;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  " onmouseover="this.style.backgroundColor='#009a42'"
+                onmouseout="this.style.backgroundColor='#00b44e'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path
-                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"
-                  />
+                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
                   <circle cx="12" cy="13" r="3" />
                 </svg>
+                Tomar foto
+              </button>
+
+              <button type="button" id="gallery-btn" style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  " onmouseover="this.style.backgroundColor='#1976d2'"
+                onmouseout="this.style.backgroundColor='#2196f3'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                Galería
+              </button>
+            </div>
+          </div>
+
+          <!-- Inputs de archivo ocultos -->
+          <input type="file" id="dish-image-input" name="dishImage" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+          <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none" />
+          <input type="file" id="gallery-input" accept="image/png, image/jpeg, image/webp" style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <input type="text" name="dishName" placeholder="Nombre del plato" required />
+        </div>
+        <div class="modal-form-group">
+          <input type="number" step="0.01" name="dishPrice" placeholder="Precio del plato (S/.)" required />
+        </div>
+        <button type="submit" class="primary-button dark-button" style="width: 100%; margin-top: 1rem">
+          Agregar plato
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="editDishModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content">
+      <button id="open-delete-dish-alert-btn" class="delete-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"></polyline>
+          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+      </button>
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <!-- Aquí podría ir un futuro botón de eliminar plato -->
+      <h2>Editar plato</h2>
+      <form id="edit-dish-form">
+        <div class="modal-form-group">
+          <!-- Nueva estructura centrada para editar plato -->
+          <div id="edit-image-upload-box" class="image-upload-box"
+            style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
+            <!-- Área de imagen con preview -->
+            <label for="edit-dish-image-input" style="
+                   display: flex;
+                   flex-direction: column;
+                   align-items: center;
+                   justify-content: center;
+                   cursor: pointer;
+                 ">
+              <img id="edit-dish-image-preview" src="" alt="Previsualización del plato" style="
+                     display: none;
+                     width: 60px;
+                     height: 60px;
+                     object-fit: cover;
+                     border-radius: 0.5rem;
+                   " />
+
+              <!-- Este es el contenedor que se muestra por defecto -->
+              <div id="edit-image-upload-placeholder" style="
+                     display: flex;
+                     flex-direction: column;
+                     align-items: center;
+                     gap: 0.5rem;
+                     width: 100%;
+                   ">
+                <div class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                </div>
+                <span>Foto del plato </span>
               </div>
             </label>
-            <input
-              type="file"
-              id="edit-restaurant-logo-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
+
+            <!-- Mensaje informativo -->
+            <small style="color: #666; text-align: center;">
+              Si no seleccionas una imagen, se mantendrá la imagen actual.
+            </small>
+
+            <!-- Botones de cámara y galería -->
+            <div style="display: flex; gap: 0.75rem;">
+              <button type="button" id="edit-camera-btn" style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #00b44e;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  " onmouseover="this.style.backgroundColor='#009a42'"
+                onmouseout="this.style.backgroundColor='#00b44e'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
+                Tomar foto
+              </button>
+
+              <button type="button" id="edit-gallery-btn" style="
+                    flex: 1;
+                    padding: 0.75rem;
+                    background-color: #2196f3;
+                    color: white;
+                    border: none;
+                    border-radius: 0.5rem;
+                    font-weight: 600;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 0.5rem;
+                    cursor: pointer;
+                    transition: background-color 0.2s;
+                  " onmouseover="this.style.backgroundColor='#1976d2'"
+                onmouseout="this.style.backgroundColor='#2196f3'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                Galería
+              </button>
+            </div>
           </div>
-          <div class="modal-form-group">
-            <input
-              type="text"
-              id="edit-restaurant-name"
-              name="restaurantName"
-              placeholder="Nombre del restaurante"
-              required
-              style="
-                width: 100%;
-                padding: 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 0.5rem;
-              "
-            />
-          </div>
-          <div class="modal-form-group">
-            <textarea
-              id="edit-restaurant-description"
-              name="restaurantDescription"
-              rows="3"
-              maxlength="300"
-              placeholder="Descripción del restaurante"
-              style="
-                width: 100%;
-                padding: 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 0.5rem;
-                resize: vertical;
-              "
-            ></textarea>
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-district">Distrito</label>
-            <select
-              id="edit-restaurant-district"
-              name="restaurantDistrict"
-              required
-            >
-              <option>Ate</option>
-              <option>Barranco</option>
-              <option>Breña</option>
-              <option>Carabayllo</option>
-              <option>Cercado de Lima</option>
-              <option>Chaclacayo</option>
-              <option>Chorrillos</option>
-              <option>Cieneguilla</option>
-              <option>Comas</option>
-              <option>El Agustino</option>
-              <option>Independencia</option>
-              <option>Jesús María</option>
-              <option>La Molina</option>
-              <option>La Victoria</option>
-              <option>Lince</option>
-              <option>Los Olivos</option>
-              <option>Lurigancho (Chosica)</option>
-              <option>Lurín</option>
-              <option>Magdalena del Mar</option>
-              <option>Pueblo Libre</option>
-              <option>Miraflores</option>
-              <option>Pachacámac</option>
-              <option>Puente Piedra</option>
-              <option>Rímac</option>
-              <option>San Bartolo</option>
-              <option>San Borja</option>
-              <option>San Isidro</option>
-              <option>San Juan de Lurigancho</option>
-              <option>San Juan de miraflores</option>
-              <option>San Luis</option>
-              <option>San Martín de Porres</option>
-              <option>San Miguel</option>
-              <option>Santa Anita</option>
-              <option>Santa María del Mar</option>
-              <option>Santa Rosa</option>
-              <option>Santiago de Surco</option>
-              <option>Surquillo</option>
-              <option>Villa El Salvador</option>
-              <option>Villa María del Triunfo</option>
-              <option>Bellavista</option>
-              <option>Callao</option>
-              <option>Carmen de la Legua Reynoso</option>
-              <option>La Perla</option>
-              <option>La Punta</option>
-              <option>Mi Perú</option>
-              <option>Ventanilla</option>
-            </select>
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-ruc">RUC (opcional)</label>
-            <input
-              type="text"
-              id="edit-restaurant-ruc"
-              name="restaurantRuc"
-              pattern="[0-9]{11}"
-            />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-whatsapp">Whatsapp para Pedidos de Clientes</label>
-            <input
-              type="tel"
-              id="edit-restaurant-whatsapp"
-              name="restaurantWhatsapp"
-              required
-              title="El número debe contener 9 dígitos."
-            />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-yape">Yape (opcional)</label>
-            <input type="tel" id="edit-restaurant-yape" name="restaurantYape" />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-phone"
-              >Teléfono para llamadas (opcional)</label
-            >
-            <input
-              type="tel"
-              id="edit-restaurant-phone"
-              name="restaurantPhone"
-            />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-location"
-              >Link de ubicación (opcional)</label
-            >
-            <input
-              type="url"
-              id="edit-restaurant-location"
-              name="restaurantLocation"
-            />
-          </div>
-          <div class="modal-form-group">
-            <div
-              style="
+
+          <!-- Inputs de archivo ocultos -->
+          <input type="file" id="edit-dish-image-input" name="dishImage" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+          <input type="file" id="edit-camera-input" accept="image/*" capture="environment" style="display: none" />
+          <input type="file" id="edit-gallery-input" accept="image/png, image/jpeg, image/webp" style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-dish-name">Nombre del plato</label>
+          <input type="text" id="edit-dish-name" name="dishName" required />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-dish-price">Precio del plato (S/.)</label>
+          <input type="number" step="0.01" id="edit-dish-price" name="dishPrice" required />
+        </div>
+        <button type="submit" class="primary-button dark-button" style="width: 100%; margin-top: 1rem">
+          Guardar cambios
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Alerta: Eliminar Carta -->
+  <div id="deleteCardAlert" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content alert-modal">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>¿Segur@ quieres eliminar esta carta?</h2>
+      <p style="margin-bottom: 1.5rem; color: var(--gray-text)">
+        Esta acción no se puede deshacer. Se eliminarán todos los platos de
+        esta carta.
+      </p>
+      <button id="confirm-delete-card-btn" class="primary-button delete-confirm-btn">
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <!-- Añade este nuevo modal en dashboard.html -->
+
+  <!-- Modal: Editar Restaurante -->
+  <div id="editRestaurantModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2 style="text-align: center">Editar restaurante</h2>
+      <form id="edit-restaurant-form" novalidate>
+        <div class="modal-form-group">
+          <label id="edit-restaurant-image-box" class="image-upload-box" for="edit-restaurant-image-input"
+            style="margin-bottom: 1rem">
+            <img id="edit-restaurant-image-preview" src="" alt="Previsualización del local" style="
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 0.25rem;
+                " />
+            <div class="edit-image-overlay">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </div>
+          </label>
+          <input type="file" id="edit-restaurant-image-input" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <label id="edit-restaurant-logo-box" class="image-upload-box" for="edit-restaurant-logo-input"
+            style="margin-bottom: 1rem">
+            <img id="edit-restaurant-logo-preview" src="" alt="Logo del restaurante" style="
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 0.25rem;
+                " />
+            <div class="edit-image-overlay">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
+                <circle cx="12" cy="13" r="3" />
+              </svg>
+            </div>
+          </label>
+          <input type="file" id="edit-restaurant-logo-input" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-name">Nombre del restaurante <span style="color: red">*</span></label>
+          <input type="text" id="edit-restaurant-name" name="restaurantName" placeholder="Nombre del restaurante"
+            required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 0.5rem;" />
+          <div id="restaurantName-error" class="field-error-message"></div>
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-description">Descripción del restaurante <span style="color: red">*</span></label>
+          <textarea id="edit-restaurant-description" name="restaurantDescription" rows="3" maxlength="300"
+            placeholder="Descripción del restaurante"
+            style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 0.5rem; resize: vertical;"
+            required></textarea>
+          <div id="restaurantDescription-error" class="field-error-message"></div>
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-district">Distrito <span style="color: red">*</span></label>
+          <select id="edit-restaurant-district" name="restaurantDistrict" required>
+            <option>Ate</option>
+            <option>Barranco</option>
+            <option>Breña</option>
+            <option>Carabayllo</option>
+            <option>Cercado de Lima</option>
+            <option>Chaclacayo</option>
+            <option>Chorrillos</option>
+            <option>Cieneguilla</option>
+            <option>Comas</option>
+            <option>El Agustino</option>
+            <option>Independencia</option>
+            <option>Jesús María</option>
+            <option>La Molina</option>
+            <option>La Victoria</option>
+            <option>Lince</option>
+            <option>Los Olivos</option>
+            <option>Lurigancho (Chosica)</option>
+            <option>Lurín</option>
+            <option>Magdalena del Mar</option>
+            <option>Pueblo Libre</option>
+            <option>Miraflores</option>
+            <option>Pachacámac</option>
+            <option>Puente Piedra</option>
+            <option>Rímac</option>
+            <option>San Bartolo</option>
+            <option>San Borja</option>
+            <option>San Isidro</option>
+            <option>San Juan de Lurigancho</option>
+            <option>San Juan de miraflores</option>
+            <option>San Luis</option>
+            <option>San Martín de Porres</option>
+            <option>San Miguel</option>
+            <option>Santa Anita</option>
+            <option>Santa María del Mar</option>
+            <option>Santa Rosa</option>
+            <option>Santiago de Surco</option>
+            <option>Surquillo</option>
+            <option>Villa El Salvador</option>
+            <option>Villa María del Triunfo</option>
+            <option>Bellavista</option>
+            <option>Callao</option>
+            <option>Carmen de la Legua Reynoso</option>
+            <option>La Perla</option>
+            <option>La Punta</option>
+            <option>Mi Perú</option>
+            <option>Ventanilla</option>
+          </select>
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-ruc">RUC </label>
+          <input type="text" id="edit-restaurant-ruc" name="restaurantRuc" pattern="[0-9]{11}" />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-whatsapp">Whatsapp para Pedidos de Clientes <span
+              style="color: red">*</span></label>
+          <input type="tel" id="edit-restaurant-whatsapp" name="restaurantWhatsapp" required
+            title="El número debe contener 9 dígitos." />
+          <div id="restaurantWhatsapp-error" class="field-error-message"></div>
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-yape">Yape </label>
+          <input type="tel" id="edit-restaurant-yape" name="restaurantYape" />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-phone">Teléfono para llamadas </label>
+          <input type="tel" id="edit-restaurant-phone" name="restaurantPhone" />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-location">Link de ubicación </label>
+          <input type="url" id="edit-restaurant-location" name="restaurantLocation" />
+        </div>
+        <div class="modal-form-group">
+          <div style="
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 1rem;
-              "
-            >
-              <div class="modal-form-group" style="margin: 0">
-                <label style="display: block; margin-bottom: 0.5rem"
-                  >Delivery</label
-                >
-                <div
-                  style="
+              ">
+            <div class="modal-form-group" style="margin: 0">
+              <label style="display: block; margin-bottom: 0.5rem">Delivery</label>
+              <div style="
                     background: #f5f5f5;
                     padding: 0.75rem;
                     border-radius: 0.5rem;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                  "
-                >
-                  <label
-                    for="edit-restaurant-delivery"
-                    style="font-size: 0.875rem; color: #333"
-                  >
-                    ¿Haces delivery?
-                  </label>
-                  <label class="switch">
-                    <input
-                      type="checkbox"
-                      id="edit-restaurant-delivery"
-                      name="restaurantDelivery"
-                    />
-                    <span class="slider round"></span>
-                  </label>
-                </div>
+                  ">
+                <label for="edit-restaurant-delivery" style="font-size: 0.875rem; color: #333">
+                  ¿Haces delivery?
+                </label>
+                <label class="switch">
+                  <input type="checkbox" id="edit-restaurant-delivery" name="restaurantDelivery" />
+                  <span class="slider round"></span>
+                </label>
               </div>
+            </div>
 
-              <div class="modal-form-group" style="margin: 0">
-                <label style="display: block; margin-bottom: 0.5rem"
-                  >Atención en local</label
-                >
-                <div
-                  style="
+            <div class="modal-form-group" style="margin: 0">
+              <label style="display: block; margin-bottom: 0.5rem">Atención en local</label>
+              <div style="
                     background: #f5f5f5;
                     padding: 0.75rem;
                     border-radius: 0.5rem;
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
-                  "
-                >
-                  <label
-                    for="edit-restaurant-localService"
-                    style="font-size: 0.875rem; color: #333"
-                  >
-                    ¿Atiendes en el local?
-                  </label>
-                  <label class="switch">
-                    <input
-                      type="checkbox"
-                      id="edit-restaurant-localService"
-                      name="restaurantLocalService"
-                    />
-                    <span class="slider round"></span>
-                  </label>
-                </div>
+                  ">
+                <label for="edit-restaurant-localService" style="font-size: 0.875rem; color: #333">
+                  ¿Atiendes en el local?
+                </label>
+                <label class="switch">
+                  <input type="checkbox" id="edit-restaurant-localService" name="restaurantLocalService" />
+                  <span class="slider round"></span>
+                </label>
               </div>
             </div>
           </div>
-          <div class="modal-form-group">
-            <div
-              style="
+        </div>
+        <div class="modal-form-group">
+          <div style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 1rem;
-              "
-            >
-              <p style="font-weight: bold">Horario de atención</p>
-              <button
-                type="button"
-                class="sync-button"
-                onclick="syncScheduleWithMonday()"
-                title="Sincronizar todos los horarios con el Lunes"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2"
-                  />
-                </svg>
-                <span>Sincronizar horarios</span>
-              </button>
-            </div>
-            <div
-              class="schedule-container"
-              style="
+              ">
+            <p style="font-weight: bold">Horario de atención</p>
+            <button type="button" class="sync-button" onclick="syncScheduleWithMonday()"
+              title="Sincronizar todos los horarios con el Lunes">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2" />
+              </svg>
+              <span>Sincronizar horarios</span>
+            </button>
+          </div>
+          <div class="schedule-container" style="
                 display: flex;
                 flex-direction: column;
                 gap: 1rem;
                 background: #f5f5f5;
                 padding: 1.5rem;
                 border-radius: 0.5rem;
-              "
-            >
-              <div
-                class="schedule-row"
-                style="display: flex; gap: 1rem; align-items: center"
-              >
-                <span style="min-width: 80px">Lunes</span>
-                <input
-                  type="time"
-                  id="edit-monday-from"
-                  name="mondayFrom"
-                  required
-                  style="
+              ">
+            <div class="schedule-row" style="display: flex; gap: 1rem; align-items: center">
+              <span style="min-width: 80px">Lunes</span>
+              <input type="time" id="edit-monday-from" name="mondayFrom" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-                <input
-                  type="time"
-                  id="edit-monday-to"
-                  name="mondayTo"
-                  required
-                  style="
+                  " />
+              <input type="time" id="edit-monday-to" name="mondayTo" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-              </div>
-              <div
-                class="schedule-row"
-                style="display: flex; gap: 1rem; align-items: center"
-              >
-                <span style="min-width: 80px">Martes</span>
-                <input
-                  type="time"
-                  id="edit-tuesday-from"
-                  name="tuesdayFrom"
-                  required
-                  style="
+                  " />
+            </div>
+            <div class="schedule-row" style="display: flex; gap: 1rem; align-items: center">
+              <span style="min-width: 80px">Martes</span>
+              <input type="time" id="edit-tuesday-from" name="tuesdayFrom" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-                <input
-                  type="time"
-                  id="edit-tuesday-to"
-                  name="tuesdayTo"
-                  required
-                  style="
+                  " />
+              <input type="time" id="edit-tuesday-to" name="tuesdayTo" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-              </div>
-              <div
-                class="schedule-row"
-                style="display: flex; gap: 1rem; align-items: center"
-              >
-                <span style="min-width: 80px">Miércoles</span>
-                <input
-                  type="time"
-                  id="edit-wednesday-from"
-                  name="wednesdayFrom"
-                  required
-                  style="
+                  " />
+            </div>
+            <div class="schedule-row" style="display: flex; gap: 1rem; align-items: center">
+              <span style="min-width: 80px">Miércoles</span>
+              <input type="time" id="edit-wednesday-from" name="wednesdayFrom" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-                <input
-                  type="time"
-                  id="edit-wednesday-to"
-                  name="wednesdayTo"
-                  required
-                  style="
+                  " />
+              <input type="time" id="edit-wednesday-to" name="wednesdayTo" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-              </div>
-              <div
-                class="schedule-row"
-                style="display: flex; gap: 1rem; align-items: center"
-              >
-                <span style="min-width: 80px">Jueves</span>
-                <input
-                  type="time"
-                  id="edit-thursday-from"
-                  name="thursdayFrom"
-                  required
-                  style="
+                  " />
+            </div>
+            <div class="schedule-row" style="display: flex; gap: 1rem; align-items: center">
+              <span style="min-width: 80px">Jueves</span>
+              <input type="time" id="edit-thursday-from" name="thursdayFrom" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-                <input
-                  type="time"
-                  id="edit-thursday-to"
-                  name="thursdayTo"
-                  required
-                  style="
+                  " />
+              <input type="time" id="edit-thursday-to" name="thursdayTo" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-              </div>
-              <div
-                class="schedule-row"
-                style="display: flex; gap: 1rem; align-items: center"
-              >
-                <span style="min-width: 80px">Viernes</span>
-                <input
-                  type="time"
-                  id="edit-friday-from"
-                  name="fridayFrom"
-                  required
-                  style="
+                  " />
+            </div>
+            <div class="schedule-row" style="display: flex; gap: 1rem; align-items: center">
+              <span style="min-width: 80px">Viernes</span>
+              <input type="time" id="edit-friday-from" name="fridayFrom" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-                <input
-                  type="time"
-                  id="edit-friday-to"
-                  name="fridayTo"
-                  required
-                  style="
+                  " />
+              <input type="time" id="edit-friday-to" name="fridayTo" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-              </div>
-              <div
-                class="schedule-row"
-                style="display: flex; gap: 1rem; align-items: center"
-              >
-                <span style="min-width: 80px">Sábado</span>
-                <input
-                  type="time"
-                  id="edit-saturday-from"
-                  name="saturdayFrom"
-                  required
-                  style="
+                  " />
+            </div>
+            <div class="schedule-row" style="display: flex; gap: 1rem; align-items: center">
+              <span style="min-width: 80px">Sábado</span>
+              <input type="time" id="edit-saturday-from" name="saturdayFrom" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-                <input
-                  type="time"
-                  id="edit-saturday-to"
-                  name="saturdayTo"
-                  required
-                  style="
+                  " />
+              <input type="time" id="edit-saturday-to" name="saturdayTo" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-              </div>
-              <div
-                class="schedule-row"
-                style="display: flex; gap: 1rem; align-items: center"
-              >
-                <span style="min-width: 80px">Domingo</span>
-                <input
-                  type="time"
-                  id="edit-sunday-from"
-                  name="sundayFrom"
-                  required
-                  style="
+                  " />
+            </div>
+            <div class="schedule-row" style="display: flex; gap: 1rem; align-items: center">
+              <span style="min-width: 80px">Domingo</span>
+              <input type="time" id="edit-sunday-from" name="sundayFrom" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-                <input
-                  type="time"
-                  id="edit-sunday-to"
-                  name="sundayTo"
-                  required
-                  style="
+                  " />
+              <input type="time" id="edit-sunday-to" name="sundayTo" required style="
                     flex: 1;
                     padding: 0.5rem;
                     border-radius: 0.25rem;
                     border: 1px solid #ddd;
-                  "
-                />
-              </div>
+                  " />
             </div>
           </div>
-          <button
-            type="submit"
-            class="primary-button dark-button"
-            style="width: 100%; margin-top: 1rem"
-          >
-            Guardar cambios
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <div
-      id="deleteDishAlert"
-      class="modal-backdrop"
-      onclick="closeModal(event)"
-    >
-      <div class="modal-content alert-modal">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <h2>¿Segur@ quieres eliminar este plato?</h2>
-        <button
-          id="confirm-delete-dish-btn"
-          class="primary-button delete-confirm-btn"
-        >
-          Eliminar
-        </button>
-      </div>
-    </div>
-
-    <!-- Modal: Recorte de Imagen -->
-    <div id="cropperModal" class="modal-backdrop" style="z-index: 2000; display: none;">
-      <div class="modal-content" style="max-width: 90%; max-height: 90%; padding: 1.5rem;">
-        <h2 style="margin-bottom: 1rem; text-align: center;">Recortar imagen</h2>
-        <div id="cropper-container" style="max-height: 400px; margin-bottom: 1rem;">
-          <img id="cropper-image" style="max-width: 100%; display: block;" />
         </div>
-        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-          <button id="cancel-crop-btn" class="primary-button" style="min-width: 100px;">Cancelar</button>
-          <button id="crop-btn" class="primary-button" style="min-width: 100px;">Recortar</button>
-          <button id="save-crop-btn" class="primary-button dark-button" style="min-width: 100px;">Guardar</button>
-        </div>
+        <button type="submit" class="primary-button dark-button" style="width: 100%; margin-top: 1rem">
+          Guardar cambios
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="deleteDishAlert" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content alert-modal">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>¿Segur@ quieres eliminar este plato?</h2>
+      <button id="confirm-delete-dish-btn" class="primary-button delete-confirm-btn">
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Recorte de Imagen -->
+  <div id="cropperModal" class="modal-backdrop" style="z-index: 2000; display: none;">
+    <div class="modal-content" style="max-width: 90%; max-height: 90%; padding: 1.5rem;">
+      <h2 style="margin-bottom: 1rem; text-align: center;">Recortar imagen</h2>
+      <div id="cropper-container" style="max-height: 400px; margin-bottom: 1rem;">
+        <img id="cropper-image" style="max-width: 100%; display: block;" />
+      </div>
+      <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+        <button id="cancel-crop-btn" class="primary-button" style="min-width: 100px;">Cancelar</button>
+        <button id="crop-btn" class="primary-button" style="min-width: 100px;">Recortar</button>
+        <button id="save-crop-btn" class="primary-button dark-button" style="min-width: 100px;">Guardar</button>
       </div>
     </div>
+  </div>
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <!-- Cropper.js JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-    <!-- Browser Image Compression -->
-    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
-    <script src="js/dashboard.js"></script>
-  </body>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <!-- Cropper.js JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <!-- Browser Image Compression -->
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+
 </html>
