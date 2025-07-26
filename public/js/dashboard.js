@@ -813,8 +813,8 @@ async function processCapturedImage(file) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 2560;
-    const maxHeight = 1440;
+    const maxWidth = 4096;
+    const maxHeight = 4096;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -822,7 +822,7 @@ async function processCapturedImage(file) {
     }
 
     if (width > maxWidth || height > maxHeight) {
-      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
       return;
     }
 
@@ -850,8 +850,8 @@ async function processEditCapturedImage(file) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 2560;
-    const maxHeight = 1440;
+    const maxWidth = 4096;
+    const maxHeight = 4096;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -859,7 +859,7 @@ async function processEditCapturedImage(file) {
     }
 
     if (width > maxWidth || height > maxHeight) {
-      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
       return;
     }
 
@@ -917,8 +917,8 @@ async function handleImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 2560;
-    const maxHeight = 1440;
+    const maxWidth = 4096;
+    const maxHeight = 4096;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -927,7 +927,7 @@ async function handleImageSelection(event) {
     }
 
     if (width > maxWidth || height > maxHeight) {
-      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
       event.target.value = "";
       return;
     }
@@ -965,8 +965,8 @@ async function handleEditImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 2560;
-    const maxHeight = 1440;
+    const maxWidth = 4096;
+    const maxHeight = 4096;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -975,7 +975,7 @@ async function handleEditImageSelection(event) {
     }
 
     if (width > maxWidth || height > maxHeight) {
-      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
       event.target.value = "";
       return;
     }
@@ -1388,8 +1388,8 @@ async function handleRestaurantImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 2560;
-    const maxHeight = 1440;
+    const maxWidth = 4096;
+    const maxHeight = 4096;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -1398,7 +1398,7 @@ async function handleRestaurantImageSelection(event) {
     }
 
     if (width > maxWidth || height > maxHeight) {
-      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
       event.target.value = "";
       return;
     }
@@ -1435,8 +1435,8 @@ async function handleRestaurantLogoSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 2560;
-    const maxHeight = 1440;
+    const maxWidth = 4096;
+    const maxHeight = 4096;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -1445,7 +1445,7 @@ async function handleRestaurantLogoSelection(event) {
     }
 
     if (width > maxWidth || height > maxHeight) {
-      showModalAlert(`La resolución de la imagen es demasiado alta`);
+      showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
       event.target.value = "";
       return;
     }

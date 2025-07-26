@@ -338,7 +338,61 @@ async function signIn() {
 }
 
 async function handleRestaurantRegistration(e) {
+
   e.preventDefault();
+
+  const form = e.target;
+  const requiredFields = form.querySelectorAll("input[required], select[required], textarea[required]");
+  let valid = true;
+  requiredFields.forEach(field => {
+    // Eliminar mensaje previo
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      // Crear mensaje de error debajo del campo
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  // Horario de atención
+  const scheduleInputs = form.querySelectorAll('.schedule-row input[required]');
+  scheduleInputs.forEach(field => {
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  // Ocultar mensaje global
+  const errorMsg = document.getElementById("form-error");
+  if (errorMsg) errorMsg.style.display = "none";
+  if (!valid) {
+    // Scroll al primer campo con error
+    const firstError = form.querySelector('.field-error');
+    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
 
   const user = auth.currentUser;
   if (!user) {
@@ -346,7 +400,6 @@ async function handleRestaurantRegistration(e) {
     return;
   }
 
-  const form = e.target;
   const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = true;
   submitButton.textContent = "Subiendo imágenes...";
