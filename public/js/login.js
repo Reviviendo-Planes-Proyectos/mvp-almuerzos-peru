@@ -24,19 +24,19 @@ let compressedLogoImageFile = null;
 function validateFileType(file) {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
   const blockedTypes = ['image/avif', 'image/heic', 'image/heif'];
-  
+
   // Verificar si el tipo está explícitamente bloqueado
   if (blockedTypes.includes(file.type.toLowerCase())) {
     alert('Los archivos AVIF, HEIC y HEIF no están soportados. Solo se permiten archivos JPEG, PNG y WebP');
     return false;
   }
-  
+
   // Verificar si el tipo está en la lista de permitidos
   if (!allowedTypes.includes(file.type.toLowerCase())) {
     alert('Solo se permiten archivos JPEG, PNG y WebP');
     return false;
   }
-  
+
   return true;
 }
 
@@ -44,7 +44,7 @@ function validateFileType(file) {
 function syncScheduleWithMonday() {
   const mondayFromInput = document.querySelector('input[name="mondayFrom"]');
   const mondayToInput = document.querySelector('input[name="mondayTo"]');
-  
+
   if (!mondayFromInput.value || !mondayToInput.value) {
     alert('Por favor, primero establece el horario del día Lunes');
     return;
@@ -57,7 +57,7 @@ function syncScheduleWithMonday() {
   days.forEach(day => {
     const fromInput = document.querySelector(`input[name="${day}From"]`);
     const toInput = document.querySelector(`input[name="${day}To"]`);
-    
+
     fromInput.value = mondayFrom;
     toInput.value = mondayTo;
   });
@@ -105,16 +105,16 @@ async function compressImage(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
-    
-    reader.onload = function(e) {
+
+    reader.onload = function (e) {
       const img = new Image();
       img.src = e.target.result;
-      
-      img.onload = function() {
+
+      img.onload = function () {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-        
+
         // Si la imagen es más grande que 800x800, redimensionarla
         const MAX_SIZE = 800;
         if (width > MAX_SIZE || height > MAX_SIZE) {
@@ -126,13 +126,13 @@ async function compressImage(file) {
             height = MAX_SIZE;
           }
         }
-        
+
         canvas.width = width;
         canvas.height = height;
-        
+
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
-        
+
         // Convertir a blob
         canvas.toBlob((blob) => {
           const compressedFile = new File([blob], file.name, {
@@ -143,7 +143,7 @@ async function compressImage(file) {
         }, 'image/jpeg', 0.7); // 0.7 es la calidad de compresión
       };
     };
-    
+
     reader.onerror = reject;
   });
 }
@@ -159,7 +159,7 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
         compressedLogoImageFile = null;
         return;
       }
-      
+
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         throw new Error('La imagen es demasiado grande. Máximo 5MB');
@@ -168,17 +168,17 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
       // Mostrar estado de carga
       const placeholder = document.getElementById("register-logo-placeholder");
       placeholder.innerHTML = 'Procesando imagen...';
-      
+
       // Comprimir la imagen
       compressedLogoImageFile = await compressImage(file);
-      
+
       // Mostrar vista previa
       handleImagePreview(compressedLogoImageFile, "register-logo-preview", "register-logo-placeholder");
-      
+
       console.log('Logo procesado correctamente');
     } catch (error) {
       console.error('Error al procesar el logo:', error);
-      alert(error.message || 'Error al procesar la imagen');
+      alert(error.message || '¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       // Limpiar el input
       e.target.value = '';
       compressedLogoImageFile = null;
@@ -314,10 +314,10 @@ async function signIn() {
   try {
     // Mostrar algún indicador de carga
     document.getElementById('loading-screen').classList.add('active');
-    
+
     const result = await auth.signInWithPopup(googleProvider);
     console.log("signInWithPopup successful. onAuthStateChanged will handle redirection.");
-    
+
     // Si el inicio de sesión es exitoso, verificamos el rol del usuario
     if (result.user) {
       await determineUserRoleAndRedirect(result.user);
@@ -325,7 +325,7 @@ async function signIn() {
   } catch (error) {
     // Ocultar el indicador de carga
     document.getElementById('loading-screen').classList.remove('active');
-    
+
     if (error.code === "auth/popup-closed-by-user") {
       console.log("User closed the popup");
     } else if (error.code === "auth/cancelled-popup-request") {
@@ -338,20 +338,68 @@ async function signIn() {
 }
 
 async function handleRestaurantRegistration(e) {
+
   e.preventDefault();
+
+  const form = e.target;
+  const requiredFields = form.querySelectorAll("input[required], select[required], textarea[required]");
+  let valid = true;
+  requiredFields.forEach(field => {
+    // Eliminar mensaje previo
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      // Crear mensaje de error debajo del campo
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  // Horario de atención
+  const scheduleInputs = form.querySelectorAll('.schedule-row input[required]');
+  scheduleInputs.forEach(field => {
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  // Ocultar mensaje global
+  const errorMsg = document.getElementById("form-error");
+  if (errorMsg) errorMsg.style.display = "none";
+  if (!valid) {
+    // Scroll al primer campo con error
+    const firstError = form.querySelector('.field-error');
+    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
 
   const user = auth.currentUser;
   if (!user) {
-    alert("Your session has expired or there was an error. Please try logging in again.");
+    alert("Tu sesión ha expirado o hubo un error. Intenta iniciar sesión nuevamente.");
     return;
   }
 
-  if (!compressedRegistrationImageFile) {
-    alert("Por favor, sube una foto de tu local.");
-    return;
-  }
-
-  const form = e.target;
   const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = true;
   submitButton.textContent = "Subiendo imágenes...";
@@ -359,13 +407,16 @@ async function handleRestaurantRegistration(e) {
   try {
     const timestamp = Date.now();
 
-    // Subir imagen principal del local
-    const photoPath = `restaurants/${user.uid}/photo-${timestamp}-${compressedRegistrationImageFile.name}`;
-    const photoUrl = await uploadImageToStorage(compressedRegistrationImageFile, photoPath);
+    // Subir imagen principal del restaurante si existe
+    let photoUrl = null;
+    if (compressedRegistrationImageFile && compressedRegistrationImageFile.name) {
+      const photoPath = `restaurants/${user.uid}/photo-${timestamp}-${compressedRegistrationImageFile.name}`;
+      photoUrl = await uploadImageToStorage(compressedRegistrationImageFile, photoPath);
+    }
 
     // Subir logo si existe
     let logoUrl = null;
-    if (compressedLogoImageFile) {
+    if (compressedLogoImageFile && compressedLogoImageFile.name) {
       const logoPath = `restaurants/${user.uid}/logo-${timestamp}-${compressedLogoImageFile.name}`;
       logoUrl = await uploadImageToStorage(compressedLogoImageFile, logoPath);
     }
@@ -374,7 +425,7 @@ async function handleRestaurantRegistration(e) {
 
     const formData = new FormData(form);
 
-    // Crear horario de atención
+    // Crear objeto con horario de atención
     const schedule = {
       monday: { from: formData.get("mondayFrom"), to: formData.get("mondayTo") },
       tuesday: { from: formData.get("tuesdayFrom"), to: formData.get("tuesdayTo") },
@@ -382,27 +433,28 @@ async function handleRestaurantRegistration(e) {
       thursday: { from: formData.get("thursdayFrom"), to: formData.get("thursdayTo") },
       friday: { from: formData.get("fridayFrom"), to: formData.get("fridayTo") },
       saturday: { from: formData.get("saturdayFrom"), to: formData.get("saturdayTo") },
-      sunday: { from: formData.get("sundayFrom"), to: formData.get("sundayTo") }
+      sunday: { from: formData.get("sundayFrom"), to: formData.get("sundayTo") },
     };
 
-    // Preparar datos para enviar al backend
+    // Construir objeto con los datos del restaurante
     const restaurantData = {
       userId: user.uid,
       name: formData.get("name"),
-      description: formData.get("description"),
+      description: formData.get("description")?.trim() || null,
       district: formData.get("district"),
       whatsapp: formData.get("whatsapp"),
-      photoUrl,
-      logoUrl,
+      photoUrl, // puede ser null
+      logoUrl, // puede ser null
       ruc: formData.get("ruc") || null,
       yape: formData.get("yape") || null,
       phone: formData.get("phone") || null,
       hasDelivery: formData.get("delivery") === "on",
       hasLocalService: formData.get("localService") === "on",
       schedule,
-      location: formData.get("location")
+      location: formData.get("location"),
     };
 
+    // Enviar datos al backend
     const response = await fetch("/api/restaurants", {
       method: "POST",
       headers: {
@@ -417,10 +469,11 @@ async function handleRestaurantRegistration(e) {
       redirectToDashboard();
     } else {
       const error = await response.json();
-      throw new Error(error.error || "Unknown error during restaurant registration.");
+      throw new Error(error.error || "Error desconocido durante el registro del restaurante.");
     }
+
   } catch (error) {
-    console.error("Error in handleRestaurantRegistration:", error);
+    console.error("Error en handleRestaurantRegistration:", error);
     document.getElementById("form-error").textContent = error.message;
     document.getElementById("form-error").style.display = "block";
     showToast("Error registrando: " + error.message, "error");
@@ -487,15 +540,15 @@ function setupRegistrationImageUploader() {
   imageInput.onchange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
-    
+
     // Validar tipo de archivo
     if (!validateFileType(file)) {
       event.target.value = "";
       return;
     }
-    
+
     if (file.size > 3 * 1024 * 1024) {
-      alert("La imagen es demasiado grande (máx 3MB).");
+      alert("La imagen es demasiado grande (máx 5MB).");
       return;
     }
     compressImage(file).then((compressedFile) => {

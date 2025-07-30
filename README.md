@@ -1,129 +1,124 @@
+
 # Almuerzos Perú 🍽️
 
-Aplicación web para gestión de menús de restaurante con sistema de autenticación y gestión de favoritos.
+Aplicación web para la gestión de menús y favoritos en restaurantes peruanos, con autenticación y panel administrativo.
 
-# ALMUERZOS-PERU
+---
 
-Dashboard Vercel: 
-https://vercel.com/almuerzos-perus-projects/app-almuerzos-peru
+## 🚀 Enlaces Importantes
 
-<img width="1302" height="602" alt="image" src="https://github.com/user-attachments/assets/558810c4-f591-4a6e-98a6-6a9b89be55e0" />
+- **Producción:** [https://mvp-almuerzos-peru.vercel.app/login.html](https://mvp-almuerzos-peru.vercel.app/login.html)
+- **Dashboard Vercel:** [https://vercel.com/almuerzos-perus-projects/app-almuerzos-peru](https://vercel.com/almuerzos-perus-projects/app-almuerzos-peru)
 
-Pagina Web desplegada:
-https://app-almuerzos-peru.vercel.app/
+---
 
-<img width="1366" height="790" alt="image" src="https://github.com/user-attachments/assets/3b2b64ed-a99b-4df8-8158-03b7dac7714d" />
+## 📋 Descripción
 
-## Descripción
+Almuerzos Perú permite:
+- Visualizar el menú diario del restaurante
+- Autenticarse y registrar usuarios (Firebase Auth)
+- Marcar platos como favoritos
+- Acceso a dashboard administrativo para gestión de menús y usuarios
+- Interfaz moderna y responsive
 
-Almuerzos Perú es una aplicación web que permite a los usuarios:
-- Ver el menú del restaurante
-- Autenticarse con Firebase Authentication
-- Gestionar platos favoritos
-- Dashboard para administradores
-- Sistema de gestión de menús
+## 🛠️ Tecnologías
 
-## Tecnologías Utilizadas
+- **Backend:** Node.js + Express
+- **Base de Datos:** Firebase Firestore
+- **Autenticación:** Firebase Authentication
+- **Frontend:** HTML, CSS, JavaScript
+- **Despliegue:** Vercel
 
-- **Backend**: Node.js + Express
-- **Base de Datos**: Firebase Firestore
-- **Autenticación**: Firebase Authentication
-- **Frontend**: HTML, CSS, JavaScript
-- **Despliegue**: Vercel
+## 📦 Requisitos
 
-## Requisitos Previos
+- Node.js >= 14
+- npm
+- Cuenta y proyecto en Firebase
 
-- Node.js (versión 14 o superior)
-- npm o yarn
-- Cuenta de Firebase con proyecto configurado
+## ⚡ Instalación y Configuración
 
-## Instalación
+1. **Clona el repositorio:**
+   ```bash
+   git clone https://github.com/Reviviendo-Planes-Proyectos/mvp-almuerzos-peru.git
+   cd mvp-almuerzos-peru
+   ```
 
-1. **Clonar el repositorio**
-```bash
-git clone https://github.com/Reviviendo-Planes-Proyectos/mvp-almuerzos-peru.git
-cd almuerzos-peru
-```
+2. **Instala las dependencias:**
+   ```bash
+   npm install
+   ```
 
-2. **Instalar dependencias**
-```bash
-npm install
-```
+3. **Configura las credenciales de Firebase:**
+   - Crea el archivo `serviceAccountKey.json` en la raíz del proyecto
+   - Copia el contenido de tu clave privada de Firebase en ese archivo
+   - En Vercel, agrega la variable de entorno `SERVICE_ACCOUNT_KEY` con el mismo contenido
 
-3.  **Configurar variables de entorno en Vercel**
-   - Agregar `SERVICE_ACCOUNT_KEY` con el contenido del archivo JSON
-   - Crear archivo **serviceAccountKey.json** en la raiz del proyecto
-   - Agregar contenido del archivo
+## 🖥️ Ejecución Local
 
-## Cómo Levantar el Proyecto
+1. **Inicia el servidor:**
+   ```bash
+   npm start
+   ```
 
-### Desarrollo Local
+2. **Accede a la app:**
+   - Abre tu navegador en [http://localhost:3000](http://localhost:3000)
+   - El puerto puede cambiar si defines la variable `PORT`
 
-1. **Ejecutar el servidor**
-```bash
-npm start
-```
-
-2. **Acceder a la aplicación**
-   - Abrir el navegador en: `http://localhost:3000`
-   - La aplicación estará disponible en el puerto 3000 (o el puerto configurado en PORT)
-
-### Estructura de Archivos
+## 📁 Estructura del Proyecto
 
 ```
-├── server.js              # Servidor principal Express
-├── package.json           # Dependencias y scripts
-├── serviceAccountKey.json # Credenciales de Firebase (no incluir en git)
-├── vercel.json           # Configuración de despliegue
-└── public/               # Archivos estáticos
-    ├── index.html        # Página principal
-    ├── login.html        # Página de login
-    ├── menu.html         # Página del menú
-    ├── dashboard.html    # Panel de administración
-    ├── favorites.html    # Página de favoritos
-    ├── css/             # Hojas de estilo
-    ├── js/              # Scripts JavaScript
-    └── images/          # Imágenes del proyecto
+├── server.js                # Servidor principal Express
+├── package.json             # Dependencias y scripts
+├── serviceAccountKey.json   # Credenciales Firebase (no subir a git)
+├── vercel.json              # Configuración de despliegue
+└── public/                  # Archivos estáticos
+    ├── index.html           # Página principal
+    ├── login.html           # Login y registro
+    ├── menu.html            # Menú de platos
+    ├── dashboard.html       # Panel administrativo
+    ├── favorites.html       # Platos favoritos
+    ├── css/                 # Hojas de estilo
+    ├── js/                  # Scripts JS
+    └── images/              # Imágenes
 ```
 
-## Scripts Disponibles
+## 📜 Scripts
 
 ```bash
 npm start    # Inicia el servidor en modo producción
 ```
 
+## ✨ Funcionalidades
 
-## Funcionalidades
+- Autenticación y registro de usuarios
+- Visualización y gestión de menú
+- Favoritos por usuario
+- Panel administrativo (dashboard)
+- Diseño responsive
 
-- **Autenticación**: Sistema completo de login/registro con Firebase Auth
-- **Menú**: Visualización de platos disponibles
-- **Favoritos**: Los usuarios pueden marcar platos como favoritos
-- **Dashboard**: Panel administrativo para gestión
-- **Responsive**: Diseño adaptable a diferentes dispositivos
+## 🔗 Endpoints Principales
 
-## API Endpoints
+- `GET /`              - Página principal
+- `GET /menu`          - Menú de platos
+- `GET /login`         - Login y registro
+- `GET /dashboard`     - Panel administrativo
+- `GET /favorites`     - Platos favoritos
+- Endpoints extra para operaciones CRUD (requieren autenticación)
 
-- `GET /` - Página principal
-- `GET /menu` - Página del menú
-- `GET /login` - Página de autenticación
-- `GET /dashboard` - Panel de administración
-- `GET /favorites` - Página de favoritos
-- API endpoints adicionales para operaciones CRUD (requieren autenticación)
+## 🤝 Contribuir
 
-## Contribuir
+1. Haz fork del proyecto
+2. Crea una rama (`git checkout -b feature/nueva-funcionalidad`)
+3. Realiza tus cambios y haz commit (`git commit -m 'feat: nueva funcionalidad'`)
+4. Haz push a tu rama (`git push origin feature/nueva-funcionalidad`)
+5. Abre un Pull Request
 
-1. Fork el proyecto
-2. Crear una rama para tu feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit tus cambios (`git commit -m 'Agregar nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Abrir un Pull Request
+## 🆘 Soporte
 
-## Soporte
+¿Tienes dudas o problemas?
+- Abre un issue en el repositorio
+- Contacta al equipo de desarrollo
 
-Si tienes problemas o preguntas:
-- Crear un issue en el repositorio
-- Contactar al equipo de desarrollo
-
-## Licencia
+## 📄 Licencia
 
 Este proyecto está bajo la Licencia ISC.
