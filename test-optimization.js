@@ -17,9 +17,9 @@ async function optimizeImage(inputPath, outputPath, options = {}) {
         const stats = await fs.stat(inputPath);
         const fileSizeInMB = stats.size / (1024 * 1024);
 
-        // Verificar si el archivo original excede 5MB
-        if (fileSizeInMB > 5) {
-            console.error('\x1b[31m%s\x1b[0m', `❌ ERROR: La imagen es demasiado grande (${fileSizeInMB.toFixed(2)}MB). El tamaño máximo permitido es 5MB.`);
+        // Verificar si el archivo original excede 50MB
+        if (fileSizeInMB > 50) {
+            console.error('\x1b[31m%s\x1b[0m', `❌ ERROR: La imagen es demasiado grande (${fileSizeInMB.toFixed(2)}MB). El tamaño máximo permitido es 50MB.`);
             return {
                 success: false,
                 error: 'Imagen demasiado grande para procesar',
@@ -73,13 +73,13 @@ async function optimizeImage(inputPath, outputPath, options = {}) {
         const optimizedStats = await fs.stat(outputPath);
         const optimizedSizeInMB = optimizedStats.size / (1024 * 1024);
 
-        // Verificar si el archivo optimizado aún excede 5MB
-        if (optimizedSizeInMB > 5) {
+        // Verificar si el archivo optimizado aún excede 50MB
+        if (optimizedSizeInMB > 50) {
             await fs.unlink(outputPath); // Eliminar archivo si es muy grande
             console.error('\x1b[31m%s\x1b[0m', `❌ ERROR: La imagen optimizada sigue siendo demasiado grande (${optimizedSizeInMB.toFixed(2)}MB).`);
             return {
                 success: false,
-                error: 'Imagen optimizada aún excede el límite de 5MB',
+                error: 'Imagen optimizada aún excede el límite de 50MB',
                 optimizedSize: optimizedSizeInMB
             };
         }

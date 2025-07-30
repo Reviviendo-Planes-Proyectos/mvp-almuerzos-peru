@@ -20,6 +20,7 @@ let cropper = null;
 let currentImageInput = null;
 let currentPreview = null;
 let currentPlaceholder = null;
+let currentDeleteBtn = null;
 function checkAuthStatus() {
   if (auth.currentUser) {
     currentUser = auth.currentUser;
@@ -529,11 +530,17 @@ function clearDishImageState() {
   // Restablecer el preview a la imagen por defecto
   const preview = document.getElementById("dish-image-preview");
   const placeholder = document.getElementById("image-upload-placeholder");
+  const deleteBtn = document.getElementById("new-delete-photo-btn");
 
   if (preview && placeholder) {
     preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Imagen";
     preview.style.display = "none";
     placeholder.style.display = "block";
+  }
+
+  // Ocultar botón eliminar
+  if (deleteBtn) {
+    deleteBtn.style.display = "none";
   }
 
   // Limpiar el formulario completo
@@ -560,11 +567,17 @@ function setupImageUploader() {
   const galleryInput = document.getElementById("gallery-input");
   const cameraBtn = document.getElementById("camera-btn");
   const galleryBtn = document.getElementById("gallery-btn");
+  const newDeleteBtn = document.getElementById("new-delete-photo-btn");
   
   // Configuración para modal de nuevo plato
   imageInput.addEventListener("change", handleImageSelection);
   cameraInput.addEventListener("change", handleImageSelection);
   galleryInput.addEventListener("change", handleImageSelection);
+  
+  // Configurar botón eliminar para modal de nuevo plato
+  if (newDeleteBtn) {
+    newDeleteBtn.addEventListener("click", handleDeleteNewPhoto);
+  }
   
   if (cameraBtn) {
     cameraBtn.addEventListener("click", () => {
@@ -628,13 +641,13 @@ function validateFileType(file) {
 
   // Verificar si el tipo está explícitamente bloqueado
   if (blockedTypes.includes(file.type.toLowerCase())) {
-    showModalAlert('Los archivos AVIF, HEIC y HEIF no están soportados. Solo se permiten archivos JPEG, PNG y WebP');
+    showModalAlert('Solo se permite subir fotos');
     return false;
   }
 
   // Verificar si el tipo está en la lista de permitidos
   if (!allowedTypes.includes(file.type.toLowerCase())) {
-    showModalAlert('Solo se permiten archivos JPEG, PNG y WebP');
+    showModalAlert('Solo se permite subir fotos');
     return false;
   }
 
@@ -813,8 +826,8 @@ async function processCapturedImage(file) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -850,8 +863,8 @@ async function processEditCapturedImage(file) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -898,6 +911,7 @@ function closeCameraModal(stream, modal) {
 async function handleImageSelection(event) {
   const preview = document.getElementById("dish-image-preview");
   const placeholder = document.getElementById("image-upload-placeholder");
+  const deleteBtn = document.getElementById("new-delete-photo-btn");
   const file = event.target.files[0];
   if (!file) return;
 
@@ -917,8 +931,8 @@ async function handleImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -932,8 +946,8 @@ async function handleImageSelection(event) {
       return;
     }
 
-    // Abrir el modal de recorte en lugar de mostrar directamente la imagen
-    openCropperModal(file, event.target, preview, placeholder);
+    // Abrir el modal de recorte pasando el botón eliminar
+    openCropperModal(file, event.target, preview, placeholder, deleteBtn);
 
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
@@ -946,6 +960,7 @@ async function handleImageSelection(event) {
 async function handleEditImageSelection(event) {
   const preview = document.getElementById("edit-dish-image-preview");
   const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const deleteBtn = document.getElementById("edit-delete-photo-btn");
   const file = event.target.files[0];
   if (!file) return;
 
@@ -965,8 +980,8 @@ async function handleEditImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -981,13 +996,108 @@ async function handleEditImageSelection(event) {
     }
 
     // Abrir el modal de recorte
-    openCropperModal(file, event.target, preview, placeholder);
+    openCropperModal(file, event.target, preview, placeholder, deleteBtn);
 
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
     alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
+}
+
+function handleDeleteEditPhoto() {
+  const imageContainer = document.getElementById("edit-image-container");
+  const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const deleteBtn = document.getElementById("edit-delete-photo-btn");
+  const cameraInput = document.getElementById("edit-camera-input");
+  const galleryInput = document.getElementById("edit-gallery-input");
+  const editImageInput = document.getElementById("edit-dish-image-input");
+  
+  // Ocultar imagen, botón eliminar y mostrar placeholder
+  imageContainer.style.display = "none";
+  deleteBtn.style.display = "none";
+  placeholder.style.display = "flex";
+  
+  // Limpiar inputs de archivo
+  cameraInput.value = "";
+  galleryInput.value = "";
+  editImageInput.value = "";
+  
+  // Limpiar archivo comprimido si existe
+  compressedDishImageFile = null;
+  
+  // Marcar que la imagen fue eliminada
+  window.imageWasDeleted = true;
+}
+
+function handleDeleteNewPhoto() {
+  const preview = document.getElementById("dish-image-preview");
+  const placeholder = document.getElementById("image-upload-placeholder");
+  const deleteBtn = document.getElementById("new-delete-photo-btn");
+  const imageInput = document.getElementById("dish-image-input");
+  const cameraInput = document.getElementById("camera-input");
+  const galleryInput = document.getElementById("gallery-input");
+  
+  // Ocultar imagen y botón eliminar, mostrar placeholder
+  preview.style.display = "none";
+  deleteBtn.style.display = "none";
+  placeholder.style.display = "flex";
+  
+  // Limpiar inputs de archivo
+  imageInput.value = "";
+  cameraInput.value = "";
+  galleryInput.value = "";
+  
+  // Limpiar archivo comprimido si existe
+  compressedDishImageFile = null;
+}
+
+// Función para eliminar la foto del restaurante
+function handleDeleteRestaurantPhoto() {
+  const preview = document.getElementById("edit-restaurant-image-preview");
+  const input = document.getElementById("edit-restaurant-image-input");
+  const deleteBtn = document.getElementById("edit-restaurant-delete-photo-btn");
+  
+  // Establecer imagen por defecto
+  preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Local";
+  
+  // Limpiar input de archivo
+  input.value = "";
+  
+  // Ocultar botón eliminar
+  if (deleteBtn) {
+    deleteBtn.style.display = "none";
+  }
+  
+  // Limpiar archivo comprimido si existe
+  compressedRestaurantImageFile = null;
+  
+  // Marcar que la imagen fue eliminada
+  window.restaurantImageWasDeleted = true;
+}
+
+// Función para eliminar el logo del restaurante
+function handleDeleteRestaurantLogo() {
+  const preview = document.getElementById("edit-restaurant-logo-preview");
+  const input = document.getElementById("edit-restaurant-logo-input");
+  const deleteBtn = document.getElementById("edit-restaurant-delete-logo-btn");
+  
+  // Establecer logo por defecto
+  preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Logo";
+  
+  // Limpiar input de archivo
+  input.value = "";
+  
+  // Ocultar botón eliminar
+  if (deleteBtn) {
+    deleteBtn.style.display = "none";
+  }
+  
+  // Limpiar archivo comprimido si existe
+  compressedRestaurantLogoFile = null;
+  
+  // Marcar que el logo fue eliminado
+  window.restaurantLogoWasDeleted = true;
 }
 
 async function compressImage(file, quality = 0.7, maxWidth = 800) {
@@ -1033,6 +1143,26 @@ function openEditRestaurantModal() {
   document.getElementById("edit-restaurant-whatsapp").value = currentRestaurant.whatsapp;
   document.getElementById("edit-restaurant-image-preview").src = currentRestaurant.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Local`;
   document.getElementById("edit-restaurant-logo-preview").src = currentRestaurant.logoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Logo`;
+
+  // Resetear flags de eliminación
+  window.restaurantImageWasDeleted = false;
+  window.restaurantLogoWasDeleted = false;
+
+  // Configurar event listeners para los botones de eliminar
+  const deletePhotoBtn = document.getElementById("edit-restaurant-delete-photo-btn");
+  const deleteLogoBtn = document.getElementById("edit-restaurant-delete-logo-btn");
+  
+  if (deletePhotoBtn) {
+    deletePhotoBtn.onclick = handleDeleteRestaurantPhoto;
+    // Mostrar botón eliminar solo si hay imagen
+    deletePhotoBtn.style.display = currentRestaurant.photoUrl ? "flex" : "none";
+  }
+  
+  if (deleteLogoBtn) {
+    deleteLogoBtn.onclick = handleDeleteRestaurantLogo;
+    // Mostrar botón eliminar solo si hay logo
+    deleteLogoBtn.style.display = currentRestaurant.logoUrl ? "flex" : "none";
+  }
 
   // Nuevos campos
   document.getElementById("edit-restaurant-ruc").value = currentRestaurant.ruc || "";
@@ -1099,6 +1229,7 @@ async function handleUpdateRestaurant(event) {
   let logoUrl = currentRestaurant.logoUrl;
 
   try {
+    // Manejar imagen del restaurante
     if (compressedRestaurantImageFile) {
       submitButton.textContent = "Subiendo imagen del local...";
       const imageFileName = `local-${Date.now()}-${compressedRestaurantImageFile.name}`;
@@ -1107,8 +1238,12 @@ async function handleUpdateRestaurant(event) {
         .ref(`restaurants/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedRestaurantImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
+    } else if (window.restaurantImageWasDeleted) {
+      // Si la imagen fue eliminada, usar imagen por defecto
+      photoUrl = "https://placehold.co/120x120/E2E8F0/4A5568?text=Local";
     }
 
+    // Manejar logo del restaurante
     if (compressedRestaurantLogoFile) {
       submitButton.textContent = "Subiendo logo...";
       const logoFileName = `logo-${Date.now()}-${compressedRestaurantLogoFile.name}`;
@@ -1117,6 +1252,9 @@ async function handleUpdateRestaurant(event) {
         .ref(`restaurants/${currentRestaurant.id}/${logoFileName}`);
       const uploadLogoTask = await logoStorageRef.put(compressedRestaurantLogoFile);
       logoUrl = await uploadLogoTask.ref.getDownloadURL();
+    } else if (window.restaurantLogoWasDeleted) {
+      // Si el logo fue eliminado, usar logo por defecto
+      logoUrl = "https://placehold.co/120x120/E2E8F0/4A5568?text=Logo";
     }
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const schedule = {};
@@ -1169,16 +1307,23 @@ function openEditDishModal(dish) {
   document.getElementById("edit-dish-name").value = dish.name;
   document.getElementById("edit-dish-price").value = dish.price;
   const preview = document.getElementById("edit-dish-image-preview");
+  const imageContainer = document.getElementById("edit-image-container");
   const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const deleteBtn = document.getElementById("edit-delete-photo-btn");
+  
+  // Resetear el estado de eliminación de imagen
+  window.imageWasDeleted = false;
   
   // Mostrar la imagen actual del plato
   if (dish.photoUrl && dish.photoUrl !== "/images/default-dish.jpg.png") {
     preview.src = dish.photoUrl;
-    preview.style.display = "block";
+    imageContainer.style.display = "block";
     placeholder.style.display = "none";
+    deleteBtn.style.display = "flex"; // Mostrar botón eliminar cuando hay imagen
   } else {
-    preview.style.display = "none";
+    imageContainer.style.display = "none";
     placeholder.style.display = "flex";
+    deleteBtn.style.display = "none"; // Ocultar botón eliminar cuando no hay imagen
   }
   
   compressedDishImageFile = null;
@@ -1189,6 +1334,9 @@ function openEditDishModal(dish) {
   editImageInput.onchange = async (event) => {
     await handleEditImageSelection(event);
   };
+  
+  // Configurar event listener para el botón eliminar
+  deleteBtn.onclick = handleDeleteEditPhoto;
   
   document.getElementById("open-delete-dish-alert-btn").onclick = () => {
     openModal("deleteDishAlert");
@@ -1246,6 +1394,9 @@ async function handleUpdateDish(event) {
         .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedDishImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
+    } else if (window.imageWasDeleted) {
+      // Si la imagen fue eliminada, usar la imagen por defecto
+      photoUrl = "/images/default-dish.jpg.png";
     }
 
     const updatedData = {
@@ -1388,8 +1539,8 @@ async function handleRestaurantImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -1435,8 +1586,8 @@ async function handleRestaurantLogoSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -1461,10 +1612,11 @@ async function handleRestaurantLogoSelection(event) {
 }
 
 // Funciones para el modal de recorte de imagen de platos
-function openCropperModal(file, imageInput, preview, placeholder) {
+function openCropperModal(file, imageInput, preview, placeholder, deleteBtn = null) {
   currentImageInput = imageInput;
   currentPreview = preview;
   currentPlaceholder = placeholder;
+  currentDeleteBtn = deleteBtn;
 
   const cropperModal = document.getElementById('cropperModal');
   const cropperImage = document.getElementById('cropper-image');
@@ -1505,21 +1657,17 @@ function openCropperModal(file, imageInput, preview, placeholder) {
 
 function setupCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
-  const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
 
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-  cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
 
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
-  const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
 
   newCancelBtn.addEventListener('click', closeCropperModal);
-  newCropBtn.addEventListener('click', cropImage);
   newSaveBtn.addEventListener('click', saveCroppedImage);
 }
 
@@ -1541,29 +1689,10 @@ function closeCropperModal() {
   currentImageInput = null;
   currentPreview = null;
   currentPlaceholder = null;
+  currentDeleteBtn = null;
 }
 
-function cropImage() {
-  if (!cropper) return;
 
-  // Obtener el área recortada
-  const canvas = cropper.getCroppedCanvas({
-    width: 400,
-    height: 400,
-    imageSmoothingEnabled: true,
-    imageSmoothingQuality: 'high'
-  });
-
-  // Mostrar la imagen recortada en el cropper
-  const cropperImage = document.getElementById('cropper-image');
-  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-
-  // Destruir el cropper actual
-  if (cropper) {
-    cropper.destroy();
-    cropper = null;
-  }
-}
 
 async function saveCroppedImage() {
   if (!cropper) {
@@ -1590,11 +1719,32 @@ async function saveCroppedImage() {
         if (currentPreview) {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
-          currentPreview.style.display = 'block';
-
-          // Solo ocultar placeholder si existe (para el modal de nuevo plato)
-          if (currentPlaceholder) {
-            currentPlaceholder.style.display = 'none';
+          
+          // Detectar si es el modal de editar plato por el ID del preview
+          const isEditModal = currentPreview.id === 'edit-dish-image-preview';
+          
+          if (isEditModal) {
+            // Para el modal de editar plato, mostrar el contenedor de imagen
+            const imageContainer = document.getElementById('edit-image-container');
+            if (imageContainer) {
+              imageContainer.style.display = 'block';
+            }
+            if (currentPlaceholder) {
+              currentPlaceholder.style.display = 'none';
+            }
+            // Resetear el estado de eliminación ya que se seleccionó una nueva imagen
+            window.imageWasDeleted = false;
+          } else {
+            // Para el modal de nuevo plato
+            currentPreview.style.display = 'block';
+            if (currentPlaceholder) {
+              currentPlaceholder.style.display = 'none';
+            }
+          }
+          
+          // Mostrar botón eliminar en ambos modales
+          if (currentDeleteBtn) {
+            currentDeleteBtn.style.display = 'flex';
           }
         }
 
@@ -1658,45 +1808,21 @@ function openRestaurantCropperModal(file, imageInput, preview) {
 
 function setupRestaurantCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
-  const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
 
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-  cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
 
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
-  const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
 
   newCancelBtn.addEventListener('click', closeCropperModal);
-  newCropBtn.addEventListener('click', cropRestaurantImage);
   newSaveBtn.addEventListener('click', saveRestaurantCroppedImage);
 }
 
-function cropRestaurantImage() {
-  if (!cropper) return;
 
-  // Obtener el área recortada
-  const canvas = cropper.getCroppedCanvas({
-    width: 800,
-    height: 450, // 16:9 ratio
-    imageSmoothingEnabled: true,
-    imageSmoothingQuality: 'high'
-  });
-
-  // Mostrar la imagen recortada en el cropper
-  const cropperImage = document.getElementById('cropper-image');
-  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-
-  // Destruir el cropper actual
-  if (cropper) {
-    cropper.destroy();
-    cropper = null;
-  }
-}
 
 async function saveRestaurantCroppedImage() {
   if (!cropper) {
@@ -1724,6 +1850,12 @@ async function saveRestaurantCroppedImage() {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
           currentPreview.style.display = 'block';
+        }
+
+        // Mostrar botón eliminar para imagen del restaurante
+        const deletePhotoBtn = document.getElementById('edit-restaurant-delete-photo-btn');
+        if (deletePhotoBtn) {
+          deletePhotoBtn.style.display = 'flex';
         }
 
         // Cerrar el modal
@@ -1786,45 +1918,21 @@ function openLogoCropperModal(file, imageInput, preview) {
 
 function setupLogoCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
-  const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
 
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-  cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
 
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
-  const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
 
   newCancelBtn.addEventListener('click', closeCropperModal);
-  newCropBtn.addEventListener('click', cropLogoImage);
   newSaveBtn.addEventListener('click', saveLogoCroppedImage);
 }
 
-function cropLogoImage() {
-  if (!cropper) return;
 
-  // Obtener el área recortada
-  const canvas = cropper.getCroppedCanvas({
-    width: 400,
-    height: 400, // 1:1 ratio
-    imageSmoothingEnabled: true,
-    imageSmoothingQuality: 'high'
-  });
-
-  // Mostrar la imagen recortada en el cropper
-  const cropperImage = document.getElementById('cropper-image');
-  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-
-  // Destruir el cropper actual
-  if (cropper) {
-    cropper.destroy();
-    cropper = null;
-  }
-}
 
 async function saveLogoCroppedImage() {
   if (!cropper) {
@@ -1852,6 +1960,12 @@ async function saveLogoCroppedImage() {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
           currentPreview.style.display = 'block';
+        }
+
+        // Mostrar botón eliminar para logo del restaurante
+        const deleteLogoBtn = document.getElementById('edit-restaurant-delete-logo-btn');
+        if (deleteLogoBtn) {
+          deleteLogoBtn.style.display = 'flex';
         }
 
         // Cerrar el modal

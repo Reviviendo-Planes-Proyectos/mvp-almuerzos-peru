@@ -258,7 +258,25 @@
         <div class="modal-form-group">
           <!-- Contenedor con líneas punteadas que rodea todo -->
           <div id="image-upload-box" class="image-upload-box"
-            style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
+            style="flex-direction: column; align-items: stretch; gap: 0.75rem; position: relative;">
+            <!-- Botón eliminar foto posicionado en la esquina superior derecha del contenedor -->
+            <button type="button" id="new-delete-photo-btn" style="
+                   position: absolute;
+                   top: 8px;
+                   right: 8px;
+                   width: 24px;
+                   height: 24px;
+                   border-radius: 50%;
+                   background-color: #dc3545;
+                   color: white;
+                   border: none;
+                   cursor: pointer;
+                   display: none;
+                   align-items: center;
+                   justify-content: center;
+                   font-size: 14px;
+                   z-index: 10;
+                 ">&times;</button>
             <!-- Área de imagen con preview -->
             <label for="dish-image-input" style="
                    display: flex;
@@ -391,7 +409,25 @@
         <div class="modal-form-group">
           <!-- Nueva estructura centrada para editar plato -->
           <div id="edit-image-upload-box" class="image-upload-box"
-            style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
+            style="flex-direction: column; align-items: stretch; gap: 0.75rem; position: relative;">
+            <!-- Botón eliminar foto posicionado en la esquina superior derecha del contenedor -->
+            <button type="button" id="edit-delete-photo-btn" style="
+                   position: absolute;
+                   top: 8px;
+                   right: 8px;
+                   width: 24px;
+                   height: 24px;
+                   border-radius: 50%;
+                   background-color: #dc3545;
+                   color: white;
+                   border: none;
+                   cursor: pointer;
+                   display: none;
+                   align-items: center;
+                   justify-content: center;
+                   font-size: 14px;
+                   z-index: 10;
+                 ">&times;</button>
             <!-- Área de imagen con preview -->
             <label for="edit-dish-image-input" style="
                    display: flex;
@@ -400,13 +436,15 @@
                    justify-content: center;
                    cursor: pointer;
                  ">
-              <img id="edit-dish-image-preview" src="" alt="Previsualización del plato" style="
-                     display: none;
-                     width: 60px;
-                     height: 60px;
-                     object-fit: cover;
-                     border-radius: 0.5rem;
-                   " />
+              <!-- Contenedor de imagen con botón de eliminar -->
+              <div id="edit-image-container" style="position: relative; display: none;">
+                <img id="edit-dish-image-preview" src="" alt="Previsualización del plato" style="
+                       width: 60px;
+                       height: 60px;
+                       object-fit: cover;
+                       border-radius: 0.5rem;
+                     " />
+              </div>
 
               <!-- Este es el contenedor que se muestra por defecto -->
               <div id="edit-image-upload-placeholder" style="
@@ -537,7 +575,25 @@
       <form id="edit-restaurant-form" novalidate>
         <div class="modal-form-group">
           <label id="edit-restaurant-image-box" class="image-upload-box" for="edit-restaurant-image-input"
-            style="margin-bottom: 1rem">
+            style="margin-bottom: 1rem; position: relative;">
+            <!-- Botón eliminar foto del restaurante -->
+            <button type="button" id="edit-restaurant-delete-photo-btn" style="
+                   position: absolute;
+                   top: 8px;
+                   right: 8px;
+                   width: 24px;
+                   height: 24px;
+                   border-radius: 50%;
+                   background-color: #dc3545;
+                   color: white;
+                   border: none;
+                   cursor: pointer;
+                   display: none;
+                   align-items: center;
+                   justify-content: center;
+                   font-size: 14px;
+                   z-index: 10;
+                 ">&times;</button>
             <img id="edit-restaurant-image-preview" src="" alt="Previsualización del local" style="
                   width: 60px;
                   height: 60px;
@@ -557,7 +613,25 @@
         </div>
         <div class="modal-form-group">
           <label id="edit-restaurant-logo-box" class="image-upload-box" for="edit-restaurant-logo-input"
-            style="margin-bottom: 1rem">
+            style="margin-bottom: 1rem; position: relative;">
+            <!-- Botón eliminar logo del restaurante -->
+            <button type="button" id="edit-restaurant-delete-logo-btn" style="
+                   position: absolute;
+                   top: 8px;
+                   right: 8px;
+                   width: 24px;
+                   height: 24px;
+                   border-radius: 50%;
+                   background-color: #dc3545;
+                   color: white;
+                   border: none;
+                   cursor: pointer;
+                   display: none;
+                   align-items: center;
+                   justify-content: center;
+                   font-size: 14px;
+                   z-index: 10;
+                 ">&times;</button>
             <img id="edit-restaurant-logo-preview" src="" alt="Logo del restaurante" style="
                   width: 60px;
                   height: 60px;
@@ -872,7 +946,6 @@
       </div>
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <button id="cancel-crop-btn" class="primary-button" style="min-width: 100px;">Cancelar</button>
-        <button id="crop-btn" class="primary-button" style="min-width: 100px;">Recortar</button>
         <button id="save-crop-btn" class="primary-button dark-button" style="min-width: 100px;">Guardar</button>
       </div>
     </div>
