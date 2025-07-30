@@ -312,6 +312,21 @@ body {
   cursor: not-allowed;
 }
 
+.primary-button {
+  background-color: var(--brand-yellow);
+  color: var(--brand-dark);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.primary-button:hover {
+  background-color: #e6bc00;
+}
+
 .auth-separator {
   margin: 1.5rem 0;
   font-weight: 700;
@@ -402,4 +417,140 @@ body {
   font-size: 0.95em;
   margin-top: 2px;
   display: block;
+}
+
+/* Estilos para el modal de cropper */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: var(--brand-yellow);
+  color: var(--brand-dark);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  width: 90%;
+  max-width: 450px;
+  position: relative;
+  text-align: center;
+}
+
+/* Estilos específicos para el modal de recorte de imagen */
+#cropperModal {
+  z-index: 2000 !important;
+  display: none;
+}
+
+#cropperModal.show {
+  display: flex !important;
+}
+
+#cropperModal .modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  text-align: center;
+}
+
+#cropperModal .modal-content h2 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+#cropperModal .modal-content > div:last-child {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+#cropperModal .modal-content button {
+  min-width: 100px;
+}
+
+#cropperModal .modal-content .primary-button {
+  background-color: var(--white);
+  color: var(--brand-dark);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#cropperModal .modal-content .primary-button:hover {
+  background-color: #f3f4f6;
+}
+
+#cropperModal .modal-content .primary-button.dark-button {
+  background-color: var(--brand-dark);
+  color: var(--white);
+}
+
+#cropperModal .modal-content .primary-button.dark-button:hover {
+  background-color: #374151;
+}
+
+#cropper-container {
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#cropper-image {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  #cropperModal .modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
+    padding: 1rem;
+  }
+  
+  #cropper-container {
+    max-height: 300px;
+  }
+  
+  #cropperModal .modal-content h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  #cropperModal .modal-content > div:last-child {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  #cropperModal .modal-content button {
+    width: 100%;
+    min-width: auto;
+  }
+}
+
+/* Ajustes para el cropper en dispositivos pequeños */
+@media (max-width: 480px) {
+  #cropper-container {
+    max-height: 250px;
+  }
+  
+  #cropperModal .modal-content {
+    padding: 0.75rem;
+  }
 }
