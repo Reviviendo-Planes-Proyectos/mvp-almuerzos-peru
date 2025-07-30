@@ -193,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutText.addEventListener("click", async () => {
       try {
         await auth.signOut();
+        localStorage.removeItem("commentedDishes");
         showToast("You have been logged out.", "info");
       } catch (error) {
         console.error("Error during logout:", error);
@@ -422,11 +423,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const totalLikes = restaurant.totalLikes || 0;
 
+          const safeName = typeof restaurant.name === 'string' ? restaurant.name : '';
+          const safeDescription = typeof restaurant.description === 'string' ? restaurant.description : '';
           restaurantCard.innerHTML = `
-            <img src="${imageUrl}" alt="${restaurant.name}" class="restaurant-card-image">
+            <img src="${imageUrl}" alt="${safeName}" class="restaurant-card-image">
             <div class="card-content">
               <div class="restaurant-title">
-                <h4>${restaurant.name.length > 35 ? restaurant.name.substring(0, 35) + '...' : restaurant.name}</h4>
+                <h4>${safeName.length > 35 ? safeName.substring(0, 35) + '...' : safeName}</h4>
                 <span class="restaurant-likes-inline">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -434,7 +437,7 @@ document.addEventListener("DOMContentLoaded", () => {
                   <span>${totalLikes}</span>
                 </span>
               </div>
-              <p>${restaurant.description.length > 30 ? restaurant.description.substring(0, 30) + '...' : restaurant.description}</p>
+              <p>${safeDescription.length > 30 ? safeDescription.substring(0, 30) + '...' : safeDescription}</p>
               <a href="/menu.html?restaurantId=${restaurant.id}" class="card-button">Ver menú</a>
             </div>
           `;

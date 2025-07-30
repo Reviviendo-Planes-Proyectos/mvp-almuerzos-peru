@@ -23,7 +23,9 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
         process.exit(1);
     }
 } else {
+
     // Desarrollo local: usar archivo serviceAccountKey.json
+
     try {
         serviceAccount = require('./serviceAccountKey.json');
         console.log('✅ Using Firebase credentials from serviceAccountKey.json');
@@ -329,10 +331,10 @@ app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
         const {
             userId,
             name,
-            description,
+            description = null,
             district,
             whatsapp,
-            photoUrl,
+            photoUrl = null,
             logoUrl = null,
             ruc = null,
             yape = null,
@@ -578,7 +580,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
             return res.status(403).json({ error: 'Forbidden: You do not own this restaurant.' });
         }
 
-        if (!name || !description || !district || !whatsapp) {
+        if (!name || !district || !whatsapp) {
             return res.status(400).json({ error: 'All fields are required.' });
         }
 
@@ -587,7 +589,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
         const oldPhotoUrl = oldData.photoUrl;
         const updatedData = {
             name: name ?? '',
-            description: description ?? '',
+            description: description ?? null,
             district: district ?? '',
             whatsapp: whatsapp ?? '',
             photoUrl: photoUrl ?? null,
@@ -1008,6 +1010,54 @@ app.post('/api/dishes/:dishId/like', async (req, res) => {
     }
 });
 
+app.post('/api/comments', async (req, res) => {
+    try {
+        const { invitedId, dishId, content } = req.body;
+
+        // Validaciones básicas
+        if (!content) {
+            return res.status(400).json({ error: 'restaurantId y content son requeridos.' });
+        }
+
+        // Opcional: validar si el plato existe (si se envía dishId)
+        if (dishId) {
+            const dishDoc = await db.collection('dishes').doc(dishId).get();
+            if (!dishDoc.exists) {
+                return res.status(404).json({ error: 'El plato especificado no existe.' });
+            }
+        }
+        if (invitedId) {
+            const invitedDoc = await db.collection('invited').doc(invitedId).get();
+            if (!invitedDoc.exists) {
+                return res.status(404).json({ error: 'El plato especificado no existe.' });
+            }
+        }
+
+        // Crear el comentario
+        const commentData = {
+            invitedId: invitedId,
+            dishId,
+            content,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+        };
+        const commentRef = await db.collection('comments_dishes').add(commentData);
+
+        res.status(201).json({
+            message: 'Comentario guardado exitosamente.',
+            commentId: commentRef.id,
+            data: commentData
+        });
+    } catch (error) {
+        console.error('Error al guardar comentario:', error);
+        res.status(500).json({ error: 'Ocurrió un error en el servidor.' });
+    }
+});
+
+// Iniciar el servidor
+app.listen(PORT, () => {
+    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
+    console.log(`📱 Aplicación lista para usar`);
+});
 
 // Iniciar el servidor
 app.listen(PORT, () => {
@@ -1016,3 +1066,4 @@ app.listen(PORT, () => {
 });
 
 module.exports = app;
+

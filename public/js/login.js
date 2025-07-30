@@ -338,20 +338,68 @@ async function signIn() {
 }
 
 async function handleRestaurantRegistration(e) {
+
   e.preventDefault();
+
+  const form = e.target;
+  const requiredFields = form.querySelectorAll("input[required], select[required], textarea[required]");
+  let valid = true;
+  requiredFields.forEach(field => {
+    // Eliminar mensaje previo
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      // Crear mensaje de error debajo del campo
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  // Horario de atención
+  const scheduleInputs = form.querySelectorAll('.schedule-row input[required]');
+  scheduleInputs.forEach(field => {
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  // Ocultar mensaje global
+  const errorMsg = document.getElementById("form-error");
+  if (errorMsg) errorMsg.style.display = "none";
+  if (!valid) {
+    // Scroll al primer campo con error
+    const firstError = form.querySelector('.field-error');
+    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
 
   const user = auth.currentUser;
   if (!user) {
-    alert("Your session has expired or there was an error. Please try logging in again.");
+    alert("Tu sesión ha expirado o hubo un error. Intenta iniciar sesión nuevamente.");
     return;
   }
 
-  if (!compressedRegistrationImageFile) {
-    alert("Por favor, sube una foto de tu local.");
-    return;
-  }
-
-  const form = e.target;
   const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = true;
   submitButton.textContent = "Subiendo imágenes...";
@@ -359,13 +407,16 @@ async function handleRestaurantRegistration(e) {
   try {
     const timestamp = Date.now();
 
-    // Subir imagen principal del local
-    const photoPath = `restaurants/${user.uid}/photo-${timestamp}-${compressedRegistrationImageFile.name}`;
-    const photoUrl = await uploadImageToStorage(compressedRegistrationImageFile, photoPath);
+    // Subir imagen principal del restaurante si existe
+    let photoUrl = null;
+    if (compressedRegistrationImageFile && compressedRegistrationImageFile.name) {
+      const photoPath = `restaurants/${user.uid}/photo-${timestamp}-${compressedRegistrationImageFile.name}`;
+      photoUrl = await uploadImageToStorage(compressedRegistrationImageFile, photoPath);
+    }
 
     // Subir logo si existe
     let logoUrl = null;
-    if (compressedLogoImageFile) {
+    if (compressedLogoImageFile && compressedLogoImageFile.name) {
       const logoPath = `restaurants/${user.uid}/logo-${timestamp}-${compressedLogoImageFile.name}`;
       logoUrl = await uploadImageToStorage(compressedLogoImageFile, logoPath);
     }
@@ -374,7 +425,7 @@ async function handleRestaurantRegistration(e) {
 
     const formData = new FormData(form);
 
-    // Crear horario de atención
+    // Crear objeto con horario de atención
     const schedule = {
       monday: { from: formData.get("mondayFrom"), to: formData.get("mondayTo") },
       tuesday: { from: formData.get("tuesdayFrom"), to: formData.get("tuesdayTo") },
@@ -382,27 +433,28 @@ async function handleRestaurantRegistration(e) {
       thursday: { from: formData.get("thursdayFrom"), to: formData.get("thursdayTo") },
       friday: { from: formData.get("fridayFrom"), to: formData.get("fridayTo") },
       saturday: { from: formData.get("saturdayFrom"), to: formData.get("saturdayTo") },
-      sunday: { from: formData.get("sundayFrom"), to: formData.get("sundayTo") }
+      sunday: { from: formData.get("sundayFrom"), to: formData.get("sundayTo") },
     };
 
-    // Preparar datos para enviar al backend
+    // Construir objeto con los datos del restaurante
     const restaurantData = {
       userId: user.uid,
       name: formData.get("name"),
-      description: formData.get("description"),
+      description: formData.get("description")?.trim() || null,
       district: formData.get("district"),
       whatsapp: formData.get("whatsapp"),
-      photoUrl,
-      logoUrl,
+      photoUrl, // puede ser null
+      logoUrl, // puede ser null
       ruc: formData.get("ruc") || null,
       yape: formData.get("yape") || null,
       phone: formData.get("phone") || null,
       hasDelivery: formData.get("delivery") === "on",
       hasLocalService: formData.get("localService") === "on",
       schedule,
-      location: formData.get("location")
+      location: formData.get("location"),
     };
 
+    // Enviar datos al backend
     const response = await fetch("/api/restaurants", {
       method: "POST",
       headers: {
@@ -417,10 +469,11 @@ async function handleRestaurantRegistration(e) {
       redirectToDashboard();
     } else {
       const error = await response.json();
-      throw new Error(error.error || "Unknown error during restaurant registration.");
+      throw new Error(error.error || "Error desconocido durante el registro del restaurante.");
     }
+
   } catch (error) {
-    console.error("Error in handleRestaurantRegistration:", error);
+    console.error("Error en handleRestaurantRegistration:", error);
     document.getElementById("form-error").textContent = error.message;
     document.getElementById("form-error").style.display = "block";
     showToast("Error registrando: " + error.message, "error");
