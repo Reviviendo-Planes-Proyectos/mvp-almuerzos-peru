@@ -552,7 +552,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const likesCountEl = document.getElementById(`likes-count-${dishId}`);
       if (likesCountEl) {
         const currentLikes = parseInt(likesCountEl.innerText) || 0;
-        likesCountEl.innerText = `${currentLikes + 1} me gustas`;
+        likesCountEl.innerText = `${currentLikes + 1} me gusta`;
       }
       showToast("¡Gracias por tu like!", "success");
     } catch (error) {
@@ -877,7 +877,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="dish-details">
           <h3>${dish.name}</h3>
           <p>S/. ${dish.price.toFixed(2)}</p>
-          <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gustas</p> 
+          <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gusta</p> 
       </div>
       <div class="quantity-container">
         <div class="quantity-control" data-dish-id="${dish.id}" data-dish-name="${dish.name}" data-dish-price="${dish.price}">

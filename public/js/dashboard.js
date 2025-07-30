@@ -1564,3 +1564,18 @@ async function saveLogoCroppedImage() {
     alert('Error al procesar el logo. Por favor, inténtalo de nuevo.');
   }
 }
+
+
+function shareCardOnWhatsApp() {
+  if (!currentRestaurant || !currentCardId) {
+    showToast("Falta información para compartir la carta.", "warning");
+    return;
+  }
+  
+
+  const message = `🍽️ *${currentRestaurant.name}* te comparte su carta https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id} en Almuerzos Perú.\n\n📲 Haz tu pedido ahora.`;
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+
+  window.open(whatsappUrl, "_blank");
+}
