@@ -161,11 +161,6 @@
           </button>
         </div>
 
-<<<<<<< HEAD
-
-
-=======
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
         <div id="cards-list">
           <p id="loading-cards-message">Cargando cartas...</p>
         </div>
@@ -192,7 +187,6 @@
         </div>
 
         <div class="dish-list-container">
-<<<<<<< HEAD
 
           <!-- Botón flotante para compartir carta -->
           <div class="share-stick">
@@ -215,20 +209,11 @@
 
 
           <div class="dashed-container">
-=======
-          <input type="text" id="card-name-input" class="card-name-input" />
-
-          <div style="text-align: center; margin-bottom: 1.5rem">
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
             <button class="primary-button" onclick="openModal('newDishModal')">
               Nuevo plato +
             </button>
           </div>
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
           <div id="dishes-list"></div>
 
           <div style="text-align: center; margin-top: 2rem">
@@ -238,11 +223,8 @@
           </div>
         </div>
       </div>
-<<<<<<< HEAD
 
 
-=======
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
     </section>
   </div>
 
@@ -274,56 +256,6 @@
       <!-- Reemplaza el <form> dentro del div#newDishModal con esto -->
       <form id="new-dish-form">
         <div class="modal-form-group">
-<<<<<<< HEAD
-          <!-- Este es el cargador de imagen interactivo -->
-          <label id="image-upload-box" class="image-upload-box" for="dish-image-input">
-            <img id="dish-image-preview" src="" alt="Previsualización del plato" style="
-                  display: none;
-                  width: 60px;
-                  height: 60px;
-                  object-fit: cover;
-                  border-radius: 0.5rem;
-                " />
-
-            <!-- Este es el contenedor que se muestra por defecto -->
-            <div id="image-upload-placeholder" style="
-                  display: flex;
-                  align-items: center;
-                  gap: 1rem;
-                  width: 100%;
-                ">
-              <div class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
-              </div>
-              <span>Foto del plato (opcional)</span>
-            </div>
-          </label>
-          <!-- Después del input de archivo -->
-          <input type="file" id="dish-image-input" name="dishImage" accept="image/png, image/jpeg, image/webp"
-            style="display: none" />
-          <small style="display: block; margin-top: 0.5rem; color: #666;">
-            Si no seleccionas una imagen, se usará una imagen por defecto.
-          </small>
-        </div>
-        <div class="modal-form-group">
-          <input type="text" name="dishName" placeholder="Nombre del plato" required />
-        </div>
-        <div class="modal-form-group">
-          <input type="number" step="0.01" name="dishPrice" placeholder="Precio del plato (S/.)" required />
-        </div>
-        <button type="submit" class="primary-button dark-button" style="width: 100%; margin-top: 1rem">
-          Agregar plato
-        </button>
-      </form>
-    </div>
-  </div>
-
-=======
           <!-- Contenedor con líneas punteadas que rodea todo -->
           <div id="image-upload-box" class="image-upload-box"
             style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
@@ -441,7 +373,6 @@
     </div>
   </div>
 
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
   <div id="editDishModal" class="modal-backdrop" onclick="closeModal(event)">
     <div class="modal-content">
       <button id="open-delete-dish-alert-btn" class="delete-icon">
@@ -458,25 +389,6 @@
       <h2>Editar plato</h2>
       <form id="edit-dish-form">
         <div class="modal-form-group">
-<<<<<<< HEAD
-          <label id="edit-image-upload-box" class="image-upload-box" for="edit-dish-image-input">
-            <img id="edit-dish-image-preview" src="" alt="Previsualización del plato" style="
-                  width: 60px;
-                  height: 60px;
-                  object-fit: cover;
-                  border-radius: 0.25rem;
-                " />
-            <div class="edit-image-overlay">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-              </svg>
-            </div>
-          </label>
-          <input type="file" id="edit-dish-image-input" name="dishImage" accept="image/png, image/jpeg, image/webp"
-            style="display: none" />
-=======
           <!-- Nueva estructura centrada para editar plato -->
           <div id="edit-image-upload-box" class="image-upload-box"
             style="flex-direction: column; align-items: stretch; gap: 0.75rem;">
@@ -580,7 +492,6 @@
             style="display: none" />
           <input type="file" id="edit-camera-input" accept="image/*" capture="environment" style="display: none" />
           <input type="file" id="edit-gallery-input" accept="image/png, image/jpeg, image/webp" style="display: none" />
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
         </div>
         <div class="modal-form-group">
           <label for="edit-dish-name">Nombre del plato</label>
@@ -623,11 +534,7 @@
         &times;
       </button>
       <h2 style="text-align: center">Editar restaurante</h2>
-<<<<<<< HEAD
-      <form id="edit-restaurant-form">
-=======
       <form id="edit-restaurant-form" novalidate>
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
         <div class="modal-form-group">
           <label id="edit-restaurant-image-box" class="image-upload-box" for="edit-restaurant-image-input"
             style="margin-bottom: 1rem">
@@ -670,28 +577,6 @@
             style="display: none" />
         </div>
         <div class="modal-form-group">
-<<<<<<< HEAD
-          <input type="text" id="edit-restaurant-name" name="restaurantName" placeholder="Nombre del restaurante"
-            required style="
-                width: 100%;
-                padding: 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 0.5rem;
-              " />
-        </div>
-        <div class="modal-form-group">
-          <textarea id="edit-restaurant-description" name="restaurantDescription" rows="3" maxlength="300" required
-            placeholder="Descripción del restaurante" style="
-                width: 100%;
-                padding: 0.75rem;
-                border: 1px solid #ddd;
-                border-radius: 0.5rem;
-                resize: vertical;
-              "></textarea>
-        </div>
-        <div class="modal-form-group">
-          <label for="edit-restaurant-district">Distrito</label>
-=======
           <label for="edit-restaurant-name">Nombre del restaurante <span style="color: red">*</span></label>
           <input type="text" id="edit-restaurant-name" name="restaurantName" placeholder="Nombre del restaurante"
             required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 0.5rem;" />
@@ -707,7 +592,6 @@
         </div>
         <div class="modal-form-group">
           <label for="edit-restaurant-district">Distrito <span style="color: red">*</span></label>
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
           <select id="edit-restaurant-district" name="restaurantDistrict" required>
             <option>Ate</option>
             <option>Barranco</option>
@@ -758,27 +642,6 @@
           </select>
         </div>
         <div class="modal-form-group">
-<<<<<<< HEAD
-          <label for="edit-restaurant-ruc">RUC (opcional)</label>
-          <input type="text" id="edit-restaurant-ruc" name="restaurantRuc" pattern="[0-9]{11}" />
-        </div>
-        <div class="modal-form-group">
-          <label for="edit-restaurant-whatsapp">Whatsapp</label>
-          <input type="tel" id="edit-restaurant-whatsapp" name="restaurantWhatsapp" required
-            title="El número debe contener 9 dígitos." />
-        </div>
-        <div class="modal-form-group">
-          <label for="edit-restaurant-yape">Yape (opcional)</label>
-          <input type="tel" id="edit-restaurant-yape" name="restaurantYape" />
-        </div>
-        <div class="modal-form-group">
-          <label for="edit-restaurant-phone">Teléfono para llamadas (opcional)</label>
-          <input type="tel" id="edit-restaurant-phone" name="restaurantPhone" />
-        </div>
-        <div class="modal-form-group">
-          <label for="edit-restaurant-location">Link de ubicación (Google Maps)</label>
-          <input type="url" id="edit-restaurant-location" name="restaurantLocation" required />
-=======
           <label for="edit-restaurant-ruc">RUC </label>
           <input type="text" id="edit-restaurant-ruc" name="restaurantRuc" pattern="[0-9]{11}" />
         </div>
@@ -800,7 +663,6 @@
         <div class="modal-form-group">
           <label for="edit-restaurant-location">Link de ubicación </label>
           <input type="url" id="edit-restaurant-location" name="restaurantLocation" />
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
         </div>
         <div class="modal-form-group">
           <div style="
@@ -1016,22 +878,16 @@
     </div>
   </div>
 
-<<<<<<< HEAD
 
 
 
-=======
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
   <!-- Cropper.js JavaScript -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-<<<<<<< HEAD
-=======
   <!-- Browser Image Compression -->
   <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
->>>>>>> 21eb3825ed8e3e04bc37083f7bccf2b9962c813a
   <script src="js/dashboard.js"></script>
 </body>
 
