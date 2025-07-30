@@ -20,6 +20,69 @@ let compressedLogoImageFile = null;
 
 // --- 3. FUNCIONES AUXILIARES DE UI (TOASTS, PANTALLAS, REDIRECCIÓN) ---
 
+// Función para mostrar alerta visual en el formulario
+function showModalAlert(message, type = 'error') {
+  // Buscar el formulario activo
+  const activeForm = document.querySelector('#restaurant-form');
+
+  if (activeForm) {
+    // Remover alerta anterior si existe
+    const existingAlert = activeForm.querySelector('.modal-alert');
+    if (existingAlert) {
+      existingAlert.remove();
+    }
+
+    // Crear el contenedor de alerta
+    const alertContainer = document.createElement('div');
+    alertContainer.className = 'modal-alert';
+    alertContainer.style.cssText = `
+      background-color: ${type === 'error' ? '#ef4444' : '#10b981'};
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 600;
+      margin: 1rem 0;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    `;
+
+    alertContainer.textContent = message;
+
+    // Buscar dónde insertar la alerta (después de los campos de imagen)
+    const form = activeForm.querySelector('form');
+    if (form) {
+      const formGroups = form.querySelectorAll('.form-group');
+      if (formGroups.length >= 3) {
+        // Insertar después del segundo grupo (logo) y antes del tercer grupo (nombre)
+        formGroups[2].parentNode.insertBefore(alertContainer, formGroups[2]);
+      } else {
+        // Fallback: insertar al inicio del formulario
+        form.insertBefore(alertContainer, form.firstChild);
+      }
+    }
+
+    // Mostrar la alerta con animación
+    setTimeout(() => {
+      alertContainer.style.opacity = '1';
+    }, 10);
+
+    // Ocultar la alerta después de 4 segundos
+    setTimeout(() => {
+      alertContainer.style.opacity = '0';
+      setTimeout(() => {
+        if (alertContainer.parentNode) {
+          alertContainer.parentNode.removeChild(alertContainer);
+        }
+      }, 300);
+    }, 4000);
+  } else {
+    // Fallback a alert normal si no hay formulario activo
+    alert(message);
+  }
+}
+
 // Función para validar tipos de archivo de imagen
 function validateFileType(file) {
   const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
@@ -27,13 +90,13 @@ function validateFileType(file) {
 
   // Verificar si el tipo está explícitamente bloqueado
   if (blockedTypes.includes(file.type.toLowerCase())) {
-    alert('Los archivos AVIF, HEIC y HEIF no están soportados. Solo se permiten archivos JPEG, PNG y WebP');
+    showModalAlert('Solo se permite subir fotos');
     return false;
   }
 
   // Verificar si el tipo está en la lista de permitidos
   if (!allowedTypes.includes(file.type.toLowerCase())) {
-    alert('Solo se permiten archivos JPEG, PNG y WebP');
+    showModalAlert('Solo se permite subir fotos');
     return false;
   }
 
@@ -46,7 +109,7 @@ function syncScheduleWithMonday() {
   const mondayToInput = document.querySelector('input[name="mondayTo"]');
 
   if (!mondayFromInput.value || !mondayToInput.value) {
-    alert('Por favor, primero establece el horario del día Lunes');
+    showModalAlert('Por favor, primero establece el horario del día Lunes');
     return;
   }
 
@@ -154,6 +217,23 @@ async function compressImage(file) {
   });
 }
 
+// Función auxiliar para obtener dimensiones de la imagen
+function getImageDimensions(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      resolve({ width: img.width, height: img.height });
+      URL.revokeObjectURL(url);
+    };
+    img.onerror = (error) => {
+      reject(error);
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  });
+}
+
 // Event listeners para las imágenes
 document.getElementById("register-logo-input")?.addEventListener("change", async function (e) {
   const file = e.target.files[0];
@@ -171,6 +251,25 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
         throw new Error('La imagen es demasiado grande. Elige una de menos de 50MB.');
       }
 
+      // Validar resolución
+      const { width, height } = await getImageDimensions(file);
+      const minWidth = 160;
+      const minHeight = 120;
+      const maxWidth = 16384;
+      const maxHeight = 16384;
+
+      if (width < minWidth || height < minHeight) {
+        showModalAlert('La resolución de la imagen es muy baja');
+        e.target.value = "";
+        return;
+      }
+
+      if (width > maxWidth || height > maxHeight) {
+        showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
+        e.target.value = "";
+        return;
+      }
+
       // Mostrar estado de carga
       const placeholder = document.getElementById("register-logo-placeholder");
       placeholder.innerHTML = 'Procesando imagen...';
@@ -184,7 +283,7 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
       console.log('Logo procesado correctamente');
     } catch (error) {
       console.error('Error al procesar el logo:', error);
-      alert(error.message || '¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
+      showModalAlert(error.message || '¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
       // Limpiar el input
       e.target.value = '';
       compressedLogoImageFile = null;
@@ -203,7 +302,7 @@ document.getElementById("register-image-input")?.addEventListener("change", asyn
     
     // Validar tamaño (máximo 50MB)
     if (file.size > 50 * 1024 * 1024) {
-      alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
+      showModalAlert("La imagen es demasiado grande. Elige una de menos de 50MB.");
       e.target.value = "";
       return;
     }
@@ -417,7 +516,7 @@ async function handleRestaurantRegistration(e) {
 
   const user = auth.currentUser;
   if (!user) {
-    alert("Tu sesión ha expirado o hubo un error. Intenta iniciar sesión nuevamente.");
+    showModalAlert("Tu sesión ha expirado o hubo un error. Intenta iniciar sesión nuevamente.");
     return;
   }
 

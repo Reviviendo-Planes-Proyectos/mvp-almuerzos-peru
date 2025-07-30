@@ -641,13 +641,13 @@ function validateFileType(file) {
 
   // Verificar si el tipo está explícitamente bloqueado
   if (blockedTypes.includes(file.type.toLowerCase())) {
-    showModalAlert('Los archivos AVIF, HEIC y HEIF no están soportados. Solo se permiten archivos JPEG, PNG y WebP');
+    showModalAlert('Solo se permite subir fotos');
     return false;
   }
 
   // Verificar si el tipo está en la lista de permitidos
   if (!allowedTypes.includes(file.type.toLowerCase())) {
-    showModalAlert('Solo se permiten archivos JPEG, PNG y WebP');
+    showModalAlert('Solo se permite subir fotos');
     return false;
   }
 
@@ -826,8 +826,8 @@ async function processCapturedImage(file) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -863,8 +863,8 @@ async function processEditCapturedImage(file) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -931,8 +931,8 @@ async function handleImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -980,8 +980,8 @@ async function handleEditImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -1539,8 +1539,8 @@ async function handleRestaurantImageSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
@@ -1586,8 +1586,8 @@ async function handleRestaurantLogoSelection(event) {
     const { width, height } = await getImageDimensions(file);
     const minWidth = 160;
     const minHeight = 120;
-    const maxWidth = 4096;
-    const maxHeight = 4096;
+    const maxWidth = 16384;
+    const maxHeight = 16384;
 
     if (width < minWidth || height < minHeight) {
       showModalAlert(`La resolución de la imagen es muy baja`);
