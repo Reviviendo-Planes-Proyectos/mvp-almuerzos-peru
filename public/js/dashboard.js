@@ -1657,21 +1657,17 @@ function openCropperModal(file, imageInput, preview, placeholder, deleteBtn = nu
 
 function setupCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
-  const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
 
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-  cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
 
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
-  const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
 
   newCancelBtn.addEventListener('click', closeCropperModal);
-  newCropBtn.addEventListener('click', cropImage);
   newSaveBtn.addEventListener('click', saveCroppedImage);
 }
 
@@ -1696,27 +1692,7 @@ function closeCropperModal() {
   currentDeleteBtn = null;
 }
 
-function cropImage() {
-  if (!cropper) return;
 
-  // Obtener el área recortada
-  const canvas = cropper.getCroppedCanvas({
-    width: 400,
-    height: 400,
-    imageSmoothingEnabled: true,
-    imageSmoothingQuality: 'high'
-  });
-
-  // Mostrar la imagen recortada en el cropper
-  const cropperImage = document.getElementById('cropper-image');
-  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-
-  // Destruir el cropper actual
-  if (cropper) {
-    cropper.destroy();
-    cropper = null;
-  }
-}
 
 async function saveCroppedImage() {
   if (!cropper) {
@@ -1832,45 +1808,21 @@ function openRestaurantCropperModal(file, imageInput, preview) {
 
 function setupRestaurantCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
-  const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
 
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-  cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
 
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
-  const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
 
   newCancelBtn.addEventListener('click', closeCropperModal);
-  newCropBtn.addEventListener('click', cropRestaurantImage);
   newSaveBtn.addEventListener('click', saveRestaurantCroppedImage);
 }
 
-function cropRestaurantImage() {
-  if (!cropper) return;
 
-  // Obtener el área recortada
-  const canvas = cropper.getCroppedCanvas({
-    width: 800,
-    height: 450, // 16:9 ratio
-    imageSmoothingEnabled: true,
-    imageSmoothingQuality: 'high'
-  });
-
-  // Mostrar la imagen recortada en el cropper
-  const cropperImage = document.getElementById('cropper-image');
-  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-
-  // Destruir el cropper actual
-  if (cropper) {
-    cropper.destroy();
-    cropper = null;
-  }
-}
 
 async function saveRestaurantCroppedImage() {
   if (!cropper) {
@@ -1966,45 +1918,21 @@ function openLogoCropperModal(file, imageInput, preview) {
 
 function setupLogoCropperButtons() {
   const cancelBtn = document.getElementById('cancel-crop-btn');
-  const cropBtn = document.getElementById('crop-btn');
   const saveBtn = document.getElementById('save-crop-btn');
 
   // Remover event listeners previos
   cancelBtn.replaceWith(cancelBtn.cloneNode(true));
-  cropBtn.replaceWith(cropBtn.cloneNode(true));
   saveBtn.replaceWith(saveBtn.cloneNode(true));
 
   // Obtener las nuevas referencias
   const newCancelBtn = document.getElementById('cancel-crop-btn');
-  const newCropBtn = document.getElementById('crop-btn');
   const newSaveBtn = document.getElementById('save-crop-btn');
 
   newCancelBtn.addEventListener('click', closeCropperModal);
-  newCropBtn.addEventListener('click', cropLogoImage);
   newSaveBtn.addEventListener('click', saveLogoCroppedImage);
 }
 
-function cropLogoImage() {
-  if (!cropper) return;
 
-  // Obtener el área recortada
-  const canvas = cropper.getCroppedCanvas({
-    width: 400,
-    height: 400, // 1:1 ratio
-    imageSmoothingEnabled: true,
-    imageSmoothingQuality: 'high'
-  });
-
-  // Mostrar la imagen recortada en el cropper
-  const cropperImage = document.getElementById('cropper-image');
-  cropperImage.src = canvas.toDataURL('image/jpeg', 0.8);
-
-  // Destruir el cropper actual
-  if (cropper) {
-    cropper.destroy();
-    cropper = null;
-  }
-}
 
 async function saveLogoCroppedImage() {
   if (!cropper) {

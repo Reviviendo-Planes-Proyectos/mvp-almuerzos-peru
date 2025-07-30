@@ -84,16 +84,22 @@ function syncScheduleWithMonday() {
 }
 
 // Función para manejar la previsualización de imágenes
-async function handleImagePreview(file, previewId, placeholderId) {
+async function handleImagePreview(file, previewId, placeholderId, deleteBtnId = null) {
   if (file) {
     const reader = new FileReader();
     const preview = document.getElementById(previewId);
     const placeholder = document.getElementById(placeholderId);
+    const deleteBtn = deleteBtnId ? document.getElementById(deleteBtnId) : null;
 
     reader.onload = function (e) {
       preview.src = e.target.result;
       preview.style.display = "block";
       placeholder.style.display = "none";
+      
+      // Mostrar botón eliminar si existe
+      if (deleteBtn) {
+        deleteBtn.style.display = 'flex';
+      }
     };
 
     reader.readAsDataURL(file);
@@ -160,9 +166,9 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
         return;
       }
 
-      // Validar tamaño (máximo 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        throw new Error('La imagen es demasiado grande. Máximo 5MB');
+      // Validar tamaño (máximo 50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        throw new Error('La imagen es demasiado grande. Elige una de menos de 50MB.');
       }
 
       // Mostrar estado de carga
@@ -170,10 +176,10 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
       placeholder.innerHTML = 'Procesando imagen...';
 
       // Comprimir la imagen
-      compressedLogoImageFile = await compressImage(file);
+      const compressedFile = await compressImage(file);
 
-      // Mostrar vista previa
-      handleImagePreview(compressedLogoImageFile, "register-logo-preview", "register-logo-placeholder");
+      // Abrir automáticamente el modal de recorte
+      showCropperModal(compressedFile, 'logo');
 
       console.log('Logo procesado correctamente');
     } catch (error) {
@@ -186,7 +192,7 @@ document.getElementById("register-logo-input")?.addEventListener("change", async
   }
 });
 
-document.getElementById("register-image-input")?.addEventListener("change", function (e) {
+document.getElementById("register-image-input")?.addEventListener("change", async function (e) {
   const file = e.target.files[0];
   if (file) {
     // Validar tipo de archivo
@@ -194,7 +200,22 @@ document.getElementById("register-image-input")?.addEventListener("change", func
       e.target.value = "";
       return;
     }
-    handleImagePreview(file, "register-image-preview", "register-image-placeholder");
+    
+    // Validar tamaño (máximo 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      alert("La imagen es demasiado grande. Elige una de menos de 50MB.");
+      e.target.value = "";
+      return;
+    }
+    
+    try {
+      const compressedFile = await compressImage(file);
+      // Abrir automáticamente el modal de recorte
+      showCropperModal(compressedFile, 'image');
+    } catch (error) {
+      console.error('Error al procesar la imagen:', error);
+      showToast('Error al procesar la imagen', 'error');
+    }
   }
 });
 
@@ -537,7 +558,7 @@ function setupRegistrationImageUploader() {
   const placeholder = document.getElementById("register-image-placeholder");
   if (!imageInput || !imageBox || !preview) return;
 
-  imageInput.onchange = (event) => {
+  imageInput.onchange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
@@ -547,17 +568,192 @@ function setupRegistrationImageUploader() {
       return;
     }
 
-    if (file.size > 3 * 1024 * 1024) {
-      alert("La imagen es demasiado grande (máx 5MB).");
+    if (file.size > 50 * 1024 * 1024) {
+      showToast("La imagen es demasiado grande. Elige una de menos de 50MB.", "error");
       return;
     }
-    compressImage(file).then((compressedFile) => {
-      compressedRegistrationImageFile = compressedFile;
-      preview.src = URL.createObjectURL(compressedFile);
-      preview.style.display = "block";
-      if (placeholder) placeholder.style.display = "none";
+    
+    try {
+      const compressedFile = await compressImage(file);
+      // Abrir automáticamente el modal de recorte
+      showCropperModal(compressedFile, 'image');
+    } catch (error) {
+      console.error('Error al procesar la imagen:', error);
+      showToast('Error al procesar la imagen', 'error');
+    }
+  };
+}
+
+// Variables globales para el cropper
+let currentCropper = null;
+let currentImageType = null; // 'image' o 'logo'
+let originalImageFile = null;
+
+// Función para eliminar la foto del restaurante en registro
+function handleDeleteRegistrationPhoto() {
+  const preview = document.getElementById("register-image-preview");
+  const placeholder = document.getElementById("register-image-placeholder");
+  const input = document.getElementById("register-image-input");
+  const deleteBtn = document.getElementById("register-delete-photo-btn");
+  
+  // Ocultar preview y mostrar placeholder
+  preview.style.display = "none";
+  placeholder.style.display = "flex";
+  
+  // Restaurar contenido original del placeholder
+  placeholder.innerHTML = `
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+        <circle cx="8.5" cy="8.5" r="1.5"></circle>
+        <polyline points="21 15 16 10 5 21"></polyline>
+      </svg>
+    </div>
+    <span>Foto del local</span>
+  `;
+  
+  // Limpiar input de archivo
+  input.value = "";
+  
+  // Ocultar botón eliminar
+  if (deleteBtn) {
+    deleteBtn.style.display = "none";
+  }
+  
+  // Limpiar archivo comprimido si existe
+  compressedRegistrationImageFile = null;
+}
+
+// Función para eliminar el logo del restaurante en registro
+function handleDeleteRegistrationLogo() {
+  const preview = document.getElementById("register-logo-preview");
+  const placeholder = document.getElementById("register-logo-placeholder");
+  const input = document.getElementById("register-logo-input");
+  const deleteBtn = document.getElementById("register-delete-logo-btn");
+  
+  // Ocultar preview y mostrar placeholder
+  preview.style.display = "none";
+  placeholder.style.display = "flex";
+  
+  // Restaurar contenido original del placeholder
+  placeholder.innerHTML = `
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path
+          d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
+        <circle cx="12" cy="13" r="3" />
+      </svg>
+    </div>
+    <span>Logo del restaurante</span>
+  `;
+  
+  // Limpiar input de archivo
+  input.value = "";
+  
+  // Ocultar botón eliminar
+  if (deleteBtn) {
+    deleteBtn.style.display = "none";
+  }
+  
+  // Limpiar archivo comprimido si existe
+  compressedLogoImageFile = null;
+}
+
+// Función para mostrar el modal de cropper
+function showCropperModal(file, imageType) {
+  currentImageType = imageType;
+  originalImageFile = file;
+  
+  const modal = document.getElementById('cropperModal');
+  const cropperImage = document.getElementById('cropper-image');
+  
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    cropperImage.src = e.target.result;
+    modal.classList.add('show');
+    
+    // Destruir cropper anterior si existe
+    if (currentCropper) {
+      currentCropper.destroy();
+    }
+    
+    // Crear nuevo cropper
+    currentCropper = new Cropper(cropperImage, {
+      aspectRatio: imageType === 'logo' ? 1 : 16/9,
+      viewMode: 1,
+      autoCropArea: 0.8,
+      responsive: true,
+      restore: false,
+      guides: false,
+      center: false,
+      highlight: false,
+      cropBoxMovable: true,
+      cropBoxResizable: true,
+      toggleDragModeOnDblclick: false
     });
   };
+  
+  reader.readAsDataURL(file);
+}
+
+// Función para cerrar el modal de cropper
+function closeCropperModal() {
+  const modal = document.getElementById('cropperModal');
+  modal.classList.remove('show');
+  
+  if (currentCropper) {
+    currentCropper.destroy();
+    currentCropper = null;
+  }
+  
+  currentImageType = null;
+  originalImageFile = null;
+}
+
+// Función para guardar la imagen recortada
+function saveCroppedImage() {
+  if (!currentCropper || !currentImageType) return;
+  
+  const canvas = currentCropper.getCroppedCanvas({
+    width: currentImageType === 'logo' ? 400 : 800,
+    height: currentImageType === 'logo' ? 400 : 450,
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high'
+  });
+  
+  canvas.toBlob(async (blob) => {
+    const croppedFile = new File([blob], originalImageFile.name, {
+      type: originalImageFile.type,
+      lastModified: Date.now()
+    });
+    
+    if (currentImageType === 'image') {
+      compressedRegistrationImageFile = croppedFile;
+      await handleImagePreview(croppedFile, 'register-image-preview', 'register-image-placeholder', 'register-delete-photo-btn');
+    } else if (currentImageType === 'logo') {
+      const compressedLogo = await compressImage(croppedFile);
+      compressedLogoImageFile = compressedLogo;
+      await handleImagePreview(compressedLogo, 'register-logo-preview', 'register-logo-placeholder', 'register-delete-logo-btn');
+    }
+    
+    closeCropperModal();
+  }, originalImageFile.type, 0.9);
+}
+
+// Función para configurar los event listeners del cropper
+function setupCropperEventListeners() {
+  // Botones del modal de cropper
+  document.getElementById('cancel-crop-btn').addEventListener('click', closeCropperModal);
+  document.getElementById('save-crop-btn').addEventListener('click', saveCroppedImage);
+  
+  // Cerrar modal al hacer clic fuera
+  document.getElementById('cropperModal').addEventListener('click', (e) => {
+    if (e.target.id === 'cropperModal') {
+      closeCropperModal();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -566,6 +762,11 @@ document.addEventListener("DOMContentLoaded", () => {
     .addEventListener("submit", handleRestaurantRegistration);
 
   setupRegistrationImageUploader();
+  setupCropperEventListeners();
+  
+  // Event listeners para botones de eliminar
+  document.getElementById('register-delete-photo-btn')?.addEventListener('click', handleDeleteRegistrationPhoto);
+  document.getElementById('register-delete-logo-btn')?.addEventListener('click', handleDeleteRegistrationLogo);
 
   auth.onAuthStateChanged(async (user) => {
     if (user) {
