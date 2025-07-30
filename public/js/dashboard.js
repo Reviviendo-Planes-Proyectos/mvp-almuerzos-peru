@@ -20,6 +20,7 @@ let cropper = null;
 let currentImageInput = null;
 let currentPreview = null;
 let currentPlaceholder = null;
+let currentDeleteBtn = null;
 function checkAuthStatus() {
   if (auth.currentUser) {
     currentUser = auth.currentUser;
@@ -946,6 +947,7 @@ async function handleImageSelection(event) {
 async function handleEditImageSelection(event) {
   const preview = document.getElementById("edit-dish-image-preview");
   const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const deleteBtn = document.getElementById("edit-delete-photo-btn");
   const file = event.target.files[0];
   if (!file) return;
 
@@ -981,13 +983,72 @@ async function handleEditImageSelection(event) {
     }
 
     // Abrir el modal de recorte
-    openCropperModal(file, event.target, preview, placeholder);
+    openCropperModal(file, event.target, preview, placeholder, deleteBtn);
 
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
     alert("¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.");
     event.target.value = "";
   }
+}
+
+function handleDeleteEditPhoto() {
+  const imageContainer = document.getElementById("edit-image-container");
+  const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const cameraInput = document.getElementById("edit-camera-input");
+  const galleryInput = document.getElementById("edit-gallery-input");
+  const editImageInput = document.getElementById("edit-dish-image-input");
+  
+  // Ocultar imagen y mostrar placeholder
+  imageContainer.style.display = "none";
+  placeholder.style.display = "flex";
+  
+  // Limpiar inputs de archivo
+  cameraInput.value = "";
+  galleryInput.value = "";
+  editImageInput.value = "";
+  
+  // Limpiar archivo comprimido si existe
+  compressedDishImageFile = null;
+  
+  // Marcar que la imagen fue eliminada
+  window.imageWasDeleted = true;
+}
+
+// Función para eliminar la foto del restaurante
+function handleDeleteRestaurantPhoto() {
+  const preview = document.getElementById("edit-restaurant-image-preview");
+  const input = document.getElementById("edit-restaurant-image-input");
+  
+  // Establecer imagen por defecto
+  preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Local";
+  
+  // Limpiar input de archivo
+  input.value = "";
+  
+  // Limpiar archivo comprimido si existe
+  compressedRestaurantImageFile = null;
+  
+  // Marcar que la imagen fue eliminada
+  window.restaurantImageWasDeleted = true;
+}
+
+// Función para eliminar el logo del restaurante
+function handleDeleteRestaurantLogo() {
+  const preview = document.getElementById("edit-restaurant-logo-preview");
+  const input = document.getElementById("edit-restaurant-logo-input");
+  
+  // Establecer logo por defecto
+  preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Logo";
+  
+  // Limpiar input de archivo
+  input.value = "";
+  
+  // Limpiar archivo comprimido si existe
+  compressedRestaurantLogoFile = null;
+  
+  // Marcar que el logo fue eliminado
+  window.restaurantLogoWasDeleted = true;
 }
 
 async function compressImage(file, quality = 0.7, maxWidth = 800) {
@@ -1033,6 +1094,22 @@ function openEditRestaurantModal() {
   document.getElementById("edit-restaurant-whatsapp").value = currentRestaurant.whatsapp;
   document.getElementById("edit-restaurant-image-preview").src = currentRestaurant.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Local`;
   document.getElementById("edit-restaurant-logo-preview").src = currentRestaurant.logoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=Logo`;
+
+  // Resetear flags de eliminación
+  window.restaurantImageWasDeleted = false;
+  window.restaurantLogoWasDeleted = false;
+
+  // Configurar event listeners para los botones de eliminar
+  const deletePhotoBtn = document.getElementById("edit-restaurant-delete-photo-btn");
+  const deleteLogoBtn = document.getElementById("edit-restaurant-delete-logo-btn");
+  
+  if (deletePhotoBtn) {
+    deletePhotoBtn.onclick = handleDeleteRestaurantPhoto;
+  }
+  
+  if (deleteLogoBtn) {
+    deleteLogoBtn.onclick = handleDeleteRestaurantLogo;
+  }
 
   // Nuevos campos
   document.getElementById("edit-restaurant-ruc").value = currentRestaurant.ruc || "";
@@ -1099,6 +1176,7 @@ async function handleUpdateRestaurant(event) {
   let logoUrl = currentRestaurant.logoUrl;
 
   try {
+    // Manejar imagen del restaurante
     if (compressedRestaurantImageFile) {
       submitButton.textContent = "Subiendo imagen del local...";
       const imageFileName = `local-${Date.now()}-${compressedRestaurantImageFile.name}`;
@@ -1107,8 +1185,12 @@ async function handleUpdateRestaurant(event) {
         .ref(`restaurants/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedRestaurantImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
+    } else if (window.restaurantImageWasDeleted) {
+      // Si la imagen fue eliminada, usar imagen por defecto
+      photoUrl = "https://placehold.co/120x120/E2E8F0/4A5568?text=Local";
     }
 
+    // Manejar logo del restaurante
     if (compressedRestaurantLogoFile) {
       submitButton.textContent = "Subiendo logo...";
       const logoFileName = `logo-${Date.now()}-${compressedRestaurantLogoFile.name}`;
@@ -1117,6 +1199,9 @@ async function handleUpdateRestaurant(event) {
         .ref(`restaurants/${currentRestaurant.id}/${logoFileName}`);
       const uploadLogoTask = await logoStorageRef.put(compressedRestaurantLogoFile);
       logoUrl = await uploadLogoTask.ref.getDownloadURL();
+    } else if (window.restaurantLogoWasDeleted) {
+      // Si el logo fue eliminado, usar logo por defecto
+      logoUrl = "https://placehold.co/120x120/E2E8F0/4A5568?text=Logo";
     }
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const schedule = {};
@@ -1170,15 +1255,20 @@ function openEditDishModal(dish) {
   document.getElementById("edit-dish-name").value = dish.name;
   document.getElementById("edit-dish-price").value = dish.price;
   const preview = document.getElementById("edit-dish-image-preview");
+  const imageContainer = document.getElementById("edit-image-container");
   const placeholder = document.getElementById("edit-image-upload-placeholder");
+  const deleteBtn = document.getElementById("edit-delete-photo-btn");
+  
+  // Resetear el estado de eliminación de imagen
+  window.imageWasDeleted = false;
   
   // Mostrar la imagen actual del plato
   if (dish.photoUrl && dish.photoUrl !== "/images/default-dish.jpg.png") {
     preview.src = dish.photoUrl;
-    preview.style.display = "block";
+    imageContainer.style.display = "block";
     placeholder.style.display = "none";
   } else {
-    preview.style.display = "none";
+    imageContainer.style.display = "none";
     placeholder.style.display = "flex";
   }
   
@@ -1190,6 +1280,9 @@ function openEditDishModal(dish) {
   editImageInput.onchange = async (event) => {
     await handleEditImageSelection(event);
   };
+  
+  // Configurar event listener para el botón eliminar
+  deleteBtn.onclick = handleDeleteEditPhoto;
   
   document.getElementById("open-delete-dish-alert-btn").onclick = () => {
     openModal("deleteDishAlert");
@@ -1247,6 +1340,9 @@ async function handleUpdateDish(event) {
         .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedDishImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
+    } else if (window.imageWasDeleted) {
+      // Si la imagen fue eliminada, usar la imagen por defecto
+      photoUrl = "/images/default-dish.jpg.png";
     }
 
     const updatedData = {
@@ -1462,10 +1558,11 @@ async function handleRestaurantLogoSelection(event) {
 }
 
 // Funciones para el modal de recorte de imagen de platos
-function openCropperModal(file, imageInput, preview, placeholder) {
+function openCropperModal(file, imageInput, preview, placeholder, deleteBtn = null) {
   currentImageInput = imageInput;
   currentPreview = preview;
   currentPlaceholder = placeholder;
+  currentDeleteBtn = deleteBtn;
 
   const cropperModal = document.getElementById('cropperModal');
   const cropperImage = document.getElementById('cropper-image');
@@ -1542,6 +1639,7 @@ function closeCropperModal() {
   currentImageInput = null;
   currentPreview = null;
   currentPlaceholder = null;
+  currentDeleteBtn = null;
 }
 
 function cropImage() {
@@ -1591,11 +1689,22 @@ async function saveCroppedImage() {
         if (currentPreview) {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
-          currentPreview.style.display = 'block';
-
-          // Solo ocultar placeholder si existe (para el modal de nuevo plato)
-          if (currentPlaceholder) {
-            currentPlaceholder.style.display = 'none';
+          
+          // Para el modal de editar plato, mostrar el contenedor de imagen
+          const imageContainer = document.getElementById('edit-image-container');
+          if (imageContainer && currentDeleteBtn) {
+            imageContainer.style.display = 'block';
+            if (currentPlaceholder) {
+              currentPlaceholder.style.display = 'none';
+            }
+            // Resetear el estado de eliminación ya que se seleccionó una nueva imagen
+            window.imageWasDeleted = false;
+          } else {
+            // Para el modal de nuevo plato
+            currentPreview.style.display = 'block';
+            if (currentPlaceholder) {
+              currentPlaceholder.style.display = 'none';
+            }
           }
         }
 

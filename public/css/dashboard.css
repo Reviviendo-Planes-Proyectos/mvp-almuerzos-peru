@@ -435,3 +435,16 @@ input:checked + .slider:before {
     padding: 0.75rem;
   }
 }
+
+/* Ajustes para el botón eliminar foto en móviles */
+@media (max-width: 768px) {
+  #edit-delete-photo-btn {
+    right: -140px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #edit-delete-photo-btn {
+    right: -90px !important;
+  }
+}
