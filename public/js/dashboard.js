@@ -1572,8 +1572,7 @@ function shareCardOnWhatsApp() {
     return;
   }
   
-
-  const message = `🍽️ *${currentRestaurant.name}* te comparte su carta https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id} en Almuerzos Perú.\n\n📲 Haz tu pedido ahora.`;
+  const message = `🍽️ *${currentRestaurant.name}* te comparte su carta https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}&cardId=${currentCardId} en Almuerzos Perú.\n\n📲 Haz tu pedido ahora.`;
   const encodedMessage = encodeURIComponent(message);
   const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
 

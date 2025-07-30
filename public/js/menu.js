@@ -628,6 +628,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function initializeMenuPage() {
     const urlParams = new URLSearchParams(window.location.search);
     currentRestaurantId = urlParams.get("restaurantId");
+    const cardIdFromUrl = urlParams.get("cardId"); // Obtener cardId de la URL
 
     if (!currentRestaurantId) {
       return handlePageError("ID de restaurante no encontrado en la URL.");
@@ -648,6 +649,13 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!menuResponse.ok) throw new Error("Error fetching menu data.");
       allCardsData = await menuResponse.json();
       if (allCardsData.error) throw new Error(allCardsData.error);
+
+      // Establecer currentCardId ANTES de llamar updateUI
+      if (cardIdFromUrl && allCardsData.find(card => card.id === cardIdFromUrl)) {
+        currentCardId = cardIdFromUrl;
+      } else {
+        currentCardId = allCardsData.length > 0 ? allCardsData[0].id : null;
+      }
 
       updateUI();
     } catch (error) {
@@ -700,12 +708,25 @@ document.addEventListener("DOMContentLoaded", () => {
     if (allCardsData.length > 0) {
       renderCardTabs();
 
-      displayDishesForCard(allCardsData[0].id);
+      // Mostrar la carta correspondiente (ya sea de URL o primera carta)
+      if (currentCardId) {
+        displayDishesForCard(currentCardId);
+      }
     } else {
       cardsNav.innerHTML = '<p style="color: white;">No cards available.</p>';
       dishesContainer.innerHTML =
         "<p>No dishes to display for this restaurant.</p>";
     }
+  }
+
+  function updateURLWithCardId(cardId) {
+    const url = new URL(window.location);
+    url.searchParams.set('cardId', cardId);
+    
+    // Actualizar la URL sin recargar la página
+    window.history.replaceState({}, '', url);
+    
+    console.log('URL actualizada con cardId:', cardId);
   }
 
   function renderCardTabs() {
@@ -714,12 +735,31 @@ document.addEventListener("DOMContentLoaded", () => {
     allCardsData.forEach((card, index) => {
       const button = document.createElement("button");
       button.className = "card-tab";
-      if (index === 0) button.classList.add("active");
+      // Activar solo la carta que corresponde al currentCardId
+      if (card.id === currentCardId) {
+        button.classList.add("active");
+      }
       button.textContent = card.name;
       button.dataset.cardId = card.id;
       button.onclick = () => {
+        // Actualizar el currentCardId
         currentCardId = card.id;
+        
+        // Remover clase active de todos los botones
+        document.querySelectorAll(".card-tab").forEach(tab => {
+          tab.classList.remove("active");
+        });
+        
+        // Activar el botón clickeado
+        button.classList.add("active");
+        
+        // Actualizar la URL con el nuevo cardId
+        updateURLWithCardId(card.id);
+        
+        // Mostrar los platos de la carta seleccionada
         displayDishesForCard(card.id);
+        
+        console.log('Carta seleccionada:', card.name, 'ID:', currentCardId);
       };
       cardsNav.appendChild(button);
     });
@@ -782,7 +822,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const name = currentRestaurant.name || "";
-    const link = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}`;
+    const link = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}${currentCardId ? `&cardId=${currentCardId}` : ''}`;
     const yape = currentRestaurant.yape || "No disponible";
 
     const today = new Date()
@@ -823,12 +863,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function displayDishesForCard(cardId) {
-    document
-      .querySelectorAll(".card-tab")
-      .forEach((tab) =>
-        tab.classList.toggle("active", tab.dataset.cardId === cardId)
-      );
-
     const selectedCard = allCardsData.find((card) => card.id === cardId);
     dishesContainer.innerHTML = ""; // Clear existing dishes
 
