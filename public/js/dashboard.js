@@ -1887,29 +1887,98 @@ async function shareCardOnWhatsApp() {
     showToast("Falta información para compartir la carta.", "warning");
     return;
   }
-
-  const longUrl = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}&cardId=${currentCardId}`;
-  const shortUrl = await tryShorten(longUrl);
-
-  const message =
-    `🍽️ *${currentRestaurant.name}* en Almuerzos Perú.\n` +
-    `🧾 Carta: ${shortUrl}\n\n` +
-    `📲 Haz tu pedido ahora.`;
-
-  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, "_blank");
+  try {
+    const message = await buildShareMessageWithoutAllCards(currentRestaurant, currentCardId);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  } catch (e) {
+    console.error("No se pudo generar el mensaje para compartir:", e);
+    showToast("No se pudo generar el mensaje de WhatsApp.", "error");
+  }
 }
 
 
+async function buildShareMessageWithoutAllCards(restaurant, cardId) {
+  const name = restaurant?.name || "";
 
 
+  const longUrl =
+    `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${restaurant.id}&cardId=${cardId}`;
+  let link = longUrl;
+  try {
+    const shortUrl = await tryShorten(longUrl);
+    if (shortUrl) link = shortUrl;
+  } catch { }
+
+  
+  const yape = restaurant?.yape || "No disponible";
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  const todayHours = restaurant?.schedule?.[today] || {};
+  const from = todayHours?.from || "—";
+  const to   = todayHours?.to   || "—";
 
 
+  let categoryName = (typeof originalCardName === "string" && originalCardName.trim())
+    ? originalCardName.trim()
+    : "Almuerzos";
+
+  if (categoryName === "Almuerzos") {
+    try {
+      const idToken = await currentUser.getIdToken();
+      const cardsRes = await fetch(`/api/restaurants/${restaurant.id}/cards`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (cardsRes.ok) {
+        const cards = await cardsRes.json();
+        const currentCard = Array.isArray(cards) ? cards.find(c => c.id === cardId) : null;
+        if (currentCard?.name) categoryName = currentCard.name;
+      }
+    } catch (e) {
+      console.warn("No se pudo obtener el nombre de la carta:", e);
+    }
+  }
+
+  let dishes = [];
+  try {
+    const idToken = await currentUser.getIdToken();
+    const dishesRes = await fetch(`/api/cards/${cardId}/dishes`, {
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    if (dishesRes.ok) {
+      const all = await dishesRes.json();
+      dishes = Array.isArray(all) ? all.filter(d => d?.isActive) : [];
+    }
+  } catch (e) {
+    console.warn("No se pudieron cargar los platos de la carta:", e);
+  }
+
+  let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en *${name}* 🍽️\n\n`;
+
+  if (link) {
+    message += `📌 Puedes ver nuestra carta aquí: 👉 ${link}\n\n`;
+  }
+
+  message += `🍽️ *${categoryName}*\n`;
+
+  if (!dishes || dishes.length === 0) {
+    message += `❌ Actualmente no hay platos disponibles para esta categoría.\n`;
+  } else {
+    dishes.forEach((dish) => {
+      const priceNum = Number(dish?.price);
+      const priceStr = Number.isFinite(priceNum) ? priceNum.toFixed(2) : `${dish?.price ?? ""}`;
+      message += `❤️ ${dish?.name ?? "Plato"} – S/ ${priceStr}\n`;
+    });
+  }
+
+  message += `\n🕒 *Horario de atención (hoy):*\n${from} – ${to}\n`;
+  message += `📱 *Yape:* ${yape}\n\n`;
+  message += `📥 ¿Quieres separar tu plato? Escríbenos por aquí y te lo dejamos listo 🤗\n\n`;
+  message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
+
+  return message;
+}
 
 
-
-
-// --- Mostrar el flotante solo cuando el CTA no está visible ---
 let shareObserver = null;
 
 function setupShareObserver() {
