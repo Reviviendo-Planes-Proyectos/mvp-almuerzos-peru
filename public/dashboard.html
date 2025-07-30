@@ -187,9 +187,28 @@
         </div>
 
         <div class="dish-list-container">
-          <input type="text" id="card-name-input" class="card-name-input" />
 
-          <div style="text-align: center; margin-bottom: 1.5rem">
+          <!-- Botón flotante para compartir carta -->
+          <div class="share-stick">
+            <button class="floating-share-btn" id="floating-share-btn" onclick="shareCardOnWhatsApp()"
+              title="Compartir carta">
+              <img src="images/celular.png" alt="Icono celular" />
+            </button>
+          </div>
+          <div class="card-header-wrapper">
+            <div class="card-name-input-wrapper">
+              <input type="text" id="card-name-input" class="card-name-input" />
+            </div>
+            <button class="whatsapp-share-button" onclick="shareCardOnWhatsApp()">
+              <img src="images/celular.png" alt="Icono" class="whatsapp-icon" />
+              Compartir carta en WhatsApp
+            </button>
+          </div>
+
+
+
+
+          <div class="dashed-container">
             <button class="primary-button" onclick="openModal('newDishModal')">
               Nuevo plato +
             </button>
@@ -204,6 +223,8 @@
           </div>
         </div>
       </div>
+
+
     </section>
   </div>
 
@@ -929,6 +950,9 @@
       </div>
     </div>
   </div>
+
+
+
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>

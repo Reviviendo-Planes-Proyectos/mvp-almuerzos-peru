@@ -1982,3 +1982,168 @@ async function saveLogoCroppedImage() {
     alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
+
+
+async function tryShorten(url) {
+  // Intenta TinyURL
+  try {
+    const r2 = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+    const t2 = await r2.text();
+    if (r2.ok && t2.startsWith("http")) return t2.trim();
+  } catch {}
+
+  // Si falla CORS o el servicio, usamos el largo
+  return url;
+}
+
+async function shareCardOnWhatsApp() {
+  if (!currentRestaurant || !currentCardId) {
+    showToast("Falta información para compartir la carta.", "warning");
+    return;
+  }
+  try {
+    const message = await buildShareMessageWithoutAllCards(currentRestaurant, currentCardId);
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  } catch (e) {
+    console.error("No se pudo generar el mensaje para compartir:", e);
+    showToast("No se pudo generar el mensaje de WhatsApp.", "error");
+  }
+}
+
+
+async function buildShareMessageWithoutAllCards(restaurant, cardId) {
+  const name = restaurant?.name || "";
+
+
+  const longUrl =
+    `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${restaurant.id}&cardId=${cardId}`;
+  let link = longUrl;
+  try {
+    const shortUrl = await tryShorten(longUrl);
+    if (shortUrl) link = shortUrl;
+  } catch { }
+
+  
+  const yape = restaurant?.yape || "No disponible";
+  const today = new Date().toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+  const todayHours = restaurant?.schedule?.[today] || {};
+  const from = todayHours?.from || "—";
+  const to   = todayHours?.to   || "—";
+
+
+  let categoryName = (typeof originalCardName === "string" && originalCardName.trim())
+    ? originalCardName.trim()
+    : "Almuerzos";
+
+  if (categoryName === "Almuerzos") {
+    try {
+      const idToken = await currentUser.getIdToken();
+      const cardsRes = await fetch(`/api/restaurants/${restaurant.id}/cards`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (cardsRes.ok) {
+        const cards = await cardsRes.json();
+        const currentCard = Array.isArray(cards) ? cards.find(c => c.id === cardId) : null;
+        if (currentCard?.name) categoryName = currentCard.name;
+      }
+    } catch (e) {
+      console.warn("No se pudo obtener el nombre de la carta:", e);
+    }
+  }
+
+  let dishes = [];
+  try {
+    const idToken = await currentUser.getIdToken();
+    const dishesRes = await fetch(`/api/cards/${cardId}/dishes`, {
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    if (dishesRes.ok) {
+      const all = await dishesRes.json();
+      dishes = Array.isArray(all) ? all.filter(d => d?.isActive) : [];
+    }
+  } catch (e) {
+    console.warn("No se pudieron cargar los platos de la carta:", e);
+  }
+
+  let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en *${name}* 🍽️\n\n`;
+
+  if (link) {
+    message += `📌 Puedes ver nuestra carta aquí: 👉 ${link}\n\n`;
+  }
+
+  message += `🍽️ *${categoryName}*\n`;
+
+  if (!dishes || dishes.length === 0) {
+    message += `❌ Actualmente no hay platos disponibles para esta categoría.\n`;
+  } else {
+    dishes.forEach((dish) => {
+      const priceNum = Number(dish?.price);
+      const priceStr = Number.isFinite(priceNum) ? priceNum.toFixed(2) : `${dish?.price ?? ""}`;
+      message += `❤️ ${dish?.name ?? "Plato"} – S/ ${priceStr}\n`;
+    });
+  }
+
+  message += `\n🕒 *Horario de atención (hoy):*\n${from} – ${to}\n`;
+  message += `📱 *Yape:* ${yape}\n\n`;
+  message += `📥 ¿Quieres separar tu plato? Escríbenos por aquí y te lo dejamos listo 🤗\n\n`;
+  message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
+
+  return message;
+}
+
+
+let shareObserver = null;
+
+function setupShareObserver() {
+  const floatBtn = document.getElementById('floating-share-btn');
+  const cta = document.querySelector('.whatsapp-share-button'); // botón verde
+
+  if (!floatBtn) return;
+
+  // Limpiar observador previo si existiera
+  if (shareObserver) {
+    shareObserver.disconnect();
+    shareObserver = null;
+  }
+
+  // Si aún no existe el CTA (por ejemplo, estás en la vista de cartas),
+  // asegúrate de ocultar el flotante.
+  if (!cta) {
+    floatBtn.classList.remove('is-visible');
+    return;
+  }
+
+  shareObserver = new IntersectionObserver(([entry]) => {
+    // CTA visible -> ocultar flotante; CTA fuera -> mostrar flotante
+    floatBtn.classList.toggle('is-visible', !entry.isIntersecting);
+  }, {
+    root: null,     // viewport de la ventana; si usas otro contenedor con scroll, cámbialo
+    threshold: 0
+  });
+
+  shareObserver.observe(cta);
+}
+
+// Lanza el observador cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', setupShareObserver);
+
+// Re-lánzalo cuando entras a la vista de platos
+const _origShowDishes = showDishes;
+showDishes = function(cardId, cardName) {
+  _origShowDishes(cardId, cardName);
+  // pequeño delay por si el layout aún no pintó
+  requestAnimationFrame(setupShareObserver);
+};
+
+// Al volver a la lista de cartas, desconectar y ocultar
+const _origShowCards = showCards;
+showCards = function() {
+  if (shareObserver) {
+    shareObserver.disconnect();
+    shareObserver = null;
+  }
+  const floatBtn = document.getElementById('floating-share-btn');
+  if (floatBtn) floatBtn.classList.remove('is-visible');
+  _origShowCards();
+};
