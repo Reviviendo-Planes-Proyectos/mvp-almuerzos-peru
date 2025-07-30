@@ -1566,19 +1566,35 @@ async function saveLogoCroppedImage() {
 }
 
 
-function shareCardOnWhatsApp() {
+async function tryShorten(url) {
+  // Intenta TinyURL
+  try {
+    const r2 = await fetch(`https://tinyurl.com/api-create.php?url=${encodeURIComponent(url)}`);
+    const t2 = await r2.text();
+    if (r2.ok && t2.startsWith("http")) return t2.trim();
+  } catch {}
+
+  // Si falla CORS o el servicio, usamos el largo
+  return url;
+}
+
+async function shareCardOnWhatsApp() {
   if (!currentRestaurant || !currentCardId) {
     showToast("Falta información para compartir la carta.", "warning");
     return;
   }
-  
-  const message = `🍽️ *${currentRestaurant.name}* te comparte su carta https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}&cardId=${currentCardId} en Almuerzos Perú.\n\n📲 Haz tu pedido ahora.`;
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
 
+  const longUrl = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}&cardId=${currentCardId}`;
+  const shortUrl = await tryShorten(longUrl);
+
+  const message =
+    `🍽️ *${currentRestaurant.name}* en Almuerzos Perú.\n` +
+    `🧾 Carta: ${shortUrl}\n\n` +
+    `📲 Haz tu pedido ahora.`;
+
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
   window.open(whatsappUrl, "_blank");
 }
-
 
 
 
