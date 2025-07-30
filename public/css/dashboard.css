@@ -438,13 +438,17 @@ input:checked + .slider:before {
 
 /* Ajustes para el botón eliminar foto en móviles */
 @media (max-width: 768px) {
-  #edit-delete-photo-btn {
-    right: -140px !important;
+  #edit-delete-photo-btn,
+  #new-delete-photo-btn {
+    right: 8px !important;
+    top: 8px !important;
   }
 }
 
 @media (max-width: 480px) {
-  #edit-delete-photo-btn {
-    right: -90px !important;
+  #edit-delete-photo-btn,
+  #new-delete-photo-btn {
+    right: 8px !important;
+    top: 8px !important;
   }
 }

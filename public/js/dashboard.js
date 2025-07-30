@@ -530,11 +530,17 @@ function clearDishImageState() {
   // Restablecer el preview a la imagen por defecto
   const preview = document.getElementById("dish-image-preview");
   const placeholder = document.getElementById("image-upload-placeholder");
+  const deleteBtn = document.getElementById("new-delete-photo-btn");
 
   if (preview && placeholder) {
     preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Imagen";
     preview.style.display = "none";
     placeholder.style.display = "block";
+  }
+
+  // Ocultar botón eliminar
+  if (deleteBtn) {
+    deleteBtn.style.display = "none";
   }
 
   // Limpiar el formulario completo
@@ -561,11 +567,17 @@ function setupImageUploader() {
   const galleryInput = document.getElementById("gallery-input");
   const cameraBtn = document.getElementById("camera-btn");
   const galleryBtn = document.getElementById("gallery-btn");
+  const newDeleteBtn = document.getElementById("new-delete-photo-btn");
   
   // Configuración para modal de nuevo plato
   imageInput.addEventListener("change", handleImageSelection);
   cameraInput.addEventListener("change", handleImageSelection);
   galleryInput.addEventListener("change", handleImageSelection);
+  
+  // Configurar botón eliminar para modal de nuevo plato
+  if (newDeleteBtn) {
+    newDeleteBtn.addEventListener("click", handleDeleteNewPhoto);
+  }
   
   if (cameraBtn) {
     cameraBtn.addEventListener("click", () => {
@@ -899,6 +911,7 @@ function closeCameraModal(stream, modal) {
 async function handleImageSelection(event) {
   const preview = document.getElementById("dish-image-preview");
   const placeholder = document.getElementById("image-upload-placeholder");
+  const deleteBtn = document.getElementById("new-delete-photo-btn");
   const file = event.target.files[0];
   if (!file) return;
 
@@ -933,8 +946,8 @@ async function handleImageSelection(event) {
       return;
     }
 
-    // Abrir el modal de recorte en lugar de mostrar directamente la imagen
-    openCropperModal(file, event.target, preview, placeholder);
+    // Abrir el modal de recorte pasando el botón eliminar
+    openCropperModal(file, event.target, preview, placeholder, deleteBtn);
 
   } catch (error) {
     console.error("Error al procesar la imagen:", error);
@@ -1015,6 +1028,28 @@ function handleDeleteEditPhoto() {
   
   // Marcar que la imagen fue eliminada
   window.imageWasDeleted = true;
+}
+
+function handleDeleteNewPhoto() {
+  const preview = document.getElementById("dish-image-preview");
+  const placeholder = document.getElementById("image-upload-placeholder");
+  const deleteBtn = document.getElementById("new-delete-photo-btn");
+  const imageInput = document.getElementById("dish-image-input");
+  const cameraInput = document.getElementById("camera-input");
+  const galleryInput = document.getElementById("gallery-input");
+  
+  // Ocultar imagen y botón eliminar, mostrar placeholder
+  preview.style.display = "none";
+  deleteBtn.style.display = "none";
+  placeholder.style.display = "flex";
+  
+  // Limpiar inputs de archivo
+  imageInput.value = "";
+  cameraInput.value = "";
+  galleryInput.value = "";
+  
+  // Limpiar archivo comprimido si existe
+  compressedDishImageFile = null;
 }
 
 // Función para eliminar la foto del restaurante
@@ -1709,11 +1744,15 @@ async function saveCroppedImage() {
           const previewUrl = URL.createObjectURL(compressedFile);
           currentPreview.src = previewUrl;
           
-          // Para el modal de editar plato, mostrar el contenedor de imagen
-          const imageContainer = document.getElementById('edit-image-container');
-          if (imageContainer && currentDeleteBtn) {
-            imageContainer.style.display = 'block';
-            currentDeleteBtn.style.display = 'flex'; // Mostrar botón eliminar
+          // Detectar si es el modal de editar plato por el ID del preview
+          const isEditModal = currentPreview.id === 'edit-dish-image-preview';
+          
+          if (isEditModal) {
+            // Para el modal de editar plato, mostrar el contenedor de imagen
+            const imageContainer = document.getElementById('edit-image-container');
+            if (imageContainer) {
+              imageContainer.style.display = 'block';
+            }
             if (currentPlaceholder) {
               currentPlaceholder.style.display = 'none';
             }
@@ -1725,6 +1764,11 @@ async function saveCroppedImage() {
             if (currentPlaceholder) {
               currentPlaceholder.style.display = 'none';
             }
+          }
+          
+          // Mostrar botón eliminar en ambos modales
+          if (currentDeleteBtn) {
+            currentDeleteBtn.style.display = 'flex';
           }
         }
 
