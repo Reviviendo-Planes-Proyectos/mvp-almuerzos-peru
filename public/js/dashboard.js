@@ -1868,3 +1868,40 @@ async function saveLogoCroppedImage() {
     alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
+
+
+
+
+
+
+
+
+
+function toggleSidebar(){
+    document.querySelector('.sidebar')?.classList.toggle('open');
+    document.querySelector('.overlay')?.classList.toggle('show');
+  }
+  function closeSidebar(){
+    document.querySelector('.sidebar')?.classList.remove('open');
+    document.querySelector('.overlay')?.classList.remove('show');
+  }
+
+  // Cerrar con ESC
+  document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeSidebar(); });
+
+  // Marcar activo y cerrar al hacer click en un item
+  document.addEventListener('click', (e)=>{
+    const item = e.target.closest('.menu-item'); if(!item) return;
+    e.preventDefault();
+    document.querySelectorAll('.menu-item').forEach(i=>i.classList.remove('active'));
+    item.classList.add('active');
+    closeSidebar();
+    // TODO: Aquí dispara la acción real (abrir QR, ir a comentarios, etc.)
+  });
+
+  // Poner el nombre real del restaurante en el sidebar
+  window.addEventListener('DOMContentLoaded', ()=>{
+    const mainName = document.getElementById('restaurant-name');
+    const sideName = document.getElementById('sidebar-restaurant');
+    if(mainName && sideName) sideName.textContent = mainName.textContent || 'Restaurante';
+  });
