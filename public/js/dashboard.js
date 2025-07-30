@@ -1579,3 +1579,69 @@ function shareCardOnWhatsApp() {
 
   window.open(whatsappUrl, "_blank");
 }
+
+
+
+
+
+
+
+
+
+
+
+// --- Mostrar el flotante solo cuando el CTA no está visible ---
+let shareObserver = null;
+
+function setupShareObserver() {
+  const floatBtn = document.getElementById('floating-share-btn');
+  const cta = document.querySelector('.whatsapp-share-button'); // botón verde
+
+  if (!floatBtn) return;
+
+  // Limpiar observador previo si existiera
+  if (shareObserver) {
+    shareObserver.disconnect();
+    shareObserver = null;
+  }
+
+  // Si aún no existe el CTA (por ejemplo, estás en la vista de cartas),
+  // asegúrate de ocultar el flotante.
+  if (!cta) {
+    floatBtn.classList.remove('is-visible');
+    return;
+  }
+
+  shareObserver = new IntersectionObserver(([entry]) => {
+    // CTA visible -> ocultar flotante; CTA fuera -> mostrar flotante
+    floatBtn.classList.toggle('is-visible', !entry.isIntersecting);
+  }, {
+    root: null,     // viewport de la ventana; si usas otro contenedor con scroll, cámbialo
+    threshold: 0
+  });
+
+  shareObserver.observe(cta);
+}
+
+// Lanza el observador cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', setupShareObserver);
+
+// Re-lánzalo cuando entras a la vista de platos
+const _origShowDishes = showDishes;
+showDishes = function(cardId, cardName) {
+  _origShowDishes(cardId, cardName);
+  // pequeño delay por si el layout aún no pintó
+  requestAnimationFrame(setupShareObserver);
+};
+
+// Al volver a la lista de cartas, desconectar y ocultar
+const _origShowCards = showCards;
+showCards = function() {
+  if (shareObserver) {
+    shareObserver.disconnect();
+    shareObserver = null;
+  }
+  const floatBtn = document.getElementById('floating-share-btn');
+  if (floatBtn) floatBtn.classList.remove('is-visible');
+  _origShowCards();
+};
