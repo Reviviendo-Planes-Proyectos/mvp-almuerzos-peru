@@ -187,9 +187,28 @@
         </div>
 
         <div class="dish-list-container">
-          <input type="text" id="card-name-input" class="card-name-input" />
 
-          <div style="text-align: center; margin-bottom: 1.5rem">
+          <!-- Botón flotante para compartir carta -->
+          <div class="share-stick">
+            <button class="floating-share-btn" id="floating-share-btn" onclick="shareCardOnWhatsApp()"
+              title="Compartir carta">
+              <img src="images/celular.png" alt="Icono celular" />
+            </button>
+          </div>
+          <div class="card-header-wrapper">
+            <div class="card-name-input-wrapper">
+              <input type="text" id="card-name-input" class="card-name-input" />
+            </div>
+            <button class="whatsapp-share-button" onclick="shareCardOnWhatsApp()">
+              <img src="images/celular.png" alt="Icono" class="whatsapp-icon" />
+              Compartir carta en WhatsApp
+            </button>
+          </div>
+
+
+
+
+          <div class="dashed-container">
             <button class="primary-button" onclick="openModal('newDishModal')">
               Nuevo plato +
             </button>
@@ -204,6 +223,8 @@
           </div>
         </div>
       </div>
+
+
     </section>
   </div>
 
@@ -739,42 +760,23 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 1rem;
               ">
-            <div class="modal-form-group" style="margin: 0">
-              <label style="display: block; margin-bottom: 0.5rem">Delivery</label>
-              <div style="
-                    background: #f5f5f5;
-                    padding: 0.75rem;
-                    border-radius: 0.5rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                  ">
-                <label for="edit-restaurant-delivery" style="font-size: 0.875rem; color: #333">
-                  ¿Haces delivery?
-                </label>
-                <label class="switch">
-                  <input type="checkbox" id="edit-restaurant-delivery" name="restaurantDelivery" />
-                  <span class="slider round"></span>
+            <div style="display: flex; gap: 1rem">
+              <div style="flex: 1">
+                <label class="switch-label">
+                  <span class="switch-text">¿Haces delivery?</span>
+                  <div class="switch">
+                    <input type="checkbox" id="edit-restaurant-delivery" name="restaurantDelivery" />
+                    <span class="slider"></span>
+                  </div>
                 </label>
               </div>
-            </div>
-
-            <div class="modal-form-group" style="margin: 0">
-              <label style="display: block; margin-bottom: 0.5rem">Atención en local</label>
-              <div style="
-                    background: #f5f5f5;
-                    padding: 0.75rem;
-                    border-radius: 0.5rem;
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                  ">
-                <label for="edit-restaurant-localService" style="font-size: 0.875rem; color: #333">
-                  ¿Atiendes en el local?
-                </label>
-                <label class="switch">
-                  <input type="checkbox" id="edit-restaurant-localService" name="restaurantLocalService" />
-                  <span class="slider round"></span>
+              <div style="flex: 1">
+                <label class="switch-label">
+                  <span class="switch-text">¿Atiendes en el local?</span>
+                  <div class="switch">
+                    <input type="checkbox" id="edit-restaurant-localService" name="restaurantLocalService" />
+                    <span class="slider"></span>
+                  </div>
                 </label>
               </div>
             </div>
@@ -945,6 +947,9 @@
       </div>
     </div>
   </div>
+
+
+
 
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
