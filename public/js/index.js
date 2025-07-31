@@ -45,10 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (loadMoreBtn) {
     loadMoreBtn.addEventListener("click", () => loadRestaurants(false));
   }
-  
+
   // Inicializar Tom Select y cargar distritos
   initializeDistrictFilter();
-  
+
   if (myRestaurantButton) {
     setupMyRestaurantButton();
   }
@@ -102,13 +102,11 @@ document.addEventListener("DOMContentLoaded", () => {
         userRole = roleData.role;
       }
 
-     
-
       const restaurantBtn = document.getElementById("my-restaurant");
       if (userRole === "customer") {
         restaurantBtn.style.display = "none";
       } else {
-        restaurantBtn.style.display = "flex"; 
+        restaurantBtn.style.display = "flex";
       }
 
       if (userRole !== "owner") {
@@ -194,7 +192,7 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         await auth.signOut();
         localStorage.removeItem("commentedDishes");
-        showToast("You have been logged out.", "info");
+        await showLogoutModal({ duration: 2500 }); // 2.5 s
       } catch (error) {
         console.error("Error during logout:", error);
         showToast("Error during logout. Please try again.", "error");
@@ -304,14 +302,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Función para cargar distritos desde el backend
   async function loadDistricts() {
     try {
-      const response = await fetch('/api/districts');
+      const response = await fetch("/api/districts");
       if (!response.ok) {
-        throw new Error('Error al cargar distritos');
+        throw new Error("Error al cargar distritos");
       }
       const districts = await response.json();
       return districts;
     } catch (error) {
-      console.error('Error loading districts:', error);
+      console.error("Error loading districts:", error);
       return [];
     }
   }
@@ -323,19 +321,19 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // Cargar distritos desde el backend
       const districts = await loadDistricts();
-      
+
       // Limpiar opciones existentes
-      districtFilter.innerHTML = '';
-      
+      districtFilter.innerHTML = "";
+
       // Agregar opción "Todos los Distritos" primero
-      const allOption = document.createElement('option');
-      allOption.value = '';
-      allOption.textContent = 'Todos los Distritos';
+      const allOption = document.createElement("option");
+      allOption.value = "";
+      allOption.textContent = "Todos los Distritos";
       districtFilter.appendChild(allOption);
-      
+
       // Agregar distritos dinámicamente
-      districts.forEach(district => {
-        const option = document.createElement('option');
+      districts.forEach((district) => {
+        const option = document.createElement("option");
         option.value = district;
         option.textContent = district;
         districtFilter.appendChild(option);
@@ -343,42 +341,41 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Inicializar Tom Select
       tomSelectInstance = new TomSelect(districtFilter, {
-        placeholder: 'Buscar distrito...',
-        searchField: ['text', 'value'],
+        placeholder: "Buscar distrito...",
+        searchField: ["text", "value"],
         maxOptions: null,
         create: false,
         allowEmptyOption: true,
-        onChange: function(value) {
-          currentDistrictFilter = value || '';
+        onChange: function (value) {
+          currentDistrictFilter = value || "";
           loadRestaurants(true);
         },
-        onClick: function() {
+        onClick: function () {
           // Permitir abrir el dropdown al hacer click
           if (!this.isOpen) {
             this.open();
           }
-        }
+        },
       });
-      
+
       // Forzar que inicie vacío y muestre el placeholder
       tomSelectInstance.clear();
       tomSelectInstance.clearOptions();
-      
+
       // Volver a agregar las opciones
-      districts.forEach(district => {
+      districts.forEach((district) => {
         tomSelectInstance.addOption({
           value: district,
-          text: district
+          text: district,
         });
       });
-      
+
       // Asegurar que no hay valor seleccionado
-      tomSelectInstance.setValue('');
-      
+      tomSelectInstance.setValue("");
     } catch (error) {
-      console.error('Error initializing district filter:', error);
+      console.error("Error initializing district filter:", error);
       // Fallback: usar select normal si Tom Select falla
-      districtFilter.addEventListener('change', (event) => {
+      districtFilter.addEventListener("change", (event) => {
         currentDistrictFilter = event.target.value;
         loadRestaurants(true);
       });
@@ -423,13 +420,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
           const totalLikes = restaurant.totalLikes || 0;
 
-          const safeName = typeof restaurant.name === 'string' ? restaurant.name : '';
-          const safeDescription = typeof restaurant.description === 'string' ? restaurant.description : '';
+          const safeName =
+            typeof restaurant.name === "string" ? restaurant.name : "";
+          const safeDescription =
+            typeof restaurant.description === "string"
+              ? restaurant.description
+              : "";
           restaurantCard.innerHTML = `
             <img src="${imageUrl}" alt="${safeName}" class="restaurant-card-image">
             <div class="card-content">
               <div class="restaurant-title">
-                <h4>${safeName.length > 35 ? safeName.substring(0, 35) + '...' : safeName}</h4>
+                <h4>${
+                  safeName.length > 35
+                    ? safeName.substring(0, 35) + "..."
+                    : safeName
+                }</h4>
                 <span class="restaurant-likes-inline">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart">
                     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
@@ -437,8 +442,14 @@ document.addEventListener("DOMContentLoaded", () => {
                   <span>${totalLikes}</span>
                 </span>
               </div>
-              <p>${safeDescription.length > 30 ? safeDescription.substring(0, 30) + '...' : safeDescription}</p>
-              <a href="/menu.html?restaurantId=${restaurant.id}" class="card-button">Ver menú</a>
+              <p>${
+                safeDescription.length > 30
+                  ? safeDescription.substring(0, 30) + "..."
+                  : safeDescription
+              }</p>
+              <a href="/menu.html?restaurantId=${
+                restaurant.id
+              }" class="card-button">Ver menú</a>
             </div>
           `;
           restaurantsList.appendChild(restaurantCard);
@@ -461,6 +472,48 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     updateDishLikeButtons();
+  }
+
+  function showLogoutModal({ duration = 2400 } = {}) {
+    return new Promise((resolve) => {
+      // Overlay
+      const overlay = document.createElement("div");
+      overlay.className = "logout-modal__overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-label", "Sesión cerrada correctamente");
+
+      // Tarjeta del modal
+      overlay.innerHTML = `
+      <div class="logout-modal__card">
+        <div class="logout-modal__icon" aria-hidden="true">
+          <!-- Check en SVG para no depender de librerías -->
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="logout-modal__title">Sesión cerrada correctamente</div>
+        <div class="logout-modal__text">Vuelve pronto 👋</div>
+      </div>
+    `;
+
+      document.body.appendChild(overlay);
+
+      // Programar autocierre
+      const close = () => {
+        overlay.classList.add("logout-modal--closing");
+        // Espera a que termine la animación y limpia
+        const removeAfter = () => {
+          overlay.remove();
+          resolve();
+        };
+        overlay.addEventListener("animationend", removeAfter, { once: true });
+        // Fallback por si no dispara animationend
+        setTimeout(removeAfter, 350);
+      };
+
+      setTimeout(close, duration);
+    });
   }
 
   loadRestaurants(true);

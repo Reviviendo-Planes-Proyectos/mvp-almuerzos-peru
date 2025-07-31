@@ -1,391 +1,532 @@
 <!DOCTYPE html>
 <html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login - Almuerzos Perú</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/schedule.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login - Almuerzos Perú</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/login.css" />
-  <link rel="stylesheet" href="css/schedule.css" />
-</head>
+  <body>
+    <div class="auth-container">
+      <div id="loading-screen" class="auth-screen active">
+        <p>Verificando sesión...</p>
+      </div>
 
-<body>
-  <div class="auth-container">
-    <div id="loading-screen" class="auth-screen active">
-      <p>Verificando sesión...</p>
-    </div>
+      <div id="login-initial" class="auth-screen">
+        <a href="index.html">
+          <img style="width: 250px" src="images/logo.png" />
+        </a>
+        <p class="auth-separator">INICIAR SESIÓN</p>
+        <button class="auth-button google-button" onclick="signIn()">
+          <svg width="20" height="20" viewBox="0 0 48 48">
+            <path
+              fill="#FFC107"
+              d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+            ></path>
+            <path
+              fill="#FF3D00"
+              d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+            ></path>
+            <path
+              fill="#4CAF50"
+              d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+            ></path>
+            <path
+              fill="#1976D2"
+              d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.28,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+            ></path>
+          </svg>
+          Continuar con google
+        </button>
+        <p class="auth-separator">¿Aún no tienes una cuenta?</p>
+        <button
+          class="auth-button dark-button"
+          onclick="showScreen('register-choice')"
+        >
+          Registrar mi restaurante
+        </button>
+      </div>
 
-    <div id="login-initial" class="auth-screen">
-      <a href="index.html">
-        <img style="width: 250px" src="images/logo.png" />
-      </a>
-      <p class="auth-separator">INICIAR SESIÓN</p>
-      <button class="auth-button google-button" onclick="signIn()">
-        <svg width="20" height="20" viewBox="0 0 48 48">
-          <path fill="#FFC107"
-            d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
-          </path>
-          <path fill="#FF3D00"
-            d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z">
-          </path>
-          <path fill="#4CAF50"
-            d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z">
-          </path>
-          <path fill="#1976D2"
-            d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.28,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z">
-          </path>
-        </svg>
-        Continuar con google
-      </button>
-      <p class="auth-separator">¿Aún no tienes una cuenta?</p>
-      <button class="auth-button dark-button" onclick="showScreen('register-choice')">
-        Registrar mi restaurante
-      </button>
-    </div>
+      <div id="register-choice" class="auth-screen">
+        <button class="back-button" onclick="showScreen('login-initial')">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="32"
+            height="32"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="3"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5"></path>
+            <path d="M12 19l-7-7 7-7"></path>
+          </svg>
+        </button>
+        <p style="margin-bottom: 1rem; font-weight: 700">Regístrate en:</p>
+        <a href="/" class="logo">
+          <span>Almuerzos Perú</span>
+        </a>
+        <button class="auth-button google-button" onclick="signIn()">
+          <svg width="20" height="20" viewBox="0 0 48 48">
+            <path
+              fill="#FFC107"
+              d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"
+            ></path>
+            <path
+              fill="#FF3D00"
+              d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"
+            ></path>
+            <path
+              fill="#4CAF50"
+              d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"
+            ></path>
+            <path
+              fill="#1976D2"
+              d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.28,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z"
+            ></path>
+          </svg>
+          Continuar con google
+        </button>
+      </div>
 
-    <div id="register-choice" class="auth-screen">
-      <button class="back-button" onclick="showScreen('login-initial')">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M19 12H5"></path>
-          <path d="M12 19l-7-7 7-7"></path>
-        </svg>
-      </button>
-      <p style="margin-bottom: 1rem; font-weight: 700">Regístrate en:</p>
-      <a href="/" class="logo">
-        <span>Almuerzos Perú</span>
-      </a>
-      <button class="auth-button google-button" onclick="signIn()">
-        <svg width="20" height="20" viewBox="0 0 48 48">
-          <path fill="#FFC107"
-            d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12s5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24s8.955,20,20,20s20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z">
-          </path>
-          <path fill="#FF3D00"
-            d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z">
-          </path>
-          <path fill="#4CAF50"
-            d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z">
-          </path>
-          <path fill="#1976D2"
-            d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571l6.19,5.238C42.022,35.28,44,30.038,44,24C44,22.659,43.862,21.35,43.611,20.083z">
-          </path>
-        </svg>
-        Continuar con google
-      </button>
-    </div>
+      <div id="restaurant-form" class="auth-screen">
+        <div class="restaurant-header">
+          <a href="/" class="restaurant-home-link">
+            <span class="icon-arrow">←</span>
+            <span class="icon-food">🍽️</span>
+            Almuerzos Perú
+          </a>
+          <h1 class="restaurant-title">Registrar Restaurante</h1>
+        </div>
 
-    <div id="restaurant-form" class="auth-screen">
-      <p style="margin-bottom: 1rem; font-weight: 700">
-        Completa los datos de tu restaurante
-      </p>
-      <a href="/" class="logo">
-        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M16 2a2 2 0 0 1 2 2v16a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path>
-          <path d="M12 14v6"></path>
-          <path d="M12 2v2"></path>
-          <path d="m15 14-3-3-3 3"></path>
-        </svg>
-        <span>Almuerzos Perú</span>
-      </a>
-      <form id="new-restaurant-form" novalidate>
-        <div class="form-group">
-          <label id="register-image-upload-box" class="image-upload-box" for="register-image-input" style="position: relative;">
-            <!-- Botón eliminar foto del restaurante -->
-            <button type="button" id="register-delete-photo-btn" style="
-                   position: absolute;
-                   top: 8px;
-                   right: 8px;
-                   width: 24px;
-                   height: 24px;
-                   border-radius: 50%;
-                   background-color: #dc3545;
-                   color: white;
-                   border: none;
-                   cursor: pointer;
-                   display: none;
-                   align-items: center;
-                   justify-content: center;
-                   font-size: 14px;
-                   z-index: 10;
-                 ">&times;</button>
-            <img id="register-image-preview" src="" alt="Previsualización del local" style="
+        <form id="new-restaurant-form" novalidate>
+          <div class="form-group">
+            <label
+              id="register-image-upload-box"
+              class="image-upload-box"
+              for="register-image-input"
+              style="position: relative"
+            >
+              <!-- Botón eliminar foto del restaurante -->
+              <button
+                type="button"
+                id="register-delete-photo-btn"
+                style="
+                  position: absolute;
+                  top: 8px;
+                  right: 8px;
+                  width: 24px;
+                  height: 24px;
+                  border-radius: 50%;
+                  background-color: #dc3545;
+                  color: white;
+                  border: none;
+                  cursor: pointer;
+                  display: none;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 14px;
+                  z-index: 10;
+                "
+              >
+                &times;
+              </button>
+              <img
+                id="register-image-preview"
+                src=""
+                alt="Previsualización del local"
+                style="
                   display: none;
                   width: 60px;
                   height: 60px;
                   object-fit: cover;
                   border-radius: 0.25rem;
-                " />
-            <div id="register-image-placeholder" style="
+                "
+              />
+              <div
+                id="register-image-placeholder"
+                style="
                   display: flex;
                   align-items: center;
                   gap: 1rem;
                   width: 100%;
-                ">
-              <div class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                  <polyline points="21 15 16 10 5 21"></polyline>
-                </svg>
+                "
+              >
+                <div class="icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <rect
+                      x="3"
+                      y="3"
+                      width="18"
+                      height="18"
+                      rx="2"
+                      ry="2"
+                    ></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
+                </div>
+                <span>Foto del local</span>
               </div>
-              <span>Foto del local</span>
+            </label>
+            <input
+              type="file"
+              id="register-image-input"
+              accept="image/png, image/jpeg, image/webp"
+              style="display: none"
+            />
+          </div>
+          <div class="form-group">
+            <label
+              id="register-logo-upload-box"
+              class="image-upload-box"
+              for="register-logo-input"
+              style="margin-bottom: 1rem; position: relative"
+            >
+              <!-- Botón eliminar logo del restaurante -->
+              <button
+                type="button"
+                id="register-delete-logo-btn"
+                style="
+                  position: absolute;
+                  top: 8px;
+                  right: 8px;
+                  width: 24px;
+                  height: 24px;
+                  border-radius: 50%;
+                  background-color: #dc3545;
+                  color: white;
+                  border: none;
+                  cursor: pointer;
+                  display: none;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 14px;
+                  z-index: 10;
+                "
+              >
+                &times;
+              </button>
+              <img
+                id="register-logo-preview"
+                src=""
+                alt="Logo del restaurante"
+                style="display: none"
+                class="preview-image"
+              />
+              <div id="register-logo-placeholder" class="image-placeholder">
+                <div class="icon">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path
+                      d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"
+                    />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                </div>
+                <span>Logo del restaurante</span>
+              </div>
+            </label>
+            <input
+              type="file"
+              id="register-logo-input"
+              accept="image/png, image/jpeg, image/webp"
+              style="display: none"
+            />
+          </div>
+          <div class="form-group">
+            <label for="name"
+              >Nombre del Restaurante
+              <span class="required-asterisk">*</span></label
+            >
+            <input type="text" name="name" id="name" required />
+          </div>
+          <div class="form-group">
+            <label for="description">Descripción del restaurante</label>
+            <textarea
+              name="description"
+              id="description"
+              rows="3"
+              maxlength="300"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label for="ruc">RUC</label>
+            <input type="text" name="ruc" id="ruc" pattern="[0-9]{11}" />
+          </div>
+          <div class="form-group">
+            <label for="district"
+              >Distrito del restaurante
+              <span class="required-asterisk">*</span></label
+            >
+            <select name="district" id="district" required>
+              <option value="" disabled selected>
+                Distrito del restaurante
+              </option>
+              <option>Ate</option>
+              <option>Barranco</option>
+              <option>Breña</option>
+              <option>Carabayllo</option>
+              <option>Cercado de Lima</option>
+              <option>Chaclacayo</option>
+              <option>Chorrillos</option>
+              <option>Cieneguilla</option>
+              <option>Comas</option>
+              <option>El Agustino</option>
+              <option>Independencia</option>
+              <option>Jesús María</option>
+              <option>La Molina</option>
+              <option>La Victoria</option>
+              <option>Lince</option>
+              <option>Los Olivos</option>
+              <option>Lurigancho (Chosica)</option>
+              <option>Lurín</option>
+              <option>Magdalena del Mar</option>
+              <option>Pueblo Libre</option>
+              <option>Miraflores</option>
+              <option>Pachacámac</option>
+              <option>Puente Piedra</option>
+              <option>Rímac</option>
+              <option>San Bartolo</option>
+              <option>San Borja</option>
+              <option>San Isidro</option>
+              <option>San Juan de Lurigancho</option>
+              <option>San Juan de Miraflores</option>
+              <option>San Luis</option>
+              <option>San Martín de Porres</option>
+              <option>San Miguel</option>
+              <option>Santa Anita</option>
+              <option>Santa María del Mar</option>
+              <option>Santa Rosa</option>
+              <option>Santiago de Surco</option>
+              <option>Surquillo</option>
+              <option>Villa El Salvador</option>
+              <option>Villa María del Triunfo</option>
+              <option>Bellavista</option>
+              <option>Callao</option>
+              <option>Carmen de la Legua Reynoso</option>
+              <option>La Perla</option>
+              <option>La Punta</option>
+              <option>Mi Perú</option>
+              <option>Ventanilla</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="whatsapp"
+              >Whatsapp para Pedidos de Clientes
+              <span class="required-asterisk">*</span></label
+            >
+            <input type="tel" name="whatsapp" id="whatsapp" required />
+          </div>
+          <div class="form-group">
+            <label for="yape">Número de Yape</label>
+            <input type="tel" name="yape" id="yape" />
+          </div>
+          <div class="form-group">
+            <label for="phone">Teléfono para llamadas</label>
+            <input type="tel" name="phone" id="phone" />
+          </div>
+          <div class="form-group">
+            <label for="location">Link de ubicación</label>
+            <input type="url" name="location" id="location" />
+          </div>
+          <div class="form-group" style="display: flex; gap: 1rem">
+            <div style="flex: 1">
+              <label class="switch-label">
+                <span class="switch-text">¿Haces delivery?</span>
+                <div class="switch">
+                  <input type="checkbox" name="delivery" />
+                  <span class="slider"></span>
+                </div>
+              </label>
             </div>
-          </label>
-          <input type="file" id="register-image-input" accept="image/png, image/jpeg, image/webp"
-            style="display: none" />
-        </div>
-        <div class="form-group">
-          <label id="register-logo-upload-box" class="image-upload-box" for="register-logo-input"
-            style="margin-bottom: 1rem; position: relative;">
-            <!-- Botón eliminar logo del restaurante -->
-            <button type="button" id="register-delete-logo-btn" style="
-                   position: absolute;
-                   top: 8px;
-                   right: 8px;
-                   width: 24px;
-                   height: 24px;
-                   border-radius: 50%;
-                   background-color: #dc3545;
-                   color: white;
-                   border: none;
-                   cursor: pointer;
-                   display: none;
-                   align-items: center;
-                   justify-content: center;
-                   font-size: 14px;
-                   z-index: 10;
-                 ">&times;</button>
-            <img id="register-logo-preview" src="" alt="Logo del restaurante" style="display: none"
-              class="preview-image" />
-            <div id="register-logo-placeholder" class="image-placeholder">
-              <div class="icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div style="flex: 1">
+              <label class="switch-label">
+                <span class="switch-text">¿Atención en el local?</span>
+                <div class="switch">
+                  <input type="checkbox" name="localService" />
+                  <span class="slider"></span>
+                </div>
+              </label>
+            </div>
+          </div>
+          <div class="form-group">
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 1rem;
+              "
+            >
+              <p style="font-weight: bold">Horario de atención</p>
+              <button
+                type="button"
+                class="sync-button"
+                onclick="syncScheduleWithMonday()"
+                title="Sincronizar todos los horarios con el Lunes"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <path
-                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
-                  <circle cx="12" cy="13" r="3" />
+                    d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2"
+                  />
                 </svg>
+                Sincronizar horarios
+              </button>
+            </div>
+            <div class="schedule-container">
+              <div class="schedule-row">
+                <span>Lunes <span class="required-asterisk">*</span></span>
+                <input type="time" name="mondayFrom" required />
+                <input type="time" name="mondayTo" required />
               </div>
-              <span>Logo del restaurante</span>
-            </div>
-          </label>
-          <input type="file" id="register-logo-input" accept="image/png, image/jpeg, image/webp"
-            style="display: none" />
-        </div>
-        <div class="form-group">
-          <label for="name">Nombre del Restaurante <span class="required-asterisk">*</span></label>
-          <input type="text" name="name" id="name" required />
-        </div>
-        <div class="form-group">
-          <label for="description">Descripción del restaurante</label>
-          <textarea name="description" id="description" rows="3" maxlength="300"></textarea>
-        </div>
-        <div class="form-group">
-          <label for="ruc">RUC</label>
-          <input type="text" name="ruc" id="ruc" pattern="[0-9]{11}" />
-        </div>
-        <div class="form-group">
-          <label for="district">Distrito del restaurante <span class="required-asterisk">*</span></label>
-          <select name="district" id="district" required>
-            <option value="" disabled selected>Distrito del restaurante</option>
-            <option>Ate</option>
-            <option>Barranco</option>
-            <option>Breña</option>
-            <option>Carabayllo</option>
-            <option>Cercado de Lima</option>
-            <option>Chaclacayo</option>
-            <option>Chorrillos</option>
-            <option>Cieneguilla</option>
-            <option>Comas</option>
-            <option>El Agustino</option>
-            <option>Independencia</option>
-            <option>Jesús María</option>
-            <option>La Molina</option>
-            <option>La Victoria</option>
-            <option>Lince</option>
-            <option>Los Olivos</option>
-            <option>Lurigancho (Chosica)</option>
-            <option>Lurín</option>
-            <option>Magdalena del Mar</option>
-            <option>Pueblo Libre</option>
-            <option>Miraflores</option>
-            <option>Pachacámac</option>
-            <option>Puente Piedra</option>
-            <option>Rímac</option>
-            <option>San Bartolo</option>
-            <option>San Borja</option>
-            <option>San Isidro</option>
-            <option>San Juan de Lurigancho</option>
-            <option>San Juan de Miraflores</option>
-            <option>San Luis</option>
-            <option>San Martín de Porres</option>
-            <option>San Miguel</option>
-            <option>Santa Anita</option>
-            <option>Santa María del Mar</option>
-            <option>Santa Rosa</option>
-            <option>Santiago de Surco</option>
-            <option>Surquillo</option>
-            <option>Villa El Salvador</option>
-            <option>Villa María del Triunfo</option>
-            <option>Bellavista</option>
-            <option>Callao</option>
-            <option>Carmen de la Legua Reynoso</option>
-            <option>La Perla</option>
-            <option>La Punta</option>
-            <option>Mi Perú</option>
-            <option>Ventanilla</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="whatsapp">Whatsapp para Pedidos de Clientes <span class="required-asterisk">*</span></label>
-          <input type="tel" name="whatsapp" id="whatsapp" required />
-        </div>
-        <div class="form-group">
-          <label for="yape">Número de Yape</label>
-          <input type="tel" name="yape" id="yape" />
-        </div>
-        <div class="form-group">
-          <label for="phone">Teléfono para llamadas</label>
-          <input type="tel" name="phone" id="phone" />
-        </div>
-        <div class="form-group">
-          <label for="location">Link de ubicación</label>
-          <input type="url" name="location" id="location" />
-        </div>
-        <div class="form-group" style="display: flex; gap: 1rem">
-          <div style="flex: 1">
-            <label class="switch-label">
-              <span class="switch-text">¿Haces delivery?</span>
-              <div class="switch">
-                <input type="checkbox" name="delivery" />
-                <span class="slider"></span>
+              <div class="schedule-row">
+                <span>Martes <span class="required-asterisk">*</span></span>
+                <input type="time" name="tuesdayFrom" required />
+                <input type="time" name="tuesdayTo" required />
               </div>
-            </label>
-          </div>
-          <div style="flex: 1">
-            <label class="switch-label">
-              <span class="switch-text">¿Atención en el local?</span>
-              <div class="switch">
-                <input type="checkbox" name="localService" />
-                <span class="slider"></span>
+              <div class="schedule-row">
+                <span>Miércoles <span class="required-asterisk">*</span></span>
+                <input type="time" name="wednesdayFrom" required />
+                <input type="time" name="wednesdayTo" required />
               </div>
-            </label>
-          </div>
-        </div>
-        <div class="form-group">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <p style="font-weight: bold;">Horario de atención</p>
-            <button type="button" class="sync-button" onclick="syncScheduleWithMonday()"
-              title="Sincronizar todos los horarios con el Lunes">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path
-                  d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2" />
-              </svg>
-              Sincronizar horarios
-            </button>
-          </div>
-          <div class="schedule-container">
-            <div class="schedule-row">
-              <span>Lunes <span class="required-asterisk">*</span></span>
-              <input type="time" name="mondayFrom" required />
-              <input type="time" name="mondayTo" required />
-            </div>
-            <div class="schedule-row">
-              <span>Martes <span class="required-asterisk">*</span></span>
-              <input type="time" name="tuesdayFrom" required />
-              <input type="time" name="tuesdayTo" required />
-            </div>
-            <div class="schedule-row">
-              <span>Miércoles <span class="required-asterisk">*</span></span>
-              <input type="time" name="wednesdayFrom" required />
-              <input type="time" name="wednesdayTo" required />
-            </div>
-            <div class="schedule-row">
-              <span>Jueves <span class="required-asterisk">*</span></span>
-              <input type="time" name="thursdayFrom" required />
-              <input type="time" name="thursdayTo" required />
-            </div>
-            <div class="schedule-row">
-              <span>Viernes <span class="required-asterisk">*</span></span>
-              <input type="time" name="fridayFrom" required />
-              <input type="time" name="fridayTo" required />
-            </div>
-            <div class="schedule-row">
-              <span>Sábado <span class="required-asterisk">*</span></span>
-              <input type="time" name="saturdayFrom" required />
-              <input type="time" name="saturdayTo" required />
-            </div>
-            <div class="schedule-row">
-              <span>Domingo <span class="required-asterisk">*</span></span>
-              <input type="time" name="sundayFrom" required />
-              <input type="time" name="sundayTo" required />
+              <div class="schedule-row">
+                <span>Jueves <span class="required-asterisk">*</span></span>
+                <input type="time" name="thursdayFrom" required />
+                <input type="time" name="thursdayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Viernes <span class="required-asterisk">*</span></span>
+                <input type="time" name="fridayFrom" required />
+                <input type="time" name="fridayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Sábado <span class="required-asterisk">*</span></span>
+                <input type="time" name="saturdayFrom" required />
+                <input type="time" name="saturdayTo" required />
+              </div>
+              <div class="schedule-row">
+                <span>Domingo <span class="required-asterisk">*</span></span>
+                <input type="time" name="sundayFrom" required />
+                <input type="time" name="sundayTo" required />
+              </div>
             </div>
           </div>
-        </div>
-        <button type="submit" class="auth-button dark-button" style="margin-top: 1rem">
-          Registrar mi restaurante
+          <button
+            type="submit"
+            class="auth-button dark-button"
+            style="margin-top: 1rem"
+          >
+            Registrar mi restaurante
+          </button>
+          <p id="form-error" class="error-message" style="display: none"></p>
+        </form>
+      </div>
+
+      <div id="welcome-back" class="auth-screen">
+        <a href="/" class="logo">
+          <span>Almuerzos Perú</span>
+        </a>
+        <p class="toast-subtitle">Qué bueno verte otra vez por aquí ❤️</p>
+        <h2 id="restaurant-name-toast" class="toast-title"></h2>
+        <button
+          class="auth-button google-button"
+          style="margin-top: 2rem"
+          onclick="redirectToDashboard()"
+        >
+          Ingresar a mi restaurante
         </button>
-        <p id="form-error" class="error-message" style="display: none"></p>
-      </form>
-    </div>
-
-    <div id="welcome-back" class="auth-screen">
-      <a href="/" class="logo">
-        <span>Almuerzos Perú</span>
-      </a>
-      <p class="toast-subtitle">Qué bueno verte otra vez por aquí ❤️</p>
-      <h2 id="restaurant-name-toast" class="toast-title"></h2>
-      <button class="auth-button google-button" style="margin-top: 2rem" onclick="redirectToDashboard()">
-        Ingresar a mi restaurante
-      </button>
-    </div>
-
-    <div id="register-success" class="auth-screen">
-      <a href="/" class="logo">
-        <span>Almuerzos Perú</span>
-      </a>
-      <p class="toast-icon">Bienvenid@!🎉</p>
-      <h2 class="toast-title">Registro Exitoso</h2>
-      <button class="auth-button google-button" style="margin-top: 2rem" onclick="redirectToDashboard()">
-        Ingresar a mi restaurante
-      </button>
-    </div>
-  </div>
-
-  <!-- Modal de Cropper -->
-  <div id="cropperModal" class="modal-backdrop">
-    <div class="modal-content">
-      <h2>Recortar imagen</h2>
-      <div id="cropper-container">
-        <img id="cropper-image" />
       </div>
-      <div>
-        <button id="cancel-crop-btn" class="primary-button">Cancelar</button>
-        <button id="save-crop-btn" class="primary-button dark-button">Guardar</button>
+
+      <div id="register-success" class="auth-screen">
+        <a href="/" class="logo">
+          <span>Almuerzos Perú</span>
+        </a>
+        <p class="toast-icon">Bienvenid@!🎉</p>
+        <h2 class="toast-title">Registro Exitoso</h2>
+        <button
+          class="auth-button google-button"
+          style="margin-top: 2rem"
+          onclick="redirectToDashboard()"
+        >
+          Ingresar a mi restaurante
+        </button>
       </div>
     </div>
-  </div>
 
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-  <!-- Cropper.js CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
-  <!-- Cropper.js JavaScript -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
-  <!-- Browser Image Compression -->
-  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
-  <meta name="google-signin-client_id"
-    content="92623435008-vgv02v2cps8vb9pio5kgms9ad4hjlb5m.apps.googleusercontent.com" />
-  <script src="js/login.js"></script>
-</body>
+    <!-- Modal de Cropper -->
+    <div id="cropperModal" class="modal-backdrop">
+      <div class="modal-content">
+        <h2>Recortar imagen</h2>
+        <div id="cropper-container">
+          <img id="cropper-image" />
+        </div>
+        <div>
+          <button id="cancel-crop-btn" class="primary-button">Cancelar</button>
+          <button id="save-crop-btn" class="primary-button dark-button">
+            Guardar
+          </button>
+        </div>
+      </div>
+    </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <!-- Cropper.js CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"
+    />
+    <!-- Cropper.js JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <!-- Browser Image Compression -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta
+      name="google-signin-client_id"
+      content="92623435008-vgv02v2cps8vb9pio5kgms9ad4hjlb5m.apps.googleusercontent.com"
+    />
+    <script src="js/login.js"></script>
+  </body>
 </html>
