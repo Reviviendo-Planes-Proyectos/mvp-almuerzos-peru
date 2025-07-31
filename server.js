@@ -1110,11 +1110,6 @@ app.listen(PORT, () => {
     console.log(`📱 Aplicación lista para usar`);
 });
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
-    console.log(`📱 Aplicación lista para usar`);
-});
 
 module.exports = app;
 

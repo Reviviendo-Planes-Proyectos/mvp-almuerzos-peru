@@ -429,16 +429,11 @@ async function handleDeleteCard() {
     alert("Error de conexión.");
   }
 }
-function logout() {
+async function logout() {
+  await showLogoutModal({ duration: 2500 }); // 2.5 s
   auth
     .signOut()
-    .then(() => {
-      console.log("Sesión cerrada correctamente.");
-      window.location.replace("/");
-    })
-    .catch((error) => {
-      console.error("Error al cerrar sesión:", error);
-    });
+    
 }
 window.addEventListener("pageshow", function (event) {
   if (event.persisted) {
@@ -2335,3 +2330,47 @@ showCards = function() {
   if (floatBtn) floatBtn.classList.remove('is-visible');
   _origShowCards();
 };
+
+
+
+
+function showLogoutModal({ duration = 2400 } = {}) {
+    return new Promise((resolve) => {
+
+      const overlay = document.createElement("div");
+      overlay.className = "logout-modal__overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-label", "Sesión cerrada correctamente");
+
+      overlay.innerHTML = `
+      <div class="logout-modal__card">
+        <div class="logout-modal__icon" aria-hidden="true">
+          <!-- Check en SVG para no depender de librerías -->
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="logout-modal__title">Sesión cerrada correctamente</div>
+        <div class="logout-modal__text">Vuelve pronto 👋</div>
+      </div>
+    `;
+
+      document.body.appendChild(overlay);
+
+   
+      const close = () => {
+        overlay.classList.add("logout-modal--closing");
+   
+        const removeAfter = () => {
+          overlay.remove();
+          resolve();
+        };
+        overlay.addEventListener("animationend", removeAfter, { once: true });
+      
+        setTimeout(removeAfter, 350);
+      };
+
+      setTimeout(close, duration);
+    });
+  }
