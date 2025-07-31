@@ -924,8 +924,8 @@ document.addEventListener("DOMContentLoaded", () => {
           </div>
       </div>
       <div class="dish-details">
-          <h3>${dish.name}</h3>
-          <p>S/. ${dish.price.toFixed(2)}</p>
+          <h3 title="${dish.name}">${dish.name}</h3>
+          <p title="S/. ${dish.price.toFixed(2)}">S/. ${dish.price.toFixed(2)}</p>
           <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gusta</p> 
       </div>
       <div class="quantity-container">

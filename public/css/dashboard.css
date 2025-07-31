@@ -179,6 +179,7 @@ body {
   align-items: center;
   margin-bottom: 1rem;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  min-height: 80px;
 }
 .list-item h3 {
   font-size: 1.125rem;
@@ -195,9 +196,11 @@ body {
   margin-right: 1rem;
 }
 .item-details {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   align-items: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .clickable-card {
@@ -205,10 +208,52 @@ body {
   transition: background-color 0.2s ease;
   border-radius: 0.5rem;
   padding: 0.25rem;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .clickable-card:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Contenedor del texto del plato */
+.clickable-card > div {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* Título del plato con truncamiento */
+.clickable-card h3 {
+  font-size: 1.125rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* Párrafos del precio y likes */
+.clickable-card p {
+  color: var(--gray-text);
+  font-size: 0.9rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Imagen del plato */
+.clickable-card img {
+  width: 60px;
+  height: 60px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  margin-right: 1rem;
+  flex-shrink: 0;
 }
 .list-item:hover {
   transform: scale(1.02);
@@ -219,6 +264,8 @@ body {
   display: inline-block;
   width: 50px;
   height: 28px;
+  flex-shrink: 0;
+  margin-left: 1rem;
 }
 .toggle-switch input {
   opacity: 0;
@@ -292,6 +339,21 @@ input:checked + .slider:before {
 }
 .dish-list-item:hover {
   transform: none;
+}
+
+/* Estilo para nombres de platos en el dashboard */
+.dish-list-item .item-details h3 {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  line-height: 1.2 !important;
+  max-height: 2.4em !important;
+  margin: 0 0 0.5rem 0 !important;
+  font-size: 1.1em !important;
+  font-weight: bold !important;
+  white-space: normal !important;
 }
 
 .modal-backdrop {
@@ -536,268 +598,270 @@ input:checked + .slider:before {
   display: inline-block;
   width: 50px;
   height: 28px;
-  }
-  .toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-  }
-  .slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: 0.4s;
-    border-radius: 28px;
-  }
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 4px;
-    bottom: 4px;
-    background-color: white;
-    transition: 0.4s;
-    border-radius: 50%;
-  }
-  input:checked + .slider {
-    background-color: var(--brand-green);
-  }
-  input:checked + .slider:before {
-    transform: translateX(22px);
-  }
-  #cards-section,
-  #dishes-section {
-    display: none;
-  }
-  #dishes-section .container {
-    padding-top: 0;
-  }
-  .dishes-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 0;
-  }
-  .back-button,
-  .delete-button {
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  .dish-list-container {
-    background-color: var(--brand-yellow-light);
-    border-radius: 1.5rem;
-    padding: 1.5rem;
-  }
-  .card-name-input {
-    width: 100%;
-    padding: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 800;
-    border: 2px solid var(--border-color);
-    border-radius: 0.75rem;
-    margin-bottom: 1.5rem;
-    text-align: center;
-  }
-  .dish-list-item {
-    cursor: auto;
-  }
-  .dish-list-item:hover {
-    transform: none;
-  }
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 28px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--brand-green);
+}
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+#cards-section,
+#dishes-section {
+  display: none;
+}
+#dishes-section .container {
+  padding-top: 0;
+}
+.dishes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+.back-button,
+.delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.dish-list-container {
+  background-color: var(--brand-yellow-light);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+}
+.card-name-input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border: 2px solid var(--border-color);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.dish-list-item {
+  cursor: auto;
+}
+.dish-list-item:hover {
+  transform: none;
+}
 
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.6);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-  }
-  .modal-content {
-    background-color: var(--brand-yellow);
-    color: var(--brand-dark);
-    padding: 2rem;
-    border-radius: 1.5rem;
-    width: 90%;
-    max-width: 450px;
-    position: relative;
-    text-align: center;
-  }
-  .modal-content.alert-modal {
-    background-color: var(--brand-yellow-light);
-  }
-  .modal-close-btn {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1.5rem;
-  }
-  .modal-content h2 {
-    font-size: 1.75rem;
-    font-weight: 900;
-    margin-bottom: 1.5rem;
-  }
-  .modal-form-group {
-    text-align: left;
-    margin-bottom: 1rem;
-  }
-  .modal-form-group label {
-    display: block;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-  }
-  .modal-form-group input,
-  .modal-form-group textarea,
-  .modal-form-group select {
-    width: 100%;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
-    border: 1px solid var(--border-color);
-    font-family: "Nunito", sans-serif;
-    font-size: 1rem;
-  }
-  .image-upload-box {
-    border: 2px dashed var(--gray-text);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-  #main-content {
-    display: none;
-  }
-  .image-upload-box .icon {
-    width: 40px;
-    height: 40px;
-    background-color: #0000001a;
-    border-radius: 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--brand-dark);
-    flex-shrink: 0;
-  }
-  .image-upload-box:hover {
-    background-color: #00000008;
-  }
-  .dark-button:disabled {
-    background-color: #9ca3af;
-    cursor: not-allowed;
-  }
-  .delete-icon {
-    position: absolute;
-    top: 1.5rem;
-    left: 1.5rem;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: var(--brand-yellow);
+  color: var(--brand-dark);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  width: 90%;
+  max-width: 450px;
+  position: relative;
+  text-align: center;
+}
+.modal-content.alert-modal {
+  background-color: var(--brand-yellow-light);
+}
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+.modal-content h2 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+}
+.modal-form-group {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+.modal-form-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.modal-form-group input,
+.modal-form-group textarea,
+.modal-form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  font-family: "Nunito", sans-serif;
+  font-size: 1rem;
+}
+#main-content {
+  display: none;
+}
 
-  /* Estilos para el modal de recorte de imagen */
-  #cropperModal {
-    z-index: 2000 !important;
-  }
+.image-upload-box {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed var(--gray-text);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
 
+.image-upload-box .icon {
+  width: 40px;
+  height: 40px;
+  background-color: #0000001a;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-dark);
+  flex-shrink: 0;
+}
+
+.image-upload-box:hover {
+  background-color: #00000008;
+}
+.dark-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+.delete-icon {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Estilos para el modal de recorte de imagen */
+#cropperModal {
+  z-index: 2000 !important;
+}
+
+#cropperModal .modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+#cropperModal .modal-content button {
+  min-width: 100px;
+}
+
+#cropperModal .modal-content .primary-button {
+  background-color: var(--white);
+  color: var(--brand-dark);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#cropperModal .modal-content .primary-button:hover {
+  background-color: #f3f4f6;
+}
+
+#cropperModal .modal-content .primary-button.dark-button {
+  background-color: var(--brand-dark);
+  color: var(--white);
+}
+
+#cropperModal .modal-content .primary-button.dark-button:hover {
+  background-color: #374151;
+}
+
+#cropper-container {
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#cropper-image {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
   #cropperModal .modal-content {
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow: hidden;
+    max-width: 95vw;
+    max-height: 85vh;
+    padding: 1rem;
   }
-
-  #cropperModal .modal-content button {
-    min-width: 100px;
-  }
-
-  #cropperModal .modal-content .primary-button {
-    background-color: var(--white);
-    color: var(--brand-dark);
-    border: 1px solid var(--border-color);
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.75rem;
-    font-weight: 800;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-
-  #cropperModal .modal-content .primary-button:hover {
-    background-color: #f3f4f6;
-  }
-
-  #cropperModal .modal-content .primary-button.dark-button {
-    background-color: var(--brand-dark);
-    color: var(--white);
-  }
-
-  #cropperModal .modal-content .primary-button.dark-button:hover {
-    background-color: #374151;
-  }
-
+  
   #cropper-container {
-    max-height: 400px;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    max-height: 300px;
   }
+  
+  #cropperModal .modal-content h2 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  #cropperModal .modal-content > div:last-child {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  #cropperModal .modal-content button {
+    width: 100%;
+    min-width: auto;
+  }
+}
 
-  #cropper-image {
-    max-width: 100%;
-    max-height: 100%;
-    display: block;
+/* Ajustes para el cropper en dispositivos pequeños */
+@media (max-width: 480px) {
+  #cropper-container {
+    max-height: 250px;
   }
-
-  /* Responsive para móviles */
-  @media (max-width: 768px) {
-    #cropperModal .modal-content {
-      max-width: 95vw;
-      max-height: 85vh;
-      padding: 1rem;
-    }
-    
-    #cropper-container {
-      max-height: 300px;
-    }
-    
-    #cropperModal .modal-content h2 {
-      font-size: 1.25rem;
-      margin-bottom: 0.75rem;
-    }
-    
-    #cropperModal .modal-content > div:last-child {
-      flex-direction: column;
-      gap: 0.75rem;
-    }
-    
-    #cropperModal .modal-content button {
-      width: 100%;
-      min-width: auto;
-    }
+  
+  #cropperModal .modal-content {
+    padding: 0.75rem;
   }
-
-  /* Ajustes para el cropper en dispositivos pequeños */
-  @media (max-width: 480px) {
-    #cropper-container {
-      max-height: 250px;
-    }
-    
-    #cropperModal .modal-content {
-      padding: 0.75rem;
-    }
-  }
+}
 
 
   .card-name-input-wrapper {

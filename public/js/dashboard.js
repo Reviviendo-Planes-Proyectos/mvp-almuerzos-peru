@@ -213,7 +213,7 @@ async function loadDishes(cardId) {
     <div class="item-details clickable-card" data-dish-id="${dish.id}">
         <img src="${imageUrl}" alt="Foto de ${dish.name}" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
         <div>
-            <h3>${dish.name}</h3>
+            <h3 title="${dish.name}">${dish.name}</h3>
             <p>S/. ${dish.price.toFixed(2)}</p>
             <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
         </div>
