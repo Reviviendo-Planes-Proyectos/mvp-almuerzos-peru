@@ -1,200 +1,537 @@
-  :root {
-    --brand-yellow: #ffd100;
-    --brand-yellow-light: #fffbeb;
-    --brand-green: #00b44e;
-    --brand-red: #ef4444;
-    --brand-dark: #1f2937;
-    --gray-text: #4b5563;
-    --white: #ffffff;
-    --border-color: #e5e7eb;
+:root {
+  --brand-yellow: #ffd100;
+  --brand-yellow-light: #fffbeb;
+  --brand-green: #00b44e;
+  --brand-red: #ef4444;
+  --brand-dark: #1f2937;
+  --gray-text: #4b5563;
+  --white: #ffffff;
+  --border-color: #e5e7eb;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  font-family: "Nunito", sans-serif;
+  background-color: var(--brand-yellow);
+  color: var(--brand-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+.image-upload-box {
+  position: relative;
+}
+.toast {
+  position: fixed;
+  top: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: var(--brand-green);
+  color: var(--white);
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  font-weight: 700;
+  z-index: 2000;
+  transition: top 0.5s ease-in-out;
+}
+.delete-confirm-btn {
+  background-color: red !important;
+  color: white;
+  border: none;
+  width: 100%;
+  transition: background-color 0.2s ease-in-out;
+}
+.delete-confirm-btn:hover {
+  background-color: #e41717 !important;
+}
+.toast.show {
+  top: 20px;
+}
+.edit-image-overlay {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  transition: background-color 0.2s;
+}
+.image-upload-box:hover .edit-image-overlay {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+.main-header {
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-decoration: none;
+  color: var(--brand-dark);
+}
+.logout-button {
+  font-weight: 700;
+  color: var(--brand-dark);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.restaurant-banner {
+  position: relative;
+  height: 150px;
+  background: url("https://placehold.co/600x150/333/FFF?text=Cargando...")
+    center/cover;
+  border-radius: 1rem;
+  margin: 0 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  padding: 1rem;
+}
+.restaurant-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  border-radius: 1rem;
+}
+.restaurant-banner h2 {
+  position: relative;
+  color: var(--white);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.edit-restaurant-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+.primary-button {
+  background-color: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.primary-button:hover {
+  background-color: #f3f4f6;
+}
+.dark-button {
+  background-color: var(--brand-dark);
+  color: var(--white);
+  border: none;
+}
+.dark-button:hover {
+  background-color: #374151;
+}
+
+.auth-button {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+.list-item {
+  background-color: var(--white);
+  border-radius: 1rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+.list-item h3 {
+  font-size: 1.125rem;
+}
+.list-item p {
+  color: var(--gray-text);
+  font-size: 0.9rem;
+}
+.list-item img {
+  width: 60px;
+  height: 60px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+.item-details {
+  flex-grow: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.list-item:hover {
+  transform: scale(1.02);
+  transition: transform 0.2s;
+}
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
+}
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 28px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--brand-green);
+}
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+#cards-section,
+#dishes-section {
+  display: none;
+}
+#dishes-section .container {
+  padding-top: 0;
+}
+.dishes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+.back-button,
+.delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.dish-list-container {
+  background-color: var(--brand-yellow-light);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+}
+.card-name-input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+  border: 2px solid var(--border-color);
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+.dish-list-item {
+  cursor: auto;
+}
+.dish-list-item:hover {
+  transform: none;
+}
+.edit-dish-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--gray-text);
+  margin-right: 0.5rem;
+}
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background-color: var(--brand-yellow);
+  color: var(--brand-dark);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  width: 90%;
+  max-width: 450px;
+  position: relative;
+  text-align: center;
+}
+.modal-content.alert-modal {
+  background-color: var(--brand-yellow-light);
+}
+.modal-close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+}
+.modal-content h2 {
+  font-size: 1.75rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+}
+.modal-form-group {
+  text-align: left;
+  margin-bottom: 1rem;
+}
+.modal-form-group label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+.modal-form-group input,
+.modal-form-group textarea,
+.modal-form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--border-color);
+  font-family: "Nunito", sans-serif;
+  font-size: 1rem;
+}
+#main-content {
+  display: none;
+}
+
+.image-upload-box {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed var(--gray-text);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.image-upload-box .icon {
+  width: 40px;
+  height: 40px;
+  background-color: var(--white);
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brand-dark);
+  flex-shrink: 0;
+}
+
+.image-placeholder {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.image-placeholder span {
+  color: var(--brand-dark);
+  font-weight: 500;
+}
+
+.image-upload-box:hover {
+  border-color: var(--brand-yellow);
+  background-color: rgba(255, 209, 0, 0.05);
+}
+.dark-button:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+.delete-icon {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Estilos para el modal de recorte de imagen */
+#cropperModal {
+  z-index: 2000 !important;
+}
+
+#cropperModal .modal-content {
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+#cropper-container {
+  max-height: 400px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#cropper-image {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  #cropperModal .modal-content {
+    max-width: 95vw;
+    max-height: 85vh;
   }
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-  body {
-    font-family: "Nunito", sans-serif;
-    background-color: var(--brand-yellow);
-    color: var(--brand-dark);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-  .image-upload-box {
-    position: relative;
-  }
-  .toast {
-    position: fixed;
-    top: -100px;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: var(--brand-green);
-    color: var(--white);
-    padding: 1rem 2rem;
-    border-radius: 0.75rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    font-weight: 700;
-    z-index: 2000;
-    transition: top 0.5s ease-in-out;
-  }
-  .delete-confirm-btn {
-    background-color: red !important;
-    color: white;
-    border: none;
-    width: 100%;
-    transition: background-color 0.2s ease-in-out;
-  }
-  .delete-confirm-btn:hover {
-    background-color: #e41717 !important;
-  }
-  .toast.show {
-    top: 20px;
-  }
-  .edit-image-overlay {
-    position: absolute;
-    bottom: 4px;
-    right: 4px;
-    width: 28px;
-    height: 28px;
-    background-color: rgba(0, 0, 0, 0.6);
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    pointer-events: none;
-    transition: background-color 0.2s;
-  }
-  .image-upload-box:hover .edit-image-overlay {
-    background-color: rgba(0, 0, 0, 0.8);
-  }
-  .container {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 1.5rem;
-  }
-  .main-header {
-    padding: 1rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.5rem;
-    font-weight: 800;
-    text-decoration: none;
-    color: var(--brand-dark);
-  }
-  .logout-button {
-    font-weight: 700;
-    color: var(--brand-dark);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-  }
-  .restaurant-banner {
-    position: relative;
-    height: 150px;
-    background: url("https://placehold.co/600x150/333/FFF?text=Cargando...")
-      center/cover;
-    border-radius: 1rem;
-    margin: 0 1.5rem;
-    display: flex;
-    align-items: flex-end;
-    padding: 1rem;
-  }
-  .restaurant-banner::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
-    border-radius: 1rem;
-  }
-  .restaurant-banner h2 {
-    position: relative;
-    color: var(--white);
-    font-size: 1.5rem;
-    font-weight: 800;
-  }
-  .edit-restaurant-btn {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 40px;
-    height: 40px;
-    background: rgba(0, 0, 0, 0.5);
-    border-radius: 50%;
-    border: none;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-  }
-  .primary-button {
-    background-color: var(--white);
-    border: 1px solid var(--border-color);
-    border-radius: 0.75rem;
-    padding: 0.75rem 1.5rem;
-    font-weight: 800;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  .primary-button:hover {
-    background-color: #f3f4f6;
-  }
-  .dark-button {
-    background-color: var(--brand-dark);
-    color: var(--white);
-    border: none;
-  }
-  .dark-button:hover {
-    background-color: #374151;
-  }
-  .list-item {
-    background-color: var(--white);
-    border-radius: 1rem;
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-  }
-  .list-item h3 {
-    font-size: 1.125rem;
-  }
-  .list-item p {
-    color: var(--gray-text);
-    font-size: 0.9rem;
-  }
-  .list-item img {
-    width: 60px;
-    height: 60px;
-    border-radius: 0.5rem;
-    object-fit: cover;
-    margin-right: 1rem;
-  }
-  .item-details {
-    flex-grow: 1;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-  }
-  .list-item:hover {
-    transform: scale(1.02);
-    transition: transform 0.2s;
-  }
-  .toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 28px;
+}
+
+.restaurant-banner {
+  position: relative;
+  height: 150px;
+  background: url("https://placehold.co/600x150/333/FFF?text=Cargando...")
+    center/cover;
+  border-radius: 1rem;
+  margin: 0 1.5rem;
+  display: flex;
+  align-items: flex-end;
+  padding: 1rem;
+}
+.restaurant-banner::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+  border-radius: 1rem;
+}
+.restaurant-banner h2 {
+  position: relative;
+  color: var(--white);
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+.edit-restaurant-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 40px;
+  height: 40px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+.primary-button {
+  background-color: var(--white);
+  border: 1px solid var(--border-color);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.5rem;
+  font-weight: 800;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.primary-button:hover {
+  background-color: #f3f4f6;
+}
+.dark-button {
+  background-color: var(--brand-dark);
+  color: var(--white);
+  border: none;
+}
+.dark-button:hover {
+  background-color: #374151;
+}
+.list-item {
+  background-color: var(--white);
+  border-radius: 1rem;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+.list-item h3 {
+  font-size: 1.125rem;
+}
+.list-item p {
+  color: var(--gray-text);
+  font-size: 0.9rem;
+}
+.list-item img {
+  width: 60px;
+  height: 60px;
+  border-radius: 0.5rem;
+  object-fit: cover;
+  margin-right: 1rem;
+}
+.item-details {
+  flex-grow: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.list-item:hover {
+  transform: scale(1.02);
+  transition: transform 0.2s;
+}
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 28px;
   }
   .toggle-switch input {
     opacity: 0;
@@ -380,6 +717,35 @@
     max-width: 90vw;
     max-height: 90vh;
     overflow: hidden;
+  }
+
+  #cropperModal .modal-content button {
+    min-width: 100px;
+  }
+
+  #cropperModal .modal-content .primary-button {
+    background-color: var(--white);
+    color: var(--brand-dark);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  #cropperModal .modal-content .primary-button:hover {
+    background-color: #f3f4f6;
+  }
+
+  #cropperModal .modal-content .primary-button.dark-button {
+    background-color: var(--brand-dark);
+    color: var(--white);
+  }
+
+  #cropperModal .modal-content .primary-button.dark-button:hover {
+    background-color: #374151;
   }
 
   #cropper-container {
@@ -684,5 +1050,138 @@
   #new-delete-photo-btn {
     right: 8px !important;
     top: 8px !important;
+  }
+}
+
+/* Estilos para los switches de delivery y atención local */
+.switch-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.switch-text {
+  font-size: 0.9rem;
+  color: var(--brand-dark);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: .4s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.switch input:checked+.slider {
+  background-color: var(--brand-green);
+}
+
+.switch input:checked+.slider:before {
+  transform: translateX(26px);
+}
+
+.switch input:focus+.slider {
+  box-shadow: 0 0 1px var(--brand-yellow);
+}
+
+/* Schedule styles for opening hours */
+.schedule-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.schedule-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: space-between;
+  background-color: white;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.schedule-row span {
+  min-width: 85px;
+  font-size: 0.95rem;
+  color: #333;
+  text-align: center;
+}
+
+.schedule-row input[type="time"] {
+  width: 105px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  font-family: inherit;
+  background-color: white;
+}
+
+.required-asterisk {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Responsive styles for schedule */
+@media (max-width: 600px) {
+  .schedule-container {
+    max-width: 100%;
+  }
+  .schedule-row {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem 0.5rem;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  .schedule-row span {
+    width: auto;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    text-align: left;
+  }
+  .schedule-row input[type="time"] {
+    width: 100%;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
   }
 }
