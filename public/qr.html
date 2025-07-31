@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/dashboard.css" />
+    <link rel="stylesheet" href="css/qr.css" />
+</head>
+
+<body>
+
+
+    <div class="overlay" onclick="closeSidebar()"></div>
+
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h2>Menú Principal</h2>
+            <p id="sidebar-restaurant">Restaurante</p>
+        </div>
+        <div class="sidebar-menu">
+            <a href="qr.html" class="menu-item active">
+                <span class="menu-item-icon">📱</span>
+                MI QR
+            </a>
+            <a href="#" class="menu-item">
+                <span class="menu-item-icon">💬</span>
+                COMENTARIOS
+            </a>
+        </div>
+    </div>
+
+
+    <header class="main-header">
+
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+
+    </header>
+
+
+    <div class="main-content">
+
+
+
+        <div class="qr-card">
+            <div class="restaurant-badge ">Tu Restaurante</div>
+            <h1 class="qr-title">Este es tu código QR</h1>
+            <p class="qr-subtitle">Los clientes pueden escanearlo para ver tu menú y hacer pedidos directamente desde su
+                celular</p>
+
+            <div class="qr-container">
+                <div class="qr-code">
+                    <div class="qr-placeholder"></div>
+                </div>
+                <br>
+                <br>
+                <div class="qr-restaurant-name"></div>
+            </div>
+
+            <div class="action-buttons">
+                <button id="btnShare" class="action-btn btn-share" onclick="shareWhatsApp()" disabled>
+                    <span>📤</span>
+                    Compartir
+                </button>
+                <button id="btnPdf" class="action-btn btn-download" onclick="downloadQRPDF()" disabled>
+                    <span>📄</span>
+                    Descargar PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <h3 class="info-title">
+                <span>💡</span>
+                ¿Cómo usar tu QR?
+            </h3>
+            <ul class="info-list">
+                <li class="info-item">
+                    <span class="info-icon"></span>
+                    Imprime o muestra el código en tu restaurante
+                </li>
+                <li class="info-item">
+                    <span class="info-icon"></span>
+                    Los clientes lo escanean con su celular
+                </li>
+                <li class="info-item">
+                    <span class="info-icon"></span>
+                    Pueden ver tu menú y hacer pedidos al instante
+                </li>
+                <li class="info-item">
+                    <span class="info-icon"></span>
+                    Recibe notificaciones de cada pedido
+                </li>
+            </ul>
+        </div>
+
+        <div class="scan-instruction">
+            <div class="scan-instruction-icon">📲</div>
+            <h3>¡Pruébalo tú mismo!</h3>
+            <p>Escanea tu propio código QR para ver cómo se ve tu restaurante desde los ojos de tus clientes</p>
+        </div>
+    </div>
+
+
+
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="js/qr.js"></script>
+</body>
+
+</html>
