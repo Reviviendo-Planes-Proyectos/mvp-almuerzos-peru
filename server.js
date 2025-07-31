@@ -1114,75 +1114,120 @@ app.get(
   }
 );
 
-app.put("/api/dishes/:dishId", authenticateAndAuthorize, async (req, res) => {
-  try {
-    const { dishId } = req.params;
-    const { name, price, photoUrl } = req.body;
+app.put('/api/dishes/:dishId', authenticateAndAuthorize, async (req, res) => {
+    try {
+        const { dishId } = req.params;
+        const { name, price, photoUrl } = req.body;
 
-    const dishDoc = await db.collection("dishes").doc(dishId).get();
-    if (!dishDoc.exists) {
-      return res.status(404).json({ error: "Dish not found." });
-    }
-    const cardIdOfDish = dishDoc.data().cardId;
-    const cardDoc = await db.collection("cards").doc(cardIdOfDish).get();
-    if (!cardDoc.exists) {
-      return res.status(500).json({ error: "Associated card not found." });
-    }
-    const restaurantIdOfCard = cardDoc.data().restaurantId;
-    const restaurantDoc = await db
-      .collection("restaurants")
-      .doc(restaurantIdOfCard)
-      .get();
-    if (
-      !restaurantDoc.exists ||
-      restaurantDoc.data().ownerId !== req.user.uid
-    ) {
-      return res
-        .status(403)
-        .json({
-          error: "Forbidden: You do not own this dish's card or restaurant.",
-        });
-    }
+        const dishDoc = await db.collection('dishes').doc(dishId).get();
+        if (!dishDoc.exists) {
+            return res.status(404).json({ error: 'Dish not found.' });
+        }
+        const cardIdOfDish = dishDoc.data().cardId;
+        const cardDoc = await db.collection('cards').doc(cardIdOfDish).get();
+        if (!cardDoc.exists) {
+            return res.status(500).json({ error: 'Associated card not found.' });
+        }
+        const restaurantIdOfCard = cardDoc.data().restaurantId;
+        const restaurantDoc = await db.collection('restaurants').doc(restaurantIdOfCard).get();
+        if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
+            return res.status(403).json({ error: 'Forbidden: You do not own this dish\'s card or restaurant.' });
+        }
 
-    if (!name || !price) {
-      return res.status(400).json({ error: "Name and price are required." });
+        if (!name || !price) {
+            return res.status(400).json({ error: 'Name and price are required.' });
+        }
+        const dishRef = db.collection('dishes').doc(dishId);
+        const oldData = dishDoc.data();
+        const oldPhotoUrl = oldData.photoUrl;
+        const updatedData = { name, price: parseFloat(price), photoUrl: photoUrl || oldPhotoUrl };
+        await dishRef.update(updatedData);
+        if (photoUrl && oldPhotoUrl && photoUrl !== oldPhotoUrl) {
+            try {
+                const filePath = decodeURIComponent(oldPhotoUrl.split('/o/')[1].split('?alt=media')[0]);
+                await admin.storage().bucket().file(filePath).delete();
+                console.log(`Old dish image deleted successfully: ${filePath}`);
+            } catch (storageError) {
+                console.error(`Could not delete old dish image from Storage (${oldPhotoUrl}):`, storageError.message);
+            }
+        }
+        res.status(200).json({ message: 'Dish successfully updated', data: updatedData });
+    } catch (error) {
+        console.error('Error updating dish:', error);
+        res.status(500).json({ error: 'An error occurred on the server.' });
     }
-    const dishRef = db.collection("dishes").doc(dishId);
-    const oldData = dishDoc.data();
-    const oldPhotoUrl = oldData.photoUrl;
-    const updatedData = {
-      name,
-      price: parseFloat(price),
-      photoUrl: photoUrl || oldPhotoUrl,
-    };
-    await dishRef.update(updatedData);
-    if (photoUrl && oldPhotoUrl && photoUrl !== oldPhotoUrl) {
-      try {
-        const filePath = decodeURIComponent(
-          oldPhotoUrl.split("/o/")[1].split("?alt=media")[0]
-        );
-        await admin.storage().bucket().file(filePath).delete();
-        console.log(`Old dish image deleted successfully: ${filePath}`);
-      } catch (storageError) {
-        console.error(
-          `Could not delete old dish image from Storage (${oldPhotoUrl}):`,
-          storageError.message
-        );
-      }
-    }
-    res
-      .status(200)
-      .json({ message: "Dish successfully updated", data: updatedData });
-  } catch (error) {
-    console.error("Error updating dish:", error);
-    res.status(500).json({ error: "An error occurred on the server." });
-  }
 });
 
-app.put(
-  "/api/dishes/:dishId/toggle",
-  authenticateAndAuthorize,
-  async (req, res) => {
+app.put('/api/dishes/:dishId/toggle', authenticateAndAuthorize, async (req, res) => {
+    try {
+        const { dishId } = req.params;
+        const { isActive } = req.body;
+
+
+        const dishDoc = await db.collection('dishes').doc(dishId).get();
+        if (!dishDoc.exists) {
+            return res.status(404).json({ error: 'Dish not found.' });
+        }
+        const cardIdOfDish = dishDoc.data().cardId;
+        const cardDoc = await db.collection('cards').doc(cardIdOfDish).get();
+        if (!cardDoc.exists) {
+            return res.status(500).json({ error: 'Associated card not found.' });
+        }
+        const restaurantIdOfCard = cardDoc.data().restaurantId;
+        const restaurantDoc = await db.collection('restaurants').doc(restaurantIdOfCard).get();
+        if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
+            return res.status(403).json({ error: 'Forbidden: You do not own this dish\'s card or restaurant.' });
+        }
+
+        await db.collection('dishes').doc(dishId).update({ isActive });
+        res.status(200).json({ message: `Dish ${dishId} updated to ${isActive}` });
+    } catch (error) {
+        console.error('Error updating dish:', error);
+        res.status(500).json({ error: 'An error occurred on the server.' });
+    }
+});
+
+app.delete('/api/dishes/:dishId', authenticateAndAuthorize, async (req, res) => {
+    try {
+        const { dishId } = req.params;
+
+
+        const dishDoc = await db.collection('dishes').doc(dishId).get();
+        if (!dishDoc.exists) {
+            return res.status(404).json({ error: 'Dish not found.' });
+        }
+        const cardIdOfDish = dishDoc.data().cardId;
+        const cardDoc = await db.collection('cards').doc(cardIdOfDish).get();
+        if (!cardDoc.exists) {
+            return res.status(500).json({ error: 'Associated card not found.' });
+        }
+        const restaurantIdOfCard = cardDoc.data().restaurantId;
+        const restaurantDoc = await db.collection('restaurants').doc(restaurantIdOfCard).get();
+        if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
+            return res.status(403).json({ error: 'Forbidden: You do not own this dish\'s card or restaurant.' });
+        }
+
+        const dishRef = db.collection('dishes').doc(dishId);
+        const photoUrl = dishDoc.data().photoUrl;
+        if (photoUrl) {
+            try {
+                const filePath = decodeURIComponent(photoUrl.split('/o/')[1].split('?alt=media')[0]);
+                await admin.storage().bucket().file(filePath).delete();
+                console.log(`Dish image deleted from Storage: ${filePath}`);
+            } catch (storageError) {
+                console.error(`Could not delete dish image from Storage (${photoUrl}):`, storageError.message);
+            }
+        }
+        await dishRef.delete();
+        res.status(200).json({ message: 'Dish successfully deleted.' });
+    } catch (error) {
+        console.error('Error deleting dish:', error);
+        res.status(500).json({ error: 'An error occurred on the server.' });
+    }
+});
+
+
+app.post('/api/dishes/:dishId/like', async (req, res) => {
     try {
       const { dishId } = req.params;
       const { isActive } = req.body;

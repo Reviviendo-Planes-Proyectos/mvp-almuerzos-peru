@@ -349,6 +349,73 @@ document
     }
   });
 
+
+document.getElementById("register-image-input")?.addEventListener("change", async function (e) {
+  const file = e.target.files[0];
+  if (file) {
+    // Validar tipo de archivo
+    if (!validateFileType(file)) {
+      e.target.value = "";
+      return;
+    }
+    
+    // Validar tamaño (máximo 50MB)
+    if (file.size > 50 * 1024 * 1024) {
+      showModalAlert("La imagen es demasiado grande. Elige una de menos de 50MB.");
+      e.target.value = "";
+      return;
+    }
+    
+    try {
+      // Validar resolución
+      const { width, height } = await getImageDimensions(file);
+      const minWidth = 160;
+      const minHeight = 120;
+      const maxWidth = 16384;
+      const maxHeight = 16384;
+
+      if (width < minWidth || height < minHeight) {
+        showModalAlert('La resolución de la imagen es muy baja');
+        e.target.value = "";
+        return;
+      }
+
+      if (width > maxWidth || height > maxHeight) {
+        showModalAlert(`La resolución de la imagen es demasiado alta (máx. ${maxWidth}x${maxHeight})`);
+        e.target.value = "";
+        return;
+      }
+
+      // Mostrar estado de carga
+      const placeholder = document.getElementById("register-image-placeholder");
+      placeholder.innerHTML = 'Procesando imagen...';
+
+      const compressedFile = await compressImage(file);
+      // Abrir automáticamente el modal de recorte
+      showCropperModal(compressedFile, 'image');
+    } catch (error) {
+      console.error('Error al procesar la imagen:', error);
+      showToast('Error al procesar la imagen', 'error');
+      // Restaurar placeholder en caso de error
+      const placeholder = document.getElementById("register-image-placeholder");
+      if (placeholder) {
+        placeholder.innerHTML = `
+          <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </div>
+          <span>Foto del local</span>
+        `;
+      }
+      e.target.value = '';
+    }
+  }
+});
+
 function showToast(message, type = "info", duration = 3000) {
   const toast = document.getElementById("toast-notification");
   if (toast) {
@@ -941,7 +1008,52 @@ function closeCropperModal() {
     currentCropper.destroy();
     currentCropper = null;
   }
-
+  
+  // Restaurar el estado original del placeholder cuando se cancela
+  if (currentImageType === 'image') {
+    const placeholder = document.getElementById('register-image-placeholder');
+    const input = document.getElementById('register-image-input');
+    if (placeholder) {
+      placeholder.innerHTML = `
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+        </div>
+        <span>Foto del local</span>
+      `;
+    }
+    if (input) {
+      input.value = '';
+    }
+    // Limpiar archivo comprimido
+    compressedRegistrationImageFile = null;
+  } else if (currentImageType === 'logo') {
+    const placeholder = document.getElementById('register-logo-placeholder');
+    const input = document.getElementById('register-logo-input');
+    if (placeholder) {
+      placeholder.innerHTML = `
+        <div class="icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
+            <circle cx="12" cy="13" r="3" />
+          </svg>
+        </div>
+        <span>Logo del restaurante</span>
+      `;
+    }
+    if (input) {
+      input.value = '';
+    }
+    // Limpiar archivo comprimido
+    compressedLogoImageFile = null;
+  }
+  
   currentImageType = null;
   originalImageFile = null;
 }

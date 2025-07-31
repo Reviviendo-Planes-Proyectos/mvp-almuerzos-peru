@@ -554,3 +554,139 @@ body {
     padding: 0.75rem;
   }
 }
+
+/* Borde rojo solo si el usuario intenta registrar y falta completar */
+    .field-error {
+      border-color: #e53935 !important;
+      box-shadow: 0 0 0 1px #e5393533;
+    }
+
+    /* Mensaje de error debajo de cada campo obligatorio */
+    .field-error-message {
+      color: #e53935;
+      font-size: 0.95em;
+      margin-top: 2px;
+      display: block;
+    }
+
+    /* Estilos mejorados para el registro de restaurante */
+    .restaurant-header {
+      position: relative;
+      padding: 1rem 0 2rem 0;
+      margin-bottom: 1.5rem;
+    }
+
+    .restaurant-home-link {
+      position: absolute;
+      top: 0;
+      left: 0;
+      font-size: 1.2rem;
+      font-weight: 700;
+      text-decoration: none;
+      color: var(--brand-dark);
+      transition: color 0.3s ease;
+    }
+
+    .restaurant-home-link:hover {
+      color: #374151;
+    }
+
+    .restaurant-title {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--brand-dark);
+      margin: 0;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* Responsive improvements */
+    @media (max-width: 480px) {
+      .auth-container {
+        padding: 1rem;
+      }
+      
+      .restaurant-header {
+        padding: 0.5rem 0 1.5rem 0;
+      }
+      
+      .restaurant-home-link {
+        font-size: 1rem;
+      }
+      
+      .restaurant-title {
+        font-size: 1.5rem;
+        margin-top: 0.5rem;
+      }
+      
+      .schedule-container {
+        max-width: 100%;
+      }
+      
+      .schedule-row {
+        padding: 0.5rem;
+        gap: 0.5rem;
+      }
+      
+      .schedule-row span {
+        min-width: 70px;
+        font-size: 0.85rem;
+      }
+      
+      .schedule-row input[type="time"] {
+        width: 90px;
+        padding: 0.4rem;
+      }
+    }
+
+
+    /* Ajuste personalizado para el formulario de registro de restaurante */
+.restaurant-header {
+  padding-bottom: 0.5rem; 
+}
+
+.restaurant-title {
+  margin-bottom: 0.5rem; 
+}
+
+#register-image-upload-box {
+  margin-top: 0; 
+}
+
+#new-restaurant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; 
+}
+
+.restaurant-header {
+  padding-bottom: 0.25rem; 
+  margin-bottom: 0.5rem; 
+}
+
+.restaurant-title {
+  margin-bottom: 0.25rem; 
+}
+
+#register-image-upload-box {
+  margin-top: 0; 
+}
+
+/* Nuevos estilos para iconos junto a Almuerzos Perú */
+.restaurant-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--brand-dark);
+}
+
+.icon-arrow {
+  font-size: 1.4rem; 
+}
+
+.icon-food {
+  font-size: 1.2rem; 
+}

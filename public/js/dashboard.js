@@ -1104,12 +1104,14 @@ function handleDeleteNewPhoto() {
 // Función para eliminar la foto del restaurante
 function handleDeleteRestaurantPhoto() {
   const preview = document.getElementById("edit-restaurant-image-preview");
+  const placeholder = document.getElementById("edit-restaurant-image-placeholder");
   const input = document.getElementById("edit-restaurant-image-input");
   const deleteBtn = document.getElementById("edit-restaurant-delete-photo-btn");
-
-  // Establecer imagen por defecto
-  preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Local";
-
+  
+  // Ocultar preview y mostrar placeholder
+  preview.style.display = "none";
+  placeholder.style.display = "flex";
+  
   // Limpiar input de archivo
   input.value = "";
 
@@ -1128,12 +1130,14 @@ function handleDeleteRestaurantPhoto() {
 // Función para eliminar el logo del restaurante
 function handleDeleteRestaurantLogo() {
   const preview = document.getElementById("edit-restaurant-logo-preview");
+  const placeholder = document.getElementById("edit-restaurant-logo-placeholder");
   const input = document.getElementById("edit-restaurant-logo-input");
   const deleteBtn = document.getElementById("edit-restaurant-delete-logo-btn");
-
-  // Establecer logo por defecto
-  preview.src = "https://placehold.co/120x120/E2E8F0/4A5568?text=Logo";
-
+  
+  // Ocultar preview y mostrar placeholder
+  preview.style.display = "none";
+  placeholder.style.display = "flex";
+  
   // Limpiar input de archivo
   input.value = "";
 
@@ -1188,20 +1192,34 @@ function openEditRestaurantModal() {
   if (!currentRestaurant) return;
 
   // Campos básicos
-  document.getElementById("edit-restaurant-name").value =
-    currentRestaurant.name;
-  document.getElementById("edit-restaurant-description").value =
-    currentRestaurant.description;
-  document.getElementById("edit-restaurant-district").value =
-    currentRestaurant.district;
-  document.getElementById("edit-restaurant-whatsapp").value =
-    currentRestaurant.whatsapp;
-  document.getElementById("edit-restaurant-image-preview").src =
-    currentRestaurant.photoUrl ||
-    `https://placehold.co/120x120/E2E8F0/4A5568?text=Local`;
-  document.getElementById("edit-restaurant-logo-preview").src =
-    currentRestaurant.logoUrl ||
-    `https://placehold.co/120x120/E2E8F0/4A5568?text=Logo`;
+  document.getElementById("edit-restaurant-name").value = currentRestaurant.name;
+  document.getElementById("edit-restaurant-description").value = currentRestaurant.description;
+  document.getElementById("edit-restaurant-district").value = currentRestaurant.district;
+  document.getElementById("edit-restaurant-whatsapp").value = currentRestaurant.whatsapp;
+  
+  // Configurar imagen del local
+  const imagePreview = document.getElementById("edit-restaurant-image-preview");
+  const imagePlaceholder = document.getElementById("edit-restaurant-image-placeholder");
+  if (currentRestaurant.photoUrl) {
+    imagePreview.src = currentRestaurant.photoUrl;
+    imagePreview.style.display = "block";
+    imagePlaceholder.style.display = "none";
+  } else {
+    imagePreview.style.display = "none";
+    imagePlaceholder.style.display = "flex";
+  }
+  
+  // Configurar logo del restaurante
+  const logoPreview = document.getElementById("edit-restaurant-logo-preview");
+  const logoPlaceholder = document.getElementById("edit-restaurant-logo-placeholder");
+  if (currentRestaurant.logoUrl) {
+    logoPreview.src = currentRestaurant.logoUrl;
+    logoPreview.style.display = "block";
+    logoPlaceholder.style.display = "none";
+  } else {
+    logoPreview.style.display = "none";
+    logoPlaceholder.style.display = "flex";
+  }
 
   // Resetear flags de eliminación
   window.restaurantImageWasDeleted = false;
@@ -1308,6 +1326,161 @@ async function handleUpdateRestaurant(event) {
   event.preventDefault();
   if (!currentRestaurant) return;
   const form = event.target;
+  
+  // Validación de campos requeridos
+  const requiredFields = form.querySelectorAll("input[required], select[required], textarea[required]");
+  let valid = true;
+  
+  // Limpiar errores previos y validar campos generales
+  requiredFields.forEach(field => {
+    // Eliminar mensaje previo
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    
+    if (!field.value.trim()) {
+      field.classList.add("field-error");
+      valid = false;
+      // Crear mensaje de error debajo del campo
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  
+  // Validación específica para horarios de atención
+  const scheduleInputs = form.querySelectorAll('.schedule-row input[required]');
+  scheduleInputs.forEach(field => {
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  
+  // Validación de archivos de imagen
+  const photoInput = form.querySelector('#edit-restaurant-photo');
+  const logoInput = form.querySelector('#edit-restaurant-logo');
+  
+  if (photoInput && photoInput.files.length > 0) {
+    const photoFile = photoInput.files[0];
+    if (!validateFileType(photoFile)) {
+      let errorSpan = photoInput.parentNode.querySelector('.field-error-message');
+      if (errorSpan) errorSpan.remove();
+      
+      photoInput.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Por favor, selecciona un archivo de imagen válido (JPG, JPEG, PNG, WEBP).';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      photoInput.parentNode.appendChild(errorSpan);
+    } else {
+      photoInput.classList.remove("field-error");
+    }
+  }
+  
+  if (logoInput && logoInput.files.length > 0) {
+    const logoFile = logoInput.files[0];
+    if (!validateFileType(logoFile)) {
+      let errorSpan = logoInput.parentNode.querySelector('.field-error-message');
+      if (errorSpan) errorSpan.remove();
+      
+      logoInput.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Por favor, selecciona un archivo de imagen válido (JPG, JPEG, PNG, WEBP).';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      logoInput.parentNode.appendChild(errorSpan);
+    } else {
+      logoInput.classList.remove("field-error");
+    }
+  }
+  
+  // Si hay errores, hacer scroll al primer campo con error y detener
+  if (!valid) {
+    const firstError = form.querySelector('.field-error');
+    if (firstError) {
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  
+  // Agregar event listeners para limpiar errores cuando el usuario corrige los campos
+  requiredFields.forEach(field => {
+    if (!field.dataset.errorListenerAdded) {
+      field.addEventListener('input', function() {
+        if (this.value.trim()) {
+          this.classList.remove('field-error');
+          const errorSpan = this.parentNode.querySelector('.field-error-message');
+          if (errorSpan) errorSpan.remove();
+        }
+      });
+      field.dataset.errorListenerAdded = 'true';
+    }
+  });
+  
+  scheduleInputs.forEach(field => {
+    if (!field.dataset.errorListenerAdded) {
+      field.addEventListener('change', function() {
+        if (this.value) {
+          this.classList.remove('field-error');
+          const errorSpan = this.parentNode.querySelector('.field-error-message');
+          if (errorSpan) errorSpan.remove();
+        }
+      });
+      field.dataset.errorListenerAdded = 'true';
+    }
+  });
+  
+  // Event listeners para archivos de imagen
+  if (photoInput && !photoInput.dataset.errorListenerAdded) {
+    photoInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        this.classList.remove('field-error');
+        const errorSpan = this.parentNode.querySelector('.field-error-message');
+        if (errorSpan) errorSpan.remove();
+      }
+    });
+    photoInput.dataset.errorListenerAdded = 'true';
+  }
+  
+  if (logoInput && !logoInput.dataset.errorListenerAdded) {
+    logoInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        this.classList.remove('field-error');
+        const errorSpan = this.parentNode.querySelector('.field-error-message');
+        if (errorSpan) errorSpan.remove();
+      }
+    });
+    logoInput.dataset.errorListenerAdded = 'true';
+  }
+  
   const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = !0;
   submitButton.textContent = "Guardando...";
@@ -1579,14 +1752,21 @@ function showModalAlert(message, type = "error") {
 
     alertContainer.textContent = message;
 
-    // Buscar dónde insertar la alerta (entre imagen y nombre)
-    const modalContent = activeModal.querySelector(".modal-content");
+    // Buscar dónde insertar la alerta
+    const modalContent = activeModal.querySelector('.modal-content');
     if (modalContent) {
       const form = modalContent.querySelector("form");
       if (form) {
-        const formGroups = form.querySelectorAll(".modal-form-group");
-        if (formGroups.length >= 2) {
-          // Insertar entre el primer grupo (imagen) y el segundo grupo (nombre)
+        const formGroups = form.querySelectorAll('.modal-form-group');
+        
+        // Verificar si estamos en el modal de editar restaurante
+        const isEditRestaurantModal = activeModal.id === 'editRestaurantModal';
+        
+        if (isEditRestaurantModal && formGroups.length >= 3) {
+          // En el modal de editar restaurante: insertar después del logo (segundo grupo) y antes del nombre (tercer grupo)
+          formGroups[2].parentNode.insertBefore(alertContainer, formGroups[2]);
+        } else if (formGroups.length >= 2) {
+          // En otros modales: insertar entre el primer grupo (imagen) y el segundo grupo (nombre)
           formGroups[1].parentNode.insertBefore(alertContainer, formGroups[1]);
         } else {
           // Si no hay suficientes grupos, insertar al inicio del formulario
@@ -1892,7 +2072,8 @@ async function saveCroppedImage() {
 function openRestaurantCropperModal(file, imageInput, preview) {
   currentImageInput = imageInput;
   currentPreview = preview;
-  currentPlaceholder = null; // No hay placeholder para imagen de restaurante
+  currentPlaceholder = document.getElementById("edit-restaurant-image-placeholder");
+  currentDeleteBtn = document.getElementById("edit-restaurant-delete-photo-btn");
 
   const cropperModal = document.getElementById("cropperModal");
   const cropperImage = document.getElementById("cropper-image");
@@ -1949,9 +2130,7 @@ function setupRestaurantCropperButtons() {
 
 async function saveRestaurantCroppedImage() {
   if (!cropper) {
-    alert(
-      "¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor."
-    );
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
 
@@ -1961,56 +2140,42 @@ async function saveRestaurantCroppedImage() {
       width: 800,
       height: 450, // 16:9 ratio
       imageSmoothingEnabled: true,
-      imageSmoothingQuality: "high",
+      imageSmoothingQuality: 'high'
     });
 
-    canvas.toBlob(
-      async (blob) => {
-        try {
-          // Comprimir la imagen
-          const compressedFile = await compressImage(
-            new File([blob], "cropped-restaurant-image.jpg", {
-              type: "image/jpeg",
-            })
-          );
-          compressedRestaurantImageFile = compressedFile;
+    canvas.toBlob(async (blob) => {
+      try {
+        // Comprimir la imagen
+        const compressedFile = await compressImage(new File([blob], 'cropped-restaurant-image.jpg', { type: 'image/jpeg' }));
+        compressedRestaurantImageFile = compressedFile;
 
-          // Actualizar la vista previa
-          if (currentPreview) {
-            const previewUrl = URL.createObjectURL(compressedFile);
-            currentPreview.src = previewUrl;
-            currentPreview.style.display = "block";
-          }
-
-          // Mostrar botón eliminar para imagen del restaurante
-          const deletePhotoBtn = document.getElementById(
-            "edit-restaurant-delete-photo-btn"
-          );
-          if (deletePhotoBtn) {
-            deletePhotoBtn.style.display = "flex";
-          }
-
-          // Cerrar el modal
-          closeCropperModal();
-
-          showToast(
-            "Imagen del restaurante recortada y guardada correctamente"
-          );
-        } catch (error) {
-          console.error("Error al procesar la imagen recortada:", error);
-          alert(
-            "¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor."
-          );
+        // Actualizar la vista previa
+        if (currentPreview) {
+          const previewUrl = URL.createObjectURL(compressedFile);
+          currentPreview.src = previewUrl;
+          currentPreview.style.display = 'block';
         }
-      },
-      "image/jpeg",
-      0.8
-    );
+
+        // Ocultar placeholder y mostrar botón eliminar
+        if (currentPlaceholder) {
+          currentPlaceholder.style.display = 'none';
+        }
+        if (currentDeleteBtn) {
+          currentDeleteBtn.style.display = 'flex';
+        }
+
+        // Cerrar el modal
+        closeCropperModal();
+
+        showToast('Imagen del restaurante recortada y guardada correctamente');
+      } catch (error) {
+        console.error('Error al procesar la imagen recortada:', error);
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
+      }
+    }, 'image/jpeg', 0.8);
   } catch (error) {
-    console.error("Error al obtener la imagen recortada:", error);
-    alert(
-      "¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor."
-    );
+    console.error('Error al obtener la imagen recortada:', error);
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
 
@@ -2018,7 +2183,8 @@ async function saveRestaurantCroppedImage() {
 function openLogoCropperModal(file, imageInput, preview) {
   currentImageInput = imageInput;
   currentPreview = preview;
-  currentPlaceholder = null; // No hay placeholder para logo de restaurante
+  currentPlaceholder = document.getElementById("edit-restaurant-logo-placeholder");
+  currentDeleteBtn = document.getElementById("edit-restaurant-delete-logo-btn");
 
   const cropperModal = document.getElementById("cropperModal");
   const cropperImage = document.getElementById("cropper-image");
@@ -2075,9 +2241,7 @@ function setupLogoCropperButtons() {
 
 async function saveLogoCroppedImage() {
   if (!cropper) {
-    alert(
-      "¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor."
-    );
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
     return;
   }
 
@@ -2087,54 +2251,42 @@ async function saveLogoCroppedImage() {
       width: 400,
       height: 400, // 1:1 ratio
       imageSmoothingEnabled: true,
-      imageSmoothingQuality: "high",
+      imageSmoothingQuality: 'high'
     });
 
-    canvas.toBlob(
-      async (blob) => {
-        try {
-          // Comprimir la imagen
-          const compressedFile = await compressImage(
-            new File([blob], "cropped-restaurant-logo.jpg", {
-              type: "image/jpeg",
-            })
-          );
-          compressedRestaurantLogoFile = compressedFile;
+    canvas.toBlob(async (blob) => {
+      try {
+        // Comprimir la imagen
+        const compressedFile = await compressImage(new File([blob], 'cropped-restaurant-logo.jpg', { type: 'image/jpeg' }));
+        compressedRestaurantLogoFile = compressedFile;
 
-          // Actualizar la vista previa
-          if (currentPreview) {
-            const previewUrl = URL.createObjectURL(compressedFile);
-            currentPreview.src = previewUrl;
-            currentPreview.style.display = "block";
-          }
-
-          // Mostrar botón eliminar para logo del restaurante
-          const deleteLogoBtn = document.getElementById(
-            "edit-restaurant-delete-logo-btn"
-          );
-          if (deleteLogoBtn) {
-            deleteLogoBtn.style.display = "flex";
-          }
-
-          // Cerrar el modal
-          closeCropperModal();
-
-          showToast("Logo del restaurante recortado y guardado correctamente");
-        } catch (error) {
-          console.error("Error al procesar el logo recortado:", error);
-          alert(
-            "¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor."
-          );
+        // Actualizar la vista previa
+        if (currentPreview) {
+          const previewUrl = URL.createObjectURL(compressedFile);
+          currentPreview.src = previewUrl;
+          currentPreview.style.display = 'block';
         }
-      },
-      "image/jpeg",
-      0.8
-    );
+
+        // Ocultar placeholder y mostrar botón eliminar
+        if (currentPlaceholder) {
+          currentPlaceholder.style.display = 'none';
+        }
+        if (currentDeleteBtn) {
+          currentDeleteBtn.style.display = 'flex';
+        }
+
+        // Cerrar el modal
+        closeCropperModal();
+
+        showToast('Logo del restaurante recortado y guardado correctamente');
+      } catch (error) {
+        console.error('Error al procesar el logo recortado:', error);
+        alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
+      }
+    }, 'image/jpeg', 0.8);
   } catch (error) {
-    console.error("Error al obtener el logo recortado:", error);
-    alert(
-      "¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor."
-    );
+    console.error('Error al obtener el logo recortado:', error);
+    alert('¡Ups! Parece que la imagen no se pudo cargar correctamente. Intenta con otra foto, por favor.');
   }
 }
 
