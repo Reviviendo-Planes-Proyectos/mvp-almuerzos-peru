@@ -446,6 +446,8 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+
+
   async function loadUserFavorites(uid) {
     try {
       const favoritesSnapshot = await db
@@ -493,6 +495,8 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    // Permitir que el usuario intente dar like para mostrar mensaje de restricción
+
     const likeDocRef = db
       .collection("invited")
       .doc(user.uid)
@@ -500,9 +504,27 @@ document.addEventListener("DOMContentLoaded", () => {
       .doc(dishId);
 
     try {
-      // Verificar si ya existe un like para determinar la acción
+      // Verificar si ya existe un like en las últimas 24 horas
       const likeDoc = await likeDocRef.get();
-      const action = likeDoc.exists ? "unlike" : "like";
+      
+      if (likeDoc.exists) {
+        const likeData = likeDoc.data();
+        const likeTimestamp = likeData.timestamp;
+        
+        if (likeTimestamp) {
+          const now = new Date();
+          const likeTime = likeTimestamp.toDate();
+          const timeDifference = now - likeTime;
+          const hoursElapsed = timeDifference / (1000 * 60 * 60);
+          //const secondsElapsed = timeDifference / 1000;
+          
+          if (hoursElapsed < 24) {
+            //if (secondsElapsed < 30) {
+            showToast("Solo puedes dar un like por día. Inténtalo nuevamente mañana.", "warning");
+            return;
+          }
+        }
+      }
       
       const idToken = await user.getIdToken();
 
@@ -512,48 +534,44 @@ document.addEventListener("DOMContentLoaded", () => {
           "Content-Type": "application/json",
           Authorization: `Bearer ${idToken}`,
         },
-        body: JSON.stringify({ action: action }),
+        body: JSON.stringify({ action: "like" }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(
-          errorData.error ||
-          `Error ${action === "like" ? "liking" : "unliking"} the dish.`
+          errorData.error || "Error al dar like al plato."
         );
       }
 
       const result = await response.json();
       
-      if (action === "like") {
-        // ✅ Guardar el nuevo like en dailyLikes para control de tiempo
-        await likeDocRef.set({
-          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-        });
-        
-        // ✅ Cambiar icono en el botón
-        button.innerHTML = "❤️";
-        button.disabled = true;
-        
-        showToast("¡Gracias por tu like!", "success");
-      } else {
-        // ✅ Eliminar el like de dailyLikes
-        await likeDocRef.delete();
-        
-        // ✅ Cambiar icono en el botón
-        button.innerHTML = "🤍";
-        button.disabled = false;
-        
-        showToast("Like removido", "info");
-      }
+      // ✅ Guardar el nuevo like en dailyLikes para control de tiempo
+      await likeDocRef.set({
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      });
+      
+      // ✅ Cambiar icono en el botón pero mantenerlo habilitado para futuras validaciones
+      button.innerHTML = "❤️";
+      button.disabled = false;
+      button.classList.add("liked");
+      
+      showToast("¡Gracias por tu like!", "success");
       
       // ✅ Actualizar contador de likes en pantalla
       const likesCountEl = document.getElementById(`likes-count-${dishId}`);
       if (likesCountEl) {
         likesCountEl.innerText = `${result.likesCount} me gusta`;
       }
+      
+      // Actualizar el contador de favoritos del usuario
+      if (favoritesCounter) {
+        const currentCount = parseInt(favoritesCounter.textContent) || 0;
+        favoritesCounter.textContent = currentCount + 1;
+      }
+      
     } catch (error) {
-      console.error("Error al dar like diario:", error);
+      console.error("Error al dar like:", error);
       showToast("Hubo un error al registrar tu like.", "error");
     }
   }
@@ -953,8 +971,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (favoriteDoc.exists) {
           button.innerHTML = "❤️";
-          // No deshabilitar el botón para permitir unlike
           button.disabled = false;
+          button.classList.add("liked");
         } else {
           button.innerHTML = "🤍";
           button.disabled = false;

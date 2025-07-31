@@ -129,13 +129,8 @@ document.addEventListener("DOMContentLoaded", () => {
                   dish.restaurantId
                 }">De: ${dish.restaurantName}</a>
             </div>
-            <button class="remove-like-btn" data-dish-id="${
-              dish.id
-            }">Quitar Like</button>
+            <div class="like-status">❤️ Te gusta este plato</div>
         `;
-      dishItem
-        .querySelector(".remove-like-btn")
-        .addEventListener("click", handleRemoveLike);
       favoriteDishesList.appendChild(dishItem);
     });
     if (dishes.length === 0) {
@@ -154,34 +149,5 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  async function handleRemoveLike(event) {
-    const dishId = event.target.dataset.dishId;
-    const user = auth.currentUser;
-
-    if (!user) {
-      console.warn("User not logged in, cannot unlike.");
-      return;
-    }
-
-    try {
-      const idToken = await user.getIdToken();
-      const response = await fetch(`/api/dishes/${dishId}/like`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ action: "unlike" }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `Error al quitar el like.`);
-      }
-
-      await loadFavoriteDishes(user.uid);
-    } catch (error) {
-      console.error("Error unliking dish from favorites list:", error);
-    }
-  }
+  // Función handleRemoveLike eliminada - Los likes ahora son permanentes
 });
