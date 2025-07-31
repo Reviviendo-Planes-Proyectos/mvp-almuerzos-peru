@@ -196,9 +196,19 @@ body {
 }
 .item-details {
   flex-grow: 1;
-  cursor: pointer;
   display: flex;
   align-items: center;
+}
+
+.clickable-card {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+}
+
+.clickable-card:hover {
+  background-color: rgba(255, 255, 255, 0.3);
 }
 .list-item:hover {
   transform: scale(1.02);
@@ -283,13 +293,7 @@ input:checked + .slider:before {
 .dish-list-item:hover {
   transform: none;
 }
-.edit-dish-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--gray-text);
-  margin-right: 0.5rem;
-}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -606,13 +610,7 @@ input:checked + .slider:before {
   .dish-list-item:hover {
     transform: none;
   }
-  .edit-dish-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: var(--gray-text);
-    margin-right: 0.5rem;
-  }
+
   .modal-backdrop {
     position: fixed;
     inset: 0;
