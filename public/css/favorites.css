@@ -50,18 +50,18 @@
   font-weight: bold;
   color: #4caf50;
 }
-.favorite-dish-item .remove-like-btn {
-  background-color: #e91e63;
-  color: white;
-  border: none;
-  border-radius: 5px;
+.favorite-dish-item .like-status {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 20px;
   padding: 8px 15px;
-  cursor: pointer;
   font-size: 0.9em;
-  transition: background-color 0.3s ease;
-}
-.favorite-dish-item .remove-like-btn:hover {
-  background-color: #d81b60;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
 }
 .back-button-container {
   text-align: center;

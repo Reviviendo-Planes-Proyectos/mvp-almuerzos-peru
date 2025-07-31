@@ -967,46 +967,97 @@ app.post('/api/dishes/:dishId/like', async (req, res) => {
         return res.status(401).json({ error: 'Unauthorized: Invalid token for like operation.' });
     }
 
-    if (!['like', 'unlike'].includes(action)) {
-        return res.status(400).json({ error: 'Invalid action. Must be "like" or "unlike".' });
+    if (action !== 'like') {
+        return res.status(400).json({ error: 'Invalid action. Only "like" is allowed.' });
     }
 
     const dishRef = db.collection('dishes').doc(dishId);
-
     const userFavoriteRef = db.collection('invited').doc(currentUserUid).collection('favorites').doc(dishId);
+    const userDailyLikeRef = db.collection('invited').doc(currentUserUid).collection('dailyLikes').doc(dishId);
 
     try {
         await db.runTransaction(async (transaction) => {
             const dishDoc = await transaction.get(dishRef);
             const userFavoriteDoc = await transaction.get(userFavoriteRef);
+            const userDailyLikeDoc = await transaction.get(userDailyLikeRef);
 
             if (!dishDoc.exists) {
                 throw new Error('Plato no encontrado.');
             }
 
-            let currentLikes = dishDoc.data().likesCount || 0;
-            let newLikes = currentLikes;
+            // Verificar restricción de 24 horas en dailyLikes
+            if (userDailyLikeDoc.exists) {
+                const dailyLikeData = userDailyLikeDoc.data();
+                if (dailyLikeData.timestamp) {
+                    const now = new Date();
+                    const likeTime = dailyLikeData.timestamp.toDate();
+                    const timeDifference = now - likeTime;
+                    const hoursElapsed = timeDifference / (1000 * 60 * 60);
 
-            if (action === 'like') {
-                if (userFavoriteDoc.exists) {
-                    return res.status(200).json({ likesCount: currentLikes, message: 'Already liked.' });
+                    if (hoursElapsed < 24) {
+                        return res.status(429).json({ 
+                            error: 'Solo puedes dar un like cada 24 horas. Espera un momento.',
+                            secondsRemaining: Math.ceil(30 - (timeDifference / 1000))
+                        });
+                    }
                 }
-                newLikes = currentLikes + 1;
-                transaction.set(userFavoriteRef, { likedAt: admin.firestore.FieldValue.serverTimestamp() });
-            } else if (action === 'unlike') {
-                if (!userFavoriteDoc.exists) {
-                    return res.status(200).json({ likesCount: currentLikes, message: 'Not liked yet.' });
-                }
-                newLikes = Math.max(0, currentLikes - 1);
-                transaction.delete(userFavoriteRef);
             }
 
+            let currentLikes = dishDoc.data().likesCount || 0;
+            let newLikes = currentLikes + 1;
+
+            // Agregar like a favorites solo si no existe (para mantener el estado visual)
+            if (!userFavoriteDoc.exists) {
+                transaction.set(userFavoriteRef, { 
+                    likedAt: admin.firestore.FieldValue.serverTimestamp() 
+                });
+            }
+            
+            // Actualizar/crear registro en dailyLikes para control de 24 horas
+            transaction.set(userDailyLikeRef, {
+                timestamp: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Actualizar contador de likes del plato
             transaction.update(dishRef, { likesCount: newLikes });
-            res.status(200).json({ likesCount: newLikes, message: `Likes updated to ${newLikes}` });
+            
+            res.status(200).json({ 
+                likesCount: newLikes, 
+                message: `Like registrado exitosamente. Total: ${newLikes}` 
+            });
         });
     } catch (error) {
-        console.error('Error al actualizar likes del plato o favoritos del usuario:', error);
+        console.error('Error al procesar like del plato:', error);
         res.status(500).json({ error: `Error al procesar el 'me gusta': ${error.message}` });
+    }
+});
+
+// Endpoint temporal para desarrollo - limpiar likes de un usuario
+app.delete('/api/dev/clear-likes/:userId', async (req, res) => {
+    const { userId } = req.params;
+    
+    try {
+        const favoritesRef = db.collection('invited').doc(userId).collection('favorites');
+        const dailyLikesRef = db.collection('invited').doc(userId).collection('dailyLikes');
+        
+        // Eliminar todos los documentos de favorites
+        const favoritesSnapshot = await favoritesRef.get();
+        const favoritesDeletePromises = favoritesSnapshot.docs.map(doc => doc.ref.delete());
+        
+        // Eliminar todos los documentos de dailyLikes
+        const dailyLikesSnapshot = await dailyLikesRef.get();
+        const dailyLikesDeletePromises = dailyLikesSnapshot.docs.map(doc => doc.ref.delete());
+        
+        await Promise.all([...favoritesDeletePromises, ...dailyLikesDeletePromises]);
+        
+        res.status(200).json({ 
+            message: `Likes eliminados para usuario ${userId}`,
+            favoritesDeleted: favoritesSnapshot.size,
+            dailyLikesDeleted: dailyLikesSnapshot.size
+        });
+    } catch (error) {
+        console.error('Error al limpiar likes:', error);
+        res.status(500).json({ error: 'Error al limpiar likes' });
     }
 });
 
