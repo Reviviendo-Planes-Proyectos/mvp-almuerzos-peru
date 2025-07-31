@@ -68,6 +68,7 @@
     center/contain no-repeat;
 }
 
+
 .qr-restaurant-name {
   background: linear-gradient(135deg, #ff8f00 0%, #ffc107 100%);
   -webkit-background-clip: text;
@@ -206,4 +207,27 @@
     width: 140px;
     height: 140px;
   }
+}
+
+
+
+.action-buttons .action-btn {
+  transition: opacity .2s ease, transform .15s ease, box-shadow .2s ease;
+}
+
+
+.action-buttons .action-btn:disabled,
+.action-buttons .action-btn[disabled] {
+  opacity: 0.55;             
+  filter: grayscale(10%);     
+  cursor: not-allowed;        
+  pointer-events: none;       
+  box-shadow: none;           
+  transform: none;            
+}
+
+
+.action-buttons .action-btn:disabled:hover {
+  box-shadow: none;
+  transform: none;
 }
