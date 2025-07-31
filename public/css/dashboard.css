@@ -719,6 +719,35 @@ input:checked + .slider:before {
     overflow: hidden;
   }
 
+  #cropperModal .modal-content button {
+    min-width: 100px;
+  }
+
+  #cropperModal .modal-content .primary-button {
+    background-color: var(--white);
+    color: var(--brand-dark);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+
+  #cropperModal .modal-content .primary-button:hover {
+    background-color: #f3f4f6;
+  }
+
+  #cropperModal .modal-content .primary-button.dark-button {
+    background-color: var(--brand-dark);
+    color: var(--white);
+  }
+
+  #cropperModal .modal-content .primary-button.dark-button:hover {
+    background-color: #374151;
+  }
+
   #cropper-container {
     max-height: 400px;
     overflow: hidden;

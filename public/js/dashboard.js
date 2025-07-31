@@ -1248,6 +1248,161 @@ async function handleUpdateRestaurant(event) {
   event.preventDefault();
   if (!currentRestaurant) return;
   const form = event.target;
+  
+  // Validación de campos requeridos
+  const requiredFields = form.querySelectorAll("input[required], select[required], textarea[required]");
+  let valid = true;
+  
+  // Limpiar errores previos y validar campos generales
+  requiredFields.forEach(field => {
+    // Eliminar mensaje previo
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    
+    if (!field.value.trim()) {
+      field.classList.add("field-error");
+      valid = false;
+      // Crear mensaje de error debajo del campo
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  
+  // Validación específica para horarios de atención
+  const scheduleInputs = form.querySelectorAll('.schedule-row input[required]');
+  scheduleInputs.forEach(field => {
+    let errorSpan = field.parentNode.querySelector('.field-error-message');
+    if (errorSpan) errorSpan.remove();
+    
+    if (!field.value) {
+      field.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Este campo es obligatorio.';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      field.parentNode.appendChild(errorSpan);
+    } else {
+      field.classList.remove("field-error");
+    }
+  });
+  
+  // Validación de archivos de imagen
+  const photoInput = form.querySelector('#edit-restaurant-photo');
+  const logoInput = form.querySelector('#edit-restaurant-logo');
+  
+  if (photoInput && photoInput.files.length > 0) {
+    const photoFile = photoInput.files[0];
+    if (!validateFileType(photoFile)) {
+      let errorSpan = photoInput.parentNode.querySelector('.field-error-message');
+      if (errorSpan) errorSpan.remove();
+      
+      photoInput.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Por favor, selecciona un archivo de imagen válido (JPG, JPEG, PNG, WEBP).';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      photoInput.parentNode.appendChild(errorSpan);
+    } else {
+      photoInput.classList.remove("field-error");
+    }
+  }
+  
+  if (logoInput && logoInput.files.length > 0) {
+    const logoFile = logoInput.files[0];
+    if (!validateFileType(logoFile)) {
+      let errorSpan = logoInput.parentNode.querySelector('.field-error-message');
+      if (errorSpan) errorSpan.remove();
+      
+      logoInput.classList.add("field-error");
+      valid = false;
+      errorSpan = document.createElement('span');
+      errorSpan.className = 'field-error-message';
+      errorSpan.textContent = 'Por favor, selecciona un archivo de imagen válido (JPG, JPEG, PNG, WEBP).';
+      errorSpan.style.color = '#e53935';
+      errorSpan.style.fontSize = '0.95em';
+      errorSpan.style.marginTop = '2px';
+      errorSpan.style.display = 'block';
+      logoInput.parentNode.appendChild(errorSpan);
+    } else {
+      logoInput.classList.remove("field-error");
+    }
+  }
+  
+  // Si hay errores, hacer scroll al primer campo con error y detener
+  if (!valid) {
+    const firstError = form.querySelector('.field-error');
+    if (firstError) {
+      firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+  
+  // Agregar event listeners para limpiar errores cuando el usuario corrige los campos
+  requiredFields.forEach(field => {
+    if (!field.dataset.errorListenerAdded) {
+      field.addEventListener('input', function() {
+        if (this.value.trim()) {
+          this.classList.remove('field-error');
+          const errorSpan = this.parentNode.querySelector('.field-error-message');
+          if (errorSpan) errorSpan.remove();
+        }
+      });
+      field.dataset.errorListenerAdded = 'true';
+    }
+  });
+  
+  scheduleInputs.forEach(field => {
+    if (!field.dataset.errorListenerAdded) {
+      field.addEventListener('change', function() {
+        if (this.value) {
+          this.classList.remove('field-error');
+          const errorSpan = this.parentNode.querySelector('.field-error-message');
+          if (errorSpan) errorSpan.remove();
+        }
+      });
+      field.dataset.errorListenerAdded = 'true';
+    }
+  });
+  
+  // Event listeners para archivos de imagen
+  if (photoInput && !photoInput.dataset.errorListenerAdded) {
+    photoInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        this.classList.remove('field-error');
+        const errorSpan = this.parentNode.querySelector('.field-error-message');
+        if (errorSpan) errorSpan.remove();
+      }
+    });
+    photoInput.dataset.errorListenerAdded = 'true';
+  }
+  
+  if (logoInput && !logoInput.dataset.errorListenerAdded) {
+    logoInput.addEventListener('change', function() {
+      if (this.files.length > 0) {
+        this.classList.remove('field-error');
+        const errorSpan = this.parentNode.querySelector('.field-error-message');
+        if (errorSpan) errorSpan.remove();
+      }
+    });
+    logoInput.dataset.errorListenerAdded = 'true';
+  }
+  
   const submitButton = form.querySelector('button[type="submit"]');
   submitButton.disabled = !0;
   submitButton.textContent = "Guardando...";
