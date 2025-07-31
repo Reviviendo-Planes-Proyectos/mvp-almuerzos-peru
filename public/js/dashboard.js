@@ -210,7 +210,7 @@ async function loadDishes(cardId) {
         const imageUrl = dish.photoUrl || `https://placehold.co/120x120/E2E8F0/4A5568?text=${encodeURIComponent(dish.name.substring(0, 4))}`;
 
         dishElement.innerHTML = `
-    <div class="item-details">
+    <div class="item-details clickable-card" data-dish-id="${dish.id}">
         <img src="${imageUrl}" alt="Foto de ${dish.name}" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
         <div>
             <h3>${dish.name}</h3>
@@ -218,18 +218,12 @@ async function loadDishes(cardId) {
             <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
         </div>
     </div>
-    <button class="edit-dish-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-        </svg>
-    </button>
     <label class="toggle-switch">
         <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${dish.isActive ? 'checked' : ''}>
         <span class="slider"></span>
     </label>
 `;
-        dishElement.querySelector('.edit-dish-btn').addEventListener('click', () => openEditDishModal(dish));
+        dishElement.querySelector('.clickable-card').addEventListener('click', () => openEditDishModal(dish));
         dishesListDiv.appendChild(dishElement);
       });
 
