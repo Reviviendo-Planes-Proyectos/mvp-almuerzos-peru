@@ -41,3 +41,6 @@ window.addEventListener("DOMContentLoaded", () => {
   if (mainName && sideName)
     sideName.textContent = mainName.textContent || "Restaurante";
 });
+
+
+
