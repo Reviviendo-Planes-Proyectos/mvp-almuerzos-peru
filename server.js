@@ -342,7 +342,8 @@ app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
             hasDelivery = false,
             hasLocalService = false,
             schedule = {},
-            location
+            location,
+            qr = null
         } = req.body;
 
         // Verifica que el userId del body coincida con el UID del token
@@ -377,6 +378,7 @@ app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
             hasDelivery,
             hasLocalService,
             location,
+            qr,
             schedule: {
                 monday: schedule.monday || { from: null, to: null },
                 tuesday: schedule.tuesday || { from: null, to: null },
@@ -405,6 +407,9 @@ app.post('/api/restaurants', authenticateAndAuthorize, async (req, res) => {
         }
     }
 });
+
+
+
 
 
 app.get('/api/restaurants/user/:userId', authenticateAndAuthorize, async (req, res) => {
@@ -573,7 +578,8 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
             hasDelivery,
             hasLocalService,
             schedule,
-            location
+            location,
+            qr
         } = req.body;
         const restaurantDoc = await db.collection('restaurants').doc(restaurantId).get();
         if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
@@ -600,6 +606,7 @@ app.put('/api/restaurants/:restaurantId', authenticateAndAuthorize, async (req, 
             hasDelivery: hasDelivery ?? false,
             hasLocalService: hasLocalService ?? false,
             location: location ?? null,
+            qr: qr ?? null,
             schedule: {
                 monday: schedule?.monday ?? { from: null, to: null },
                 tuesday: schedule?.tuesday ?? { from: null, to: null },

@@ -701,14 +701,29 @@
 }
 
 /* Overlay */
-.overlay{
-  position:fixed;inset:0;background:rgba(0,0,0,.5);
-  opacity:0;visibility:hidden;transition:.3s;z-index:1200;
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: .3s;
+  z-index: 1200;
+
+  /* ¡NO reciba clics mientras está oculto! */
+  pointer-events: none;
 }
-.overlay.show{opacity:1;visibility:visible;}
+.overlay.show {
+  opacity: 1;
+  visibility: visible;
+
+  /* Ahora SÍ reciba clics (para cerrar al pulsar fuera del menú) */
+  pointer-events: auto;
+}
 
 /* Sidebar */
 .sidebar{
+   z-index: 1300;
   position:fixed;top:0;left:-280px;width:280px;height:100vh;background:#fff;
   box-shadow:4px 0 20px rgba(0,0,0,.1);transition:left .3s;z-index:1300;
   display:flex;flex-direction:column;

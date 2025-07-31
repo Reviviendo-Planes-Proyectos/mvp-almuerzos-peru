@@ -572,8 +572,12 @@ async function handleRestaurantRegistration(e) {
       hasLocalService: formData.get("localService") === "on",
       schedule,
       location: formData.get("location"),
+      qr: "qr de prueba"
     };
 
+
+    console.log("Datos del restaurante a enviar:", restaurantData);
+    
     // Enviar datos al backend
     const response = await fetch("/api/restaurants", {
       method: "POST",
