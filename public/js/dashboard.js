@@ -1659,14 +1659,21 @@ function showModalAlert(message, type = 'error') {
 
     alertContainer.textContent = message;
 
-    // Buscar dónde insertar la alerta (entre imagen y nombre)
+    // Buscar dónde insertar la alerta
     const modalContent = activeModal.querySelector('.modal-content');
     if (modalContent) {
       const form = modalContent.querySelector('form');
       if (form) {
         const formGroups = form.querySelectorAll('.modal-form-group');
-        if (formGroups.length >= 2) {
-          // Insertar entre el primer grupo (imagen) y el segundo grupo (nombre)
+        
+        // Verificar si estamos en el modal de editar restaurante
+        const isEditRestaurantModal = activeModal.id === 'editRestaurantModal';
+        
+        if (isEditRestaurantModal && formGroups.length >= 3) {
+          // En el modal de editar restaurante: insertar después del logo (segundo grupo) y antes del nombre (tercer grupo)
+          formGroups[2].parentNode.insertBefore(alertContainer, formGroups[2]);
+        } else if (formGroups.length >= 2) {
+          // En otros modales: insertar entre el primer grupo (imagen) y el segundo grupo (nombre)
           formGroups[1].parentNode.insertBefore(alertContainer, formGroups[1]);
         } else {
           // Si no hay suficientes grupos, insertar al inicio del formulario
