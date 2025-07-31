@@ -638,3 +638,55 @@ body {
         padding: 0.4rem;
       }
     }
+
+
+    /* Ajuste personalizado para el formulario de registro de restaurante */
+.restaurant-header {
+  padding-bottom: 0.5rem; 
+}
+
+.restaurant-title {
+  margin-bottom: 0.5rem; 
+}
+
+#register-image-upload-box {
+  margin-top: 0; 
+}
+
+#new-restaurant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem; 
+}
+
+.restaurant-header {
+  padding-bottom: 0.25rem; 
+  margin-bottom: 0.5rem; 
+}
+
+.restaurant-title {
+  margin-bottom: 0.25rem; 
+}
+
+#register-image-upload-box {
+  margin-top: 0; 
+}
+
+/* Nuevos estilos para iconos junto a Almuerzos Perú */
+.restaurant-home-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: var(--brand-dark);
+}
+
+.icon-arrow {
+  font-size: 1.4rem; 
+}
+
+.icon-food {
+  font-size: 1.2rem; 
+}
