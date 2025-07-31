@@ -87,7 +87,25 @@
       
       <form id="new-restaurant-form" novalidate>
         <div class="form-group">
-          <label id="register-image-upload-box" class="image-upload-box" for="register-image-input">
+          <label id="register-image-upload-box" class="image-upload-box" for="register-image-input" style="position: relative;">
+            <!-- Botón eliminar foto del restaurante -->
+            <button type="button" id="register-delete-photo-btn" style="
+                   position: absolute;
+                   top: 8px;
+                   right: 8px;
+                   width: 24px;
+                   height: 24px;
+                   border-radius: 50%;
+                   background-color: #dc3545;
+                   color: white;
+                   border: none;
+                   cursor: pointer;
+                   display: none;
+                   align-items: center;
+                   justify-content: center;
+                   font-size: 14px;
+                   z-index: 10;
+                 ">&times;</button>
             <img id="register-image-preview" src="" alt="Previsualización del local" style="
                   display: none;
                   width: 60px;
@@ -117,7 +135,25 @@
         </div>
         <div class="form-group">
           <label id="register-logo-upload-box" class="image-upload-box" for="register-logo-input"
-            style="margin-bottom: 1rem">
+            style="margin-bottom: 1rem; position: relative;">
+            <!-- Botón eliminar logo del restaurante -->
+            <button type="button" id="register-delete-logo-btn" style="
+                   position: absolute;
+                   top: 8px;
+                   right: 8px;
+                   width: 24px;
+                   height: 24px;
+                   border-radius: 50%;
+                   background-color: #dc3545;
+                   color: white;
+                   border: none;
+                   cursor: pointer;
+                   display: none;
+                   align-items: center;
+                   justify-content: center;
+                   font-size: 14px;
+                   z-index: 10;
+                 ">&times;</button>
             <img id="register-logo-preview" src="" alt="Logo del restaurante" style="display: none"
               class="preview-image" />
             <div id="register-logo-placeholder" class="image-placeholder">
@@ -316,10 +352,30 @@
     </div>
   </div>
 
+  <!-- Modal de Cropper -->
+  <div id="cropperModal" class="modal-backdrop">
+    <div class="modal-content">
+      <h2>Recortar imagen</h2>
+      <div id="cropper-container">
+        <img id="cropper-image" />
+      </div>
+      <div>
+        <button id="cancel-crop-btn" class="primary-button">Cancelar</button>
+        <button id="save-crop-btn" class="primary-button dark-button">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <!-- Cropper.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+  <!-- Cropper.js JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+  <!-- Browser Image Compression -->
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
   <script src="https://apis.google.com/js/platform.js" async defer></script>
   <meta name="google-signin-client_id"
     content="92623435008-vgv02v2cps8vb9pio5kgms9ad4hjlb5m.apps.googleusercontent.com" />
