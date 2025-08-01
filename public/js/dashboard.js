@@ -227,16 +227,17 @@ async function loadDishes(cardId) {
           )}`;
 
         dishElement.innerHTML = `
+
     <div class="item-details" style="cursor: pointer; flex: 1;">
         <img src="${imageUrl}" alt="Foto de ${
           dish.name
         }" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
+
         <div>
             <h3 title="${dish.name}">${dish.name}</h3>
             <p>S/. ${dish.price.toFixed(2)}</p>
-            <p style="font-size: 0.85rem; color: #666;">Likes: ${
-              dish.likesCount || 0
-            }</p> 
+            <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
+            <button class="edit-dish-btn" style="margin-top: 4px;">Editar</button>
         </div>
     </div>
     <label class="toggle-switch">
