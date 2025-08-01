@@ -13,7 +13,11 @@ const db = firebase.firestore();
 document.addEventListener("DOMContentLoaded", () => {
   const restaurantsList = document.getElementById("restaurants-list");
   const loadMoreBtn = document.getElementById("load-more-btn");
-  const districtFilter = document.getElementById("district-filter");
+  // const districtFilter = document.getElementById("district-filter"); // Comentado - no se usa
+  const districtSearch = document.getElementById("district-search");
+const customDropdown = document.getElementById("custom-dropdown");
+const dropdownContent = document.getElementById("dropdown-content");
+const dropdownArrow = document.querySelector(".dropdown-arrow");
   const myRestaurantButton = document.getElementById("my-restaurant-btn");
 
   const myAccountBtn = document.getElementById("my-account-btn");
@@ -28,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let lastVisibleDocId = null;
   let currentDistrictFilter = "";
+  let currentSearchQuery = "";
   let currentUserFavorites = new Set();
   let tomSelectInstance = null;
 
@@ -47,7 +52,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Inicializar Tom Select y cargar distritos
-  initializeDistrictFilter();
+  // initializeDistrictFilter(); // Comentado - no se usa
+
+  // Inicializar búsqueda de distritos
+  initializeDistrictSearch();
 
   if (myRestaurantButton) {
     setupMyRestaurantButton();
@@ -314,6 +322,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  // Función para cargar todos los restaurantes para el buscador
   // Función para inicializar Tom Select
   async function initializeDistrictFilter() {
     if (!districtFilter) return;
@@ -398,6 +407,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (currentDistrictFilter && currentDistrictFilter.trim() !== "") {
       url += `&district=${encodeURIComponent(currentDistrictFilter)}`;
     }
+    if (currentSearchQuery && currentSearchQuery.trim() !== "") {
+      url += `&search=${encodeURIComponent(currentSearchQuery)}`;
+    }
     try {
       const response = await fetch(url);
       if (!response.ok) throw new Error("Error al cargar los restaurantes.");
@@ -415,8 +427,8 @@ document.addEventListener("DOMContentLoaded", () => {
           const restaurantCard = document.createElement("div");
           restaurantCard.className = "restaurant-card";
           const imageUrl =
-            restaurant.photoUrl ||
-            "https://placehold.co/600x400/cccccc/333333?text=Sin+Imagen";
+            restaurant.logoUrl ||
+            "https://placehold.co/600x400/cccccc/333333?text=Logo+del+restaurante";
 
           const totalLikes = restaurant.totalLikes || 0;
 
@@ -426,32 +438,54 @@ document.addEventListener("DOMContentLoaded", () => {
             typeof restaurant.description === "string"
               ? restaurant.description
               : "";
+          // Función para obtener el horario actual
+          const getCurrentSchedule = (schedule) => {
+            if (!schedule) return "Horario no disponible";
+            
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const today = new Date().getDay();
+            const todaySchedule = schedule[days[today]];
+            
+            if (todaySchedule && todaySchedule.from && todaySchedule.to) {
+              return todaySchedule.to; // Mostrar hora de cierre
+            }
+            return "Cerrado hoy";
+          };
+
+          const scheduleText = getCurrentSchedule(restaurant.schedule);
+          const deliveryText = restaurant.hasDelivery ? "Delivery disponible" : "Solo atención en local";
+          const deliveryIcon = restaurant.hasDelivery ? "🚚" : "🏪";
+
           restaurantCard.innerHTML = `
             <img src="${imageUrl}" alt="${safeName}" class="restaurant-card-image">
             <div class="card-content">
-              <div class="restaurant-title">
-                <h4>${
-                  safeName.length > 35
-                    ? safeName.substring(0, 35) + "..."
-                    : safeName
-                }</h4>
-                <span class="restaurant-likes-inline">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="red" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-heart">
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                  </svg>
-                  <span>${totalLikes}</span>
-                </span>
+              <h4 class="restaurant-title">${
+                safeName.length > 50
+                  ? safeName.substring(0, 50) + "..."
+                  : safeName
+              }</h4>
+              <div class="restaurant-info">
+                <div class="schedule-info">
+                  <span class="schedule-icon">🕐</span>
+                  <span class="schedule-text">${scheduleText}</span>
+                </div>
+                <div class="restaurant-likes">
+                  <span class="heart-icon">❤️</span>
+                  <span class="likes-count">${totalLikes}</span>
+                </div>
+                <div class="delivery-info">
+                  <span class="delivery-icon">${deliveryIcon}</span>
+                  <span class="delivery-text">${deliveryText}</span>
+                </div>
               </div>
-              <p>${
-                safeDescription.length > 30
-                  ? safeDescription.substring(0, 30) + "..."
-                  : safeDescription
-              }</p>
-              <a href="/menu.html?restaurantId=${
-                restaurant.id
-              }" class="card-button">Ver menú</a>
             </div>
           `;
+          
+          // Hacer toda la tarjeta clickeable
+          restaurantCard.style.cursor = 'pointer';
+          restaurantCard.addEventListener('click', () => {
+            window.location.href = `/menu.html?restaurantId=${restaurant.id}`;
+          });
           restaurantsList.appendChild(restaurantCard);
           setTimeout(() => {
             restaurantCard.classList.add("is-visible");
@@ -514,6 +548,168 @@ document.addEventListener("DOMContentLoaded", () => {
 
       setTimeout(close, duration);
     });
+  }
+
+  // Función para cargar todos los distritos únicos
+  async function loadAllDistricts() {
+    try {
+      const snapshot = await db.collection("restaurants").get();
+      const districts = new Set();
+      
+      snapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.district && data.district.trim()) {
+          districts.add(data.district.trim());
+        }
+      });
+      
+      return Array.from(districts).sort();
+    } catch (error) {
+      console.error("Error loading districts:", error);
+      return [];
+    }
+  }
+
+  // Función para inicializar el buscador de distritos
+  async function initializeDistrictSearch() {
+    if (!districtSearch || !customDropdown || !dropdownContent) return;
+
+    try {
+      const districts = await loadAllDistricts();
+      let isDropdownOpen = false;
+      let filteredDistricts = [...districts];
+      
+      // Función para renderizar las opciones del dropdown
+      function renderDropdownOptions(districtsToShow) {
+        dropdownContent.innerHTML = "";
+        
+        // Agregar opción "Todos los distritos"
+        const allOption = document.createElement("div");
+        allOption.className = "dropdown-option";
+        allOption.innerHTML = `
+          <span>Todos los distritos</span>
+          <svg class="dropdown-option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+        allOption.addEventListener("click", () => {
+          districtSearch.value = "";
+          currentDistrictFilter = "";
+          currentSearchQuery = "";
+          closeDropdown();
+          loadRestaurants(true);
+        });
+        dropdownContent.appendChild(allOption);
+        
+        // Agregar opciones de distritos
+        districtsToShow.forEach((district) => {
+          const option = document.createElement("div");
+          option.className = "dropdown-option";
+          option.innerHTML = `
+            <span>${district}</span>
+            <svg class="dropdown-option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          option.addEventListener("click", () => {
+            districtSearch.value = district;
+            currentDistrictFilter = district;
+            currentSearchQuery = "";
+            closeDropdown();
+            loadRestaurants(true);
+          });
+          dropdownContent.appendChild(option);
+        });
+      }
+      
+      // Función para abrir el dropdown
+      function openDropdown() {
+        isDropdownOpen = true;
+        customDropdown.classList.add("show");
+        dropdownArrow.classList.add("rotated");
+        renderDropdownOptions(filteredDistricts);
+      }
+      
+      // Función para cerrar el dropdown
+      function closeDropdown() {
+        isDropdownOpen = false;
+        customDropdown.classList.remove("show");
+        dropdownArrow.classList.remove("rotated");
+      }
+      
+      // Event listener para la flecha del dropdown
+      dropdownArrow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (isDropdownOpen) {
+          closeDropdown();
+        } else {
+          openDropdown();
+        }
+      });
+      
+      // Event listener para el input de búsqueda
+      let searchTimeout;
+      districtSearch.addEventListener("input", (e) => {
+        const searchValue = e.target.value.trim().toLowerCase();
+        
+        // Filtrar distritos basado en la búsqueda
+        filteredDistricts = districts.filter(district => 
+          district.toLowerCase().includes(searchValue)
+        );
+        
+        // Mostrar dropdown si hay texto y hay resultados
+        if (searchValue && filteredDistricts.length > 0) {
+          openDropdown();
+        } else if (!searchValue) {
+          filteredDistricts = [...districts];
+          if (isDropdownOpen) {
+            renderDropdownOptions(filteredDistricts);
+          }
+        }
+        
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+          // Verificar si el valor coincide exactamente con un distrito
+          const isExactDistrict = districts.includes(e.target.value.trim());
+          
+          if (isExactDistrict) {
+            // Si es un distrito exacto, filtrar por distrito
+            currentDistrictFilter = e.target.value.trim();
+            currentSearchQuery = "";
+          } else {
+            // Si no es un distrito exacto, buscar por nombre
+            currentSearchQuery = e.target.value.trim();
+            currentDistrictFilter = "";
+          }
+          
+          loadRestaurants(true);
+        }, 300);
+      });
+      
+      // Event listener para hacer clic en el input
+      districtSearch.addEventListener("click", () => {
+        if (!isDropdownOpen) {
+          openDropdown();
+        }
+      });
+      
+      // Event listener para cerrar el dropdown al hacer clic fuera
+      document.addEventListener("click", (e) => {
+        if (!districtSearch.contains(e.target) && !customDropdown.contains(e.target) && !dropdownArrow.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+      
+      // Event listener para teclas
+      districtSearch.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeDropdown();
+        }
+      });
+
+    } catch (error) {
+      console.error("Error initializing district search:", error);
+    }
   }
 
   loadRestaurants(true);
