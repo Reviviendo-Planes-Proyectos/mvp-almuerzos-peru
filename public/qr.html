@@ -21,11 +21,15 @@
             <p id="sidebar-restaurant">Restaurante</p>
         </div>
         <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <span class="menu-item-icon">🏠</span>
+                MIS CARTAS
+            </a>
             <a href="qr.html" class="menu-item active">
                 <span class="menu-item-icon">📱</span>
                 MI QR
             </a>
-            <a href="#" class="menu-item">
+            <a href="comentarios.html" class="menu-item">
                 <span class="menu-item-icon">💬</span>
                 COMENTARIOS
             </a>
@@ -34,9 +38,13 @@
 
 
     <header class="main-header">
-
         <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-
+        <a href="index.html">
+          <img style="width: 250px" src="images/logo.png" />
+        </a>
+        <button class="logout-button" onclick="logout()">
+          Cerrar sesión
+        </button>
     </header>
 
 
@@ -110,7 +118,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+    <script src="js/sidebar.js"></script>
     <script src="js/qr.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 
 </html>

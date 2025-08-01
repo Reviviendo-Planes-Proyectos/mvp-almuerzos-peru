@@ -1,0 +1,201 @@
+/* --- Botón hamburguesa --- */
+.menu-btn {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  font-size: 22px;
+  color: #333;
+  margin-right: 0.75rem;
+}
+
+/* --- Overlay oscuro al abrir sidebar --- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: 0.3s;
+  z-index: 1200;
+  pointer-events: none;
+}
+.overlay.show {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* --- Sidebar lateral --- */
+.sidebar {
+  z-index: 1300;
+  position: fixed;
+  top: 0;
+  left: -280px;
+  width: 280px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar.open {
+  left: 0;
+}
+
+.sidebar-header {
+  background: linear-gradient(135deg, #FF8F00 0%, #FFC107 100%);
+  padding: 24px 20px;
+  color: #fff;
+}
+.sidebar-header h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.sidebar-header p {
+  margin: 0;
+  opacity: 0.9;
+}
+
+.sidebar-menu {
+  flex: 1;
+  padding: 24px 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  text-decoration: none;
+  color: #333;
+  border-left: 4px solid transparent;
+  font-weight: 700;
+  transition: 0.2s;
+}
+.menu-item:hover {
+  background: #F8F9FA;
+  border-left-color: #FFC107;
+}
+.menu-item.active {
+  background: #FFF8E1;
+  border-left-color: #FF8F00;
+  color: #FF8F00;
+}
+.menu-item-icon {
+  width: 24px;
+  text-align: center;
+  font-size: 20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+.comments-section {
+  padding: 2rem;
+}
+
+.section-header {
+  background-color: #ffd100;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.section-subtitle {
+  color: #4b5563;
+  margin-top: 0.5rem;
+}
+
+.filter-container {
+  background-color: #fffbeb;
+  padding: 1rem;
+  border-radius: 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.filter-select {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+}
+
+.comment-card {
+  background-color: white;
+  padding: 1.5rem;
+  border-radius: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.dish-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.dish-icon {
+  width: 40px;
+  height: 40px;
+  margin-right: 1rem;
+}
+
+.dish-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.dish-price {
+  color: green;
+  font-weight: bold;
+}
+
+.comment-date {
+  color: #6b7280;
+  font-size: 0.85rem;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.user-avatar {
+  background-color: #9ca3af;
+  color: white;
+  font-weight: bold;
+  border-radius: 9999px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1rem;
+}
+
+.comment-text {
+  font-size: 1rem;
+  color: #374151;
+}
