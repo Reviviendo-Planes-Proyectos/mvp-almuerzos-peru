@@ -1389,3 +1389,15 @@ input:checked + .slider:before {
     animation: none !important;
   }
 }
+
+.edit-dish-btn {
+  margin-top: 6px; 
+    background-color: var(--brand-green); 
+    color: white; 
+    border: none; 
+    padding: 6px 12px; 
+    border-radius: 6px; 
+    font-size: 0.9rem; 
+    cursor: pointer; 
+    transition: background-color 0.3s;
+}
