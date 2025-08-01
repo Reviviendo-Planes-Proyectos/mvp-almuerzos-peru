@@ -231,7 +231,7 @@
           </div>
           <div class="card-header-wrapper">
             <div class="card-name-input-wrapper">
-              <input type="text" id="card-name-input" class="card-name-input" />
+              <input type="text" id="card-name-input" class="card-name-input" maxlength="35" />
             </div>
             <button class="whatsapp-share-button" onclick="shareCardOnWhatsApp()">
               <img src="images/celular.png" alt="Icono" class="whatsapp-icon" />
@@ -271,7 +271,7 @@
       <h2>Nueva carta</h2>
       <form id="new-card-form">
         <div class="modal-form-group">
-          <input type="text" name="cardName" placeholder="Nombre de la carta" required />
+          <input type="text" name="cardName" placeholder="Nombre de la carta" maxlength="35" required />
         </div>
         <button type="submit" class="primary-button dark-button" style="width: 100%; margin-top: 1rem">
           Agregar Carta
