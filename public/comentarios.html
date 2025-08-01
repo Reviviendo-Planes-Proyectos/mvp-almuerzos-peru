@@ -68,69 +68,12 @@
       <label for="filter">Filtrar por platillo:</label>
       <select id="filter" class="filter-select">
         <option value="all">Todos los platillos</option>
-        <!-- Agrega más opciones dinámicamente -->
+        <!-- Las opciones se cargarán dinámicamente -->
       </select>
+          
     </div>
 
-    <div class="comment-card">
-      <div class="dish-info">
-        <img src="img/ceviche-icon.png" alt="Ceviche" class="dish-icon" />
-        <div>
-          <h2 class="dish-name">Ceviche de Pescado</h2>
-          <span class="dish-price">S/ 18.00</span>
-        </div>
-        <div class="comment-date">lunes, 27 de enero de 2025 – 14:30</div>
-      </div>
-      <div class="user-info">
-        <div class="user-avatar">MG</div>
-        <div>
-          <strong>María González</strong><br />
-          <small>15 pedidos • Cliente hace 2 años</small>
-        </div>
-      </div>
-      <p class="comment-text">¡Excelente ceviche! El pescado estaba súper fresco y el punto de cocción perfecto. La
-        cantidad de limón era ideal, no muy ácido. Sin duda volveré a pedirlo. El servicio también fue muy rápido.</p>
-    </div>
-
-    <div class="comment-card">
-      <div class="dish-info">
-        <img src="img/arroz-icon.png" alt="Arroz con Pollo" class="dish-icon" />
-        <div>
-          <h2 class="dish-name">Arroz con Pollo</h2>
-          <span class="dish-price">S/ 15.00</span>
-        </div>
-        <div class="comment-date">domingo, 26 de enero de 2025 – 19:45</div>
-      </div>
-      <div class="user-info">
-        <div class="user-avatar">CM</div>
-        <div>
-          <strong>Carlos Mendoza</strong><br />
-          <small>8 pedidos • Cliente hace 6 meses</small>
-        </div>
-      </div>
-      <p class="comment-text">Muy rico el arroz con pollo, la porción es generosa y el sabor tradicional. Solo le
-        faltaba un poquito más de sazón al arroz, pero en general muy bueno. El pollo estaba tierno.</p>
-    </div>
-
-    <div class="comment-card">
-      <div class="dish-info">
-        <img src="img/aji-icon.png" alt="Ají de Gallina" class="dish-icon" />
-        <div>
-          <h2 class="dish-name">Ají de Gallina</h2>
-          <span class="dish-price">S/ 16.50</span>
-        </div>
-        <div class="comment-date">sábado, 25 de enero de 2025 – 13:15</div>
-      </div>
-      <div class="user-info">
-        <div class="user-avatar">AR</div>
-        <div>
-          <strong>Ana Ruiz</strong><br />
-          <small>23 pedidos • Cliente hace 1 año</small>
-        </div>
-      </div>
-      <p class="comment-text">¡Definitivamente el mejor ají de gallina que he probado! La crema estaba cremosa, el pollo
-        suave y el sabor casero. Muy recomendado.</p>
-    </div>
+    <!-- Los comentarios se cargarán dinámicamente aquí -->
 
   </section>
     </div>
@@ -143,6 +86,7 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
   <script src="js/sidebar.js"></script>
+  <script src="js/comentarios.js"></script>
 </body>
 
 </html>

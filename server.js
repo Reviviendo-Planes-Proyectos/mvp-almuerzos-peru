@@ -1468,6 +1468,134 @@ app.post("/api/comments", async (req, res) => {
   }
 });
 
+
+
+
+
+
+// Endpoint para obtener comentarios de un restaurante
+app.get("/api/restaurants/:restaurantId/comments", authenticateAndAuthorize, async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+
+    // Verificar que el usuario es dueño del restaurante
+    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
+    if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
+      return res.status(403).json({ 
+        error: "Forbidden: You do not own this restaurant." 
+      });
+    }
+
+    // 1. Obtener todas las cards del restaurante
+    const cardsSnapshot = await db.collection("cards")
+      .where("restaurantId", "==", restaurantId)
+      .get();
+
+    if (cardsSnapshot.empty) {
+      return res.status(200).json({ comments: [] });
+    }
+
+    // 2. Obtener todos los dishes de esas cards
+    const cardIds = cardsSnapshot.docs.map(doc => doc.id);
+    const dishesPromises = cardIds.map(cardId => 
+      db.collection("dishes").where("cardId", "==", cardId).get()
+    );
+    const dishesSnapshots = await Promise.all(dishesPromises);
+    
+    const dishes = {};
+    dishesSnapshots.forEach(snapshot => {
+      snapshot.docs.forEach(doc => {
+        dishes[doc.id] = doc.data();
+      });
+    });
+
+    const dishIds = Object.keys(dishes);
+    if (dishIds.length === 0) {
+      return res.status(200).json({ comments: [] });
+    }
+
+    // 3. Obtener comentarios de esos dishes
+    const commentsPromises = dishIds.map(dishId => 
+      db.collection("comments_dishes").where("dishId", "==", dishId).get()
+    );
+    const commentsSnapshots = await Promise.all(commentsPromises);
+    
+    const comments = [];
+    const userIds = new Set();
+
+    commentsSnapshots.forEach(snapshot => {
+      snapshot.docs.forEach(doc => {
+        const commentData = doc.data();
+        comments.push({
+          id: doc.id,
+          ...commentData
+        });
+        if (commentData.invitedId) {
+          userIds.add(commentData.invitedId);
+        }
+      });
+    });
+
+    // 4. Obtener información de usuarios (invited)
+    const users = {};
+    if (userIds.size > 0) {
+      const usersPromises = Array.from(userIds).map(userId => 
+        db.collection("invited").doc(userId).get()
+      );
+      const usersSnapshots = await Promise.all(usersPromises);
+      
+      usersSnapshots.forEach(doc => {
+        if (doc.exists) {
+          users[doc.id] = doc.data();
+        }
+      });
+    }
+
+    // 5. Combinar toda la información
+    const enrichedComments = comments.map(comment => ({
+      id: comment.id,
+      content: comment.content,
+      createdAt: comment.createdAt,
+      dish: {
+        id: comment.dishId,
+        name: dishes[comment.dishId]?.name || "Plato no encontrado",
+        price: dishes[comment.dishId]?.price || 0,
+        photoUrl: dishes[comment.dishId]?.photoUrl || null
+      },
+      user: {
+        id: comment.invitedId,
+        displayName: users[comment.invitedId]?.displayName || "Usuario desconocido",
+        email: users[comment.invitedId]?.email || null
+      }
+    }));
+
+    // Ordenar por fecha de creación (más recientes primero)
+    enrichedComments.sort((a, b) => {
+      if (!a.createdAt || !b.createdAt) return 0;
+      return b.createdAt.toDate() - a.createdAt.toDate();
+    });
+
+    res.status(200).json({ 
+      comments: enrichedComments,
+      total: enrichedComments.length 
+    });
+
+  } catch (error) {
+    console.error("Error al obtener comentarios:", error);
+    res.status(500).json({ error: "Ocurrió un error en el servidor." });
+  }
+});
+
+
+
+
+
+
+
+
+
+
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`🚀 Servidor ejecutándose en http://localhost:${PORT}`);
