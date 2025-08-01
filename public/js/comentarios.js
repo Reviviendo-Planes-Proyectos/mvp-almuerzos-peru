@@ -15,7 +15,7 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-console.log("Firebase inicializado correctamente");
+
 
 const auth = firebase.auth();
 
@@ -67,7 +67,7 @@ async function loadComments() {
     return;
   }
 
-  console.log("Cargando comentarios para restaurante:", currentRestaurant.id);
+
 
   // Mostrar indicador de carga
   showLoadingIndicator();
@@ -85,11 +85,6 @@ async function loadComments() {
       }
     );
 
-    console.log(
-      "Respuesta de comentarios:",
-      response.status,
-      response.statusText
-    );
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -98,7 +93,7 @@ async function loadComments() {
     }
 
     const data = await response.json();
-    console.log("Datos de comentarios recibidos:", data);
+
 
     allComments = data.comments || [];
 
@@ -182,24 +177,24 @@ function createCommentCard(comment) {
   const userInitials = getUserInitials(comment.user.displayName);
 
   card.innerHTML = `
-    <div class="dish-info">
-      <img src="${comment.dish.photoUrl || "images/default-dish.jpg.png"}" 
-           alt="${comment.dish.name}" 
-           class="dish-icon" 
-           onerror="this.src='images/default-dish.jpg.png'" />
-      <div>
-        <h2 class="dish-name">${comment.dish.name}</h2>
-        <span class="dish-price">S/ ${parseFloat(comment.dish.price).toFixed(
-          2
-        )}</span>
+    <div class="comment-header">
+      <div class="dish-info-row">
+        <img src="${comment.dish.photoUrl || "images/default-dish.jpg.png"}" 
+             alt="${comment.dish.name}" 
+             class="dish-icon" 
+             onerror="this.src='images/default-dish.jpg.png'" />
+        <div class="dish-details">
+          <h2 class="dish-name">${comment.dish.name}</h2>
+          <span class="dish-price">S/ ${parseFloat(comment.dish.price).toFixed(2)}</span>
+        </div>
+        <div class="comment-date">${formattedDate}</div>
       </div>
-      <div class="comment-date">${formattedDate}</div>
     </div>
     <div class="user-info">
       <div class="user-avatar">${userInitials}</div>
-      <div>
-        <strong>${comment.user.displayName}</strong><br />
-        <small>Cliente</small>
+      <div class="user-details">
+        <strong class="user-name">${comment.user.displayName}</strong>
+        <small class="user-stats">Cliente</small>
       </div>
     </div>
     <p class="comment-text">${comment.content}</p>
@@ -338,7 +333,7 @@ function closeSidebar() {
 
 // Inicialización cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM cargado, iniciando comentarios.js");
+
 
   // Verificar que Firebase esté disponible
   if (typeof firebase === "undefined") {
@@ -353,7 +348,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  console.log("✅ Firebase está disponible");
+
 
   // Event listener para el filtro
   const filterSelect = document.getElementById("filter");
@@ -379,21 +374,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Limpiar el timeout una vez que Firebase responde
     clearTimeout(authTimeout);
 
-    console.log("=== ESTADO DE AUTENTICACIÓN ===");
-    console.log("User object:", user);
-    console.log("User UID:", user?.uid);
-    console.log("User email:", user?.email);
-    console.log("User displayName:", user?.displayName);
-    console.log("===============================");
+
 
     if (user) {
       currentUser = user;
-      console.log("✅ Usuario autenticado:", user.uid);
+
 
       try {
         // Obtener información del restaurante del usuario
         const idToken = await user.getIdToken();
-        console.log("🔑 Token obtenido, consultando restaurantes...");
+ 
 
         const response = await fetch(`/api/restaurants/user/${user.uid}`, {
           headers: {
@@ -402,19 +392,14 @@ document.addEventListener("DOMContentLoaded", () => {
           },
         });
 
-        console.log(
-          "📡 Respuesta del servidor:",
-          response.status,
-          response.statusText
-        );
 
         if (response.ok) {
           const restaurant = await response.json();
-          console.log("🏪 Restaurantes obtenidos:", restaurant);
+   
 
           if (restaurant && restaurant.id) {
             currentRestaurant = restaurant;
-            console.log("🎯 Restaurante actual:", currentRestaurant);
+        
 
             // Actualizar el nombre del restaurante en el sidebar
             const sidebarRestaurant =
@@ -433,9 +418,9 @@ document.addEventListener("DOMContentLoaded", () => {
               true
             );
             // Redirigir a dashboard para que puedan crear un restaurante
-            /*   setTimeout(() => {
+              setTimeout(() => {
               window.location.href = 'dashboard.html';
-            }, 3000); */
+            }, 3000); 
           }
         } else {
           const errorText = await response.text();
@@ -443,17 +428,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
           if (response.status === 403) {
             showError("No tienes permisos para acceder a esta sección", true);
-            /* setTimeout(() => {
+             setTimeout(() => {
               window.location.href = 'index.html';
-            }, 3000); */
+            }, 3000); 
           } else if (response.status === 404) {
             showError(
               "No tienes restaurantes registrados. Crea un restaurante primero.",
               true
             );
-            /* setTimeout(() => {
+             setTimeout(() => {
               window.location.href = 'dashboard.html';
-            }, 3000); */
+            }, 3000); 
           } else {
             showError(
               `Error al obtener información del restaurante: ${response.status}`
@@ -467,9 +452,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.log("❌ Usuario no autenticado, redirigiendo a login");
       // Dar un poco de tiempo para que Firebase termine de cargar
-      /*  setTimeout(() => {
+       setTimeout(() => {
         window.location.href = 'login.html';
-      }, 1000); */
+      }, 1000); 
     }
   });
 });
