@@ -473,6 +473,9 @@ function showDishes(cardId, cardName) {
   const saveButton = document.getElementById("save-card-changes-btn");
   if (cardNameInput) {
     cardNameInput.value = cardName;
+    
+
+    
     // Guardar automáticamente cuando el usuario salga del campo
     cardNameInput.onblur = async () => {
       const newName = cardNameInput.value.trim();
@@ -480,12 +483,16 @@ function showDishes(cardId, cardName) {
         await handleUpdateCardName();
       }
     };
-    // Habilitar/deshabilitar botón según cambios
+    
+    // Habilitar/deshabilitar botón según cambios y manejar contador
     cardNameInput.oninput = () => {
       const newName = cardNameInput.value.trim();
       const hasChanged = newName !== originalCardName;
       const isNotEmpty = newName !== "";
       saveButton.disabled = !(hasChanged && isNotEmpty);
+      
+      // Mostrar/ocultar alerta de límite
+      showCharacterLimitAlert(cardNameInput.value.length >= 35);
     };
   }
   // Mantener el botón visible y funcional
@@ -504,6 +511,9 @@ function showCards() {
   if (cardNameInput) {
     cardNameInput.oninput = null;
     cardNameInput.onblur = null;
+    // Limpiar alerta
+    const alert = document.getElementById("character-limit-alert");
+    if (alert) alert.style.display = "none";
   }
   if (saveButton) {
     saveButton.onclick = null;
@@ -2557,3 +2567,20 @@ window.addEventListener("DOMContentLoaded", () => {
   if (mainName && sideName)
     sideName.textContent = mainName.textContent || "Restaurante";
 });
+
+// Función para mostrar/ocultar alerta de límite de caracteres
+function showCharacterLimitAlert(show) {
+  const alert = document.getElementById("character-limit-alert");
+  if (alert) {
+    if (show) {
+      alert.style.display = "flex";
+      // Agregar un pequeño delay para la animación
+      setTimeout(() => {
+        alert.style.opacity = "1";
+      }, 10);
+    } else {
+      alert.style.display = "none";
+      alert.style.opacity = "0";
+    }
+  }
+}
