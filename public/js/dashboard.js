@@ -236,12 +236,20 @@ async function loadDishes(cardId) {
             <button class="edit-dish-btn" style="margin-top: 4px;">Editar</button>
         </div>
     </div>
-    <label class="toggle-switch">
-        <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${
-          dish.isActive ? "checked" : ""
-        }>
-        <span class="slider"></span>
-    </label>
+    <div class="item-actions">
+        <button class="edit-dish-btn" style="background: none; border: none; color: #666; cursor: pointer; padding: 0.25rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        </button>
+        <label class="toggle-switch">
+            <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${
+              dish.isActive ? "checked" : ""
+            }>
+            <span class="slider"></span>
+        </label>
+    </div>
 `;
         dishElement
           .querySelector(".edit-dish-btn")
@@ -2511,46 +2519,13 @@ function showLogoutModal({ duration = 2400 } = {}) {
       setTimeout(close, duration);
     });
   }
-function toggleSidebar() {
-  document.querySelector(".sidebar")?.classList.toggle("open");
-  document.querySelector(".overlay")?.classList.toggle("show");
-}
-function closeSidebar() {
-  document.querySelector(".sidebar")?.classList.remove("open");
-  document.querySelector(".overlay")?.classList.remove("show");
-}
-
-// Cerrar con ESC
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeSidebar();
-});
-
-// Marcar activo, cerrar menú y/o navegar
-document.addEventListener("click", (e) => {
-  const item = e.target.closest(".menu-item");
-  if (!item) return;
-
-  const href = item.getAttribute("href");
-  // Si es un enlace real distinto de "#" y no está vacío, dejamos que navegue:
-  if (href && href !== "#" && href.trim() !== "") {
-    closeSidebar();
-    return; // NO preventDefault → el navegador cargará qr.html
-  }
-
-  // Si no, era un "item" interno (href="#"), hacemos la lógica SPA:
-  e.preventDefault();
-  document
-    .querySelectorAll(".menu-item")
-    .forEach((i) => i.classList.remove("active"));
-  item.classList.add("active");
-  closeSidebar();
-});
 
 
-// Poner el nombre real del restaurante en el sidebar
+/* // Poner el nombre real del restaurante en el sidebar
 window.addEventListener("DOMContentLoaded", () => {
   const mainName = document.getElementById("restaurant-name");
   const sideName = document.getElementById("sidebar-restaurant");
   if (mainName && sideName)
     sideName.textContent = mainName.textContent || "Restaurante";
 });
+ */

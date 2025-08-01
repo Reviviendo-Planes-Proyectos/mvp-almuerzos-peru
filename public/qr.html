@@ -21,11 +21,15 @@
             <p id="sidebar-restaurant">Restaurante</p>
         </div>
         <div class="sidebar-menu">
+            <a href="dashboard.html" class="menu-item">
+                <span class="menu-item-icon">🏠</span>
+                MIS CARTAS
+            </a>
             <a href="qr.html" class="menu-item active">
                 <span class="menu-item-icon">📱</span>
                 MI QR
             </a>
-            <a href="#" class="menu-item">
+            <a href="comentarios.html" class="menu-item">
                 <span class="menu-item-icon">💬</span>
                 COMENTARIOS
             </a>
@@ -33,10 +37,19 @@
     </div>
 
 
-    <header class="main-header">
-
-        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-
+    <header class="main-header" style="background: linear-gradient(135deg, #FF8C00, #FFA500); padding: 1rem; color: white; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button class="menu-btn" onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">☰</button>
+            <div>
+                <a href="index.html" style="text-decoration: none; color: inherit;">
+                    <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Almuerzos Perú</h1>
+                </a>
+                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">MI QR</p>
+            </div>
+        </div>
+        <button class="logout-button" onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s;">
+            Cerrar sesión
+        </button>
     </header>
 
 
@@ -110,7 +123,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+    <script src="js/sidebar.js"></script>
     <script src="js/qr.js"></script>
+    <script src="js/dashboard.js"></script>
 </body>
 
 </html>
