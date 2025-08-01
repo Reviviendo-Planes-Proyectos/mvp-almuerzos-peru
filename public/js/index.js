@@ -15,7 +15,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadMoreBtn = document.getElementById("load-more-btn");
   // const districtFilter = document.getElementById("district-filter"); // Comentado - no se usa
   const districtSearch = document.getElementById("district-search");
-  const districtsList = document.getElementById("districts-list");
+const customDropdown = document.getElementById("custom-dropdown");
+const dropdownContent = document.getElementById("dropdown-content");
+const dropdownArrow = document.querySelector(".dropdown-arrow");
   const myRestaurantButton = document.getElementById("my-restaurant-btn");
 
   const myAccountBtn = document.getElementById("my-account-btn");
@@ -570,43 +572,139 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Función para inicializar el buscador de distritos
   async function initializeDistrictSearch() {
-    if (!districtSearch || !districtsList) return;
+    if (!districtSearch || !customDropdown || !dropdownContent) return;
 
     try {
       const districts = await loadAllDistricts();
+      let isDropdownOpen = false;
+      let filteredDistricts = [...districts];
       
-      // Limpiar opciones existentes
-      districtsList.innerHTML = "";
+      // Función para renderizar las opciones del dropdown
+      function renderDropdownOptions(districtsToShow) {
+        dropdownContent.innerHTML = "";
+        
+        // Agregar opción "Todos los distritos"
+        const allOption = document.createElement("div");
+        allOption.className = "dropdown-option";
+        allOption.innerHTML = `
+          <span>Todos los distritos</span>
+          <svg class="dropdown-option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        `;
+        allOption.addEventListener("click", () => {
+          districtSearch.value = "";
+          currentDistrictFilter = "";
+          currentSearchQuery = "";
+          closeDropdown();
+          loadRestaurants(true);
+        });
+        dropdownContent.appendChild(allOption);
+        
+        // Agregar opciones de distritos
+        districtsToShow.forEach((district) => {
+          const option = document.createElement("div");
+          option.className = "dropdown-option";
+          option.innerHTML = `
+            <span>${district}</span>
+            <svg class="dropdown-option-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          `;
+          option.addEventListener("click", () => {
+            districtSearch.value = district;
+            currentDistrictFilter = district;
+            currentSearchQuery = "";
+            closeDropdown();
+            loadRestaurants(true);
+          });
+          dropdownContent.appendChild(option);
+        });
+      }
       
-      // Agregar opciones al datalist
-      districts.forEach((district) => {
-        const option = document.createElement("option");
-        option.value = district;
-        districtsList.appendChild(option);
+      // Función para abrir el dropdown
+      function openDropdown() {
+        isDropdownOpen = true;
+        customDropdown.classList.add("show");
+        dropdownArrow.classList.add("rotated");
+        renderDropdownOptions(filteredDistricts);
+      }
+      
+      // Función para cerrar el dropdown
+      function closeDropdown() {
+        isDropdownOpen = false;
+        customDropdown.classList.remove("show");
+        dropdownArrow.classList.remove("rotated");
+      }
+      
+      // Event listener para la flecha del dropdown
+      dropdownArrow.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (isDropdownOpen) {
+          closeDropdown();
+        } else {
+          openDropdown();
+        }
       });
-
-      // Agregar event listener para la búsqueda
+      
+      // Event listener para el input de búsqueda
       let searchTimeout;
       districtSearch.addEventListener("input", (e) => {
+        const searchValue = e.target.value.trim().toLowerCase();
+        
+        // Filtrar distritos basado en la búsqueda
+        filteredDistricts = districts.filter(district => 
+          district.toLowerCase().includes(searchValue)
+        );
+        
+        // Mostrar dropdown si hay texto y hay resultados
+        if (searchValue && filteredDistricts.length > 0) {
+          openDropdown();
+        } else if (!searchValue) {
+          filteredDistricts = [...districts];
+          if (isDropdownOpen) {
+            renderDropdownOptions(filteredDistricts);
+          }
+        }
+        
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-          const searchValue = e.target.value.trim();
-          
           // Verificar si el valor coincide exactamente con un distrito
-          const isExactDistrict = districts.includes(searchValue);
+          const isExactDistrict = districts.includes(e.target.value.trim());
           
           if (isExactDistrict) {
             // Si es un distrito exacto, filtrar por distrito
-            currentDistrictFilter = searchValue;
+            currentDistrictFilter = e.target.value.trim();
             currentSearchQuery = "";
           } else {
             // Si no es un distrito exacto, buscar por nombre
-            currentSearchQuery = searchValue;
+            currentSearchQuery = e.target.value.trim();
             currentDistrictFilter = "";
           }
           
           loadRestaurants(true);
         }, 300);
+      });
+      
+      // Event listener para hacer clic en el input
+      districtSearch.addEventListener("click", () => {
+        if (!isDropdownOpen) {
+          openDropdown();
+        }
+      });
+      
+      // Event listener para cerrar el dropdown al hacer clic fuera
+      document.addEventListener("click", (e) => {
+        if (!districtSearch.contains(e.target) && !customDropdown.contains(e.target) && !dropdownArrow.contains(e.target)) {
+          closeDropdown();
+        }
+      });
+      
+      // Event listener para teclas
+      districtSearch.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          closeDropdown();
+        }
       });
 
     } catch (error) {
