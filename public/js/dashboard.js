@@ -228,23 +228,28 @@ async function loadDishes(cardId) {
 
         dishElement.innerHTML = `
     <div class="item-details">
-        <img src="${imageUrl}" alt="Foto de ${
-          dish.name
-        }" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
+        <img src="${imageUrl}" alt="Foto de ${dish.name}" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
         <div>
-            <h3>${dish.name}</h3>
+            <h3 title="${dish.name}">${dish.name}</h3>
             <p>S/. ${dish.price.toFixed(2)}</p>
-            <p style="font-size: 0.85rem; color: #666;">Likes: ${
-              dish.likesCount || 0
-            }</p> 
+            <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
+            <button class="edit-dish-btn" style="margin-top: 4px;">Editar</button>
         </div>
     </div>
-    <label class="toggle-switch">
-        <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${
-          dish.isActive ? "checked" : ""
-        }>
-        <span class="slider"></span>
-    </label>
+    <div class="item-actions">
+        <button class="edit-dish-btn" style="background: none; border: none; color: #666; cursor: pointer; padding: 0.25rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+        </button>
+        <label class="toggle-switch">
+            <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${
+              dish.isActive ? "checked" : ""
+            }>
+            <span class="slider"></span>
+        </label>
+    </div>
 `;
         dishElement
           .querySelector(".edit-dish-btn")
@@ -283,6 +288,8 @@ async function handleUpdateCardName() {
     });
     if (!response.ok) throw new Error("Error del servidor al actualizar.");
     originalCardName = newName;
+    // Actualizar la lista de cartas para reflejar el cambio inmediatamente
+    await loadRestaurantCards();
     showToast("Nombre de la carta actualizado con éxito.");
   } catch (error) {
     console.error("Error al actualizar el nombre:", error);
@@ -471,16 +478,24 @@ function showDishes(cardId, cardName) {
   const saveButton = document.getElementById("save-card-changes-btn");
   if (cardNameInput) {
     cardNameInput.value = cardName;
-    cardNameInput.oninput = () => {
-      if (saveButton) {
-        const hasChanged = cardNameInput.value.trim() !== originalCardName;
-        const isNotEmpty = cardNameInput.value.trim() !== "";
-        saveButton.disabled = !hasChanged || !isNotEmpty;
+    // Guardar automáticamente cuando el usuario salga del campo
+    cardNameInput.onblur = async () => {
+      const newName = cardNameInput.value.trim();
+      if (newName !== originalCardName && newName !== "") {
+        await handleUpdateCardName();
       }
     };
+    // Habilitar/deshabilitar botón según cambios
+    cardNameInput.oninput = () => {
+      const newName = cardNameInput.value.trim();
+      const hasChanged = newName !== originalCardName;
+      const isNotEmpty = newName !== "";
+      saveButton.disabled = !(hasChanged && isNotEmpty);
+    };
   }
+  // Mantener el botón visible y funcional
   if (saveButton) {
-    saveButton.disabled = !0;
+    saveButton.style.display = "block";
     saveButton.onclick = handleUpdateCardName;
   }
   loadDishes(cardId);
@@ -491,8 +506,15 @@ function showCards() {
   currentCardId = null;
   const cardNameInput = document.getElementById("card-name-input");
   const saveButton = document.getElementById("save-card-changes-btn");
-  if (cardNameInput) cardNameInput.oninput = null;
-  if (saveButton) saveButton.onclick = null;
+  if (cardNameInput) {
+    cardNameInput.oninput = null;
+    cardNameInput.onblur = null;
+  }
+  if (saveButton) {
+    saveButton.onclick = null;
+    saveButton.disabled = true;
+    saveButton.style.display = "block";
+  }
   loadRestaurantCards();
 }
 let currentlyOpenModal = null;
@@ -2497,46 +2519,13 @@ function showLogoutModal({ duration = 2400 } = {}) {
       setTimeout(close, duration);
     });
   }
-function toggleSidebar() {
-  document.querySelector(".sidebar")?.classList.toggle("open");
-  document.querySelector(".overlay")?.classList.toggle("show");
-}
-function closeSidebar() {
-  document.querySelector(".sidebar")?.classList.remove("open");
-  document.querySelector(".overlay")?.classList.remove("show");
-}
-
-// Cerrar con ESC
-document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeSidebar();
-});
-
-// Marcar activo, cerrar menú y/o navegar
-document.addEventListener("click", (e) => {
-  const item = e.target.closest(".menu-item");
-  if (!item) return;
-
-  const href = item.getAttribute("href");
-  // Si es un enlace real distinto de "#" y no está vacío, dejamos que navegue:
-  if (href && href !== "#" && href.trim() !== "") {
-    closeSidebar();
-    return; // NO preventDefault → el navegador cargará qr.html
-  }
-
-  // Si no, era un "item" interno (href="#"), hacemos la lógica SPA:
-  e.preventDefault();
-  document
-    .querySelectorAll(".menu-item")
-    .forEach((i) => i.classList.remove("active"));
-  item.classList.add("active");
-  closeSidebar();
-});
 
 
-// Poner el nombre real del restaurante en el sidebar
+/* // Poner el nombre real del restaurante en el sidebar
 window.addEventListener("DOMContentLoaded", () => {
   const mainName = document.getElementById("restaurant-name");
   const sideName = document.getElementById("sidebar-restaurant");
   if (mainName && sideName)
     sideName.textContent = mainName.textContent || "Restaurante";
 });
+ */
