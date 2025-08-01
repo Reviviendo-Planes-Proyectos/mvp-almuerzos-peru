@@ -121,7 +121,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (message) {
       // Obtener platos previamente comentados del localStorage
-      const previousDishes = JSON.parse(localStorage.getItem("commentedDishes")) || [];
+      const previousDishes =
+        JSON.parse(localStorage.getItem("commentedDishes")) || [];
       const commentedDishesSet = new Set(previousDishes);
 
       Object.keys(shoppingCart).forEach((dishId) => {
@@ -166,11 +167,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
   function renderCommentIcons() {
-    const commentedDishes = JSON.parse(localStorage.getItem("commentedDishes")) || [];
+    const commentedDishes =
+      JSON.parse(localStorage.getItem("commentedDishes")) || [];
 
     const allDishIds = new Set([
       ...Object.keys(shoppingCart || {}),
-      ...commentedDishes
+      ...commentedDishes,
     ]);
 
     allDishIds.forEach((dishId) => {
@@ -183,7 +185,10 @@ document.addEventListener("DOMContentLoaded", () => {
           `.comment-button-container[data-dish-id="${dishId}"]`
         );
 
-        if (commentContainer && !commentContainer.querySelector(".comment-icon")) {
+        if (
+          commentContainer &&
+          !commentContainer.querySelector(".comment-icon")
+        ) {
           const commentIcon = document.createElement("span");
           commentIcon.className = "comment-icon";
           commentIcon.innerHTML = "🗨️";
@@ -222,8 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (dishFound) break;
       }
       if (dishFound) {
-        message += `  • ${quantity} ${dishFound.name
-          } - S/.${dishFound.price.toFixed(2)}\n`;
+        message += `  • ${quantity} ${
+          dishFound.name
+        } - S/.${dishFound.price.toFixed(2)}\n`;
         total += quantity * dishFound.price;
       }
     }
@@ -438,15 +444,13 @@ document.addEventListener("DOMContentLoaded", () => {
     logoutText.addEventListener("click", async () => {
       try {
         await auth.signOut();
-        showToast("You have been logged out.", "info");
+        await showLogoutModal({ duration: 2500 }); // 2.5 s
       } catch (error) {
         console.error("Error during logout:", error);
         showToast("Error during logout. Please try again.", "error");
       }
     });
   }
-
-
 
   async function loadUserFavorites(uid) {
     try {
@@ -506,26 +510,29 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // Verificar si ya existe un like en las últimas 24 horas
       const likeDoc = await likeDocRef.get();
-      
+
       if (likeDoc.exists) {
         const likeData = likeDoc.data();
         const likeTimestamp = likeData.timestamp;
-        
+
         if (likeTimestamp) {
           const now = new Date();
           const likeTime = likeTimestamp.toDate();
           const timeDifference = now - likeTime;
           const hoursElapsed = timeDifference / (1000 * 60 * 60);
           //const secondsElapsed = timeDifference / 1000;
-          
+
           if (hoursElapsed < 24) {
             //if (secondsElapsed < 30) {
-            showToast("Solo puedes dar un like por día. Inténtalo nuevamente mañana.", "warning");
+            showToast(
+              "Solo puedes dar un like por día. Inténtalo nuevamente mañana.",
+              "warning"
+            );
             return;
           }
         }
       }
-      
+
       const idToken = await user.getIdToken();
 
       const response = await fetch(`/api/dishes/${dishId}/like`, {
@@ -539,37 +546,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(
-          errorData.error || "Error al dar like al plato."
-        );
+        throw new Error(errorData.error || "Error al dar like al plato.");
       }
 
       const result = await response.json();
-      
+
       // ✅ Guardar el nuevo like en dailyLikes para control de tiempo
       await likeDocRef.set({
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
       });
-      
+
       // ✅ Cambiar icono en el botón pero mantenerlo habilitado para futuras validaciones
       button.innerHTML = "❤️";
       button.disabled = false;
       button.classList.add("liked");
-      
+
       showToast("¡Gracias por tu like!", "success");
-      
+
       // ✅ Actualizar contador de likes en pantalla
       const likesCountEl = document.getElementById(`likes-count-${dishId}`);
       if (likesCountEl) {
         likesCountEl.innerText = `${result.likesCount} me gusta`;
       }
-      
+
       // Actualizar el contador de favoritos del usuario
       if (favoritesCounter) {
         const currentCount = parseInt(favoritesCounter.textContent) || 0;
         favoritesCounter.textContent = currentCount + 1;
       }
-      
     } catch (error) {
       console.error("Error al dar like:", error);
       showToast("Hubo un error al registrar tu like.", "error");
@@ -666,7 +670,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (allCardsData.error) throw new Error(allCardsData.error);
 
       // Establecer currentCardId ANTES de llamar updateUI
-      if (cardIdFromUrl && allCardsData.find(card => card.id === cardIdFromUrl)) {
+      if (
+        cardIdFromUrl &&
+        allCardsData.find((card) => card.id === cardIdFromUrl)
+      ) {
         currentCardId = cardIdFromUrl;
       } else {
         currentCardId = allCardsData.length > 0 ? allCardsData[0].id : null;
@@ -682,9 +689,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateUI() {
     if (!currentRestaurant) return;
 
-    menuBanner.style.backgroundImage = `url('${currentRestaurant.photoUrl ||
+    menuBanner.style.backgroundImage = `url('${
+      currentRestaurant.photoUrl ||
       "https://placehold.co/600x200/555/FFF?text=Restaurant"
-      }')`;
+    }')`;
     restaurantNameElement.textContent =
       currentRestaurant.name.length > 40
         ? currentRestaurant.name.substring(0, 40) + "..."
@@ -736,12 +744,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function updateURLWithCardId(cardId) {
     const url = new URL(window.location);
-    url.searchParams.set('cardId', cardId);
-    
+    url.searchParams.set("cardId", cardId);
+
     // Actualizar la URL sin recargar la página
-    window.history.replaceState({}, '', url);
-    
-    console.log('URL actualizada con cardId:', cardId);
+    window.history.replaceState({}, "", url);
+
+    console.log("URL actualizada con cardId:", cardId);
   }
 
   function renderCardTabs() {
@@ -759,22 +767,22 @@ document.addEventListener("DOMContentLoaded", () => {
       button.onclick = () => {
         // Actualizar el currentCardId
         currentCardId = card.id;
-        
+
         // Remover clase active de todos los botones
-        document.querySelectorAll(".card-tab").forEach(tab => {
+        document.querySelectorAll(".card-tab").forEach((tab) => {
           tab.classList.remove("active");
         });
-        
+
         // Activar el botón clickeado
         button.classList.add("active");
-        
+
         // Actualizar la URL con el nuevo cardId
         updateURLWithCardId(card.id);
-        
+
         // Mostrar los platos de la carta seleccionada
         displayDishesForCard(card.id);
-        
-        console.log('Carta seleccionada:', card.name, 'ID:', currentCardId);
+
+        console.log("Carta seleccionada:", card.name, "ID:", currentCardId);
       };
       cardsNav.appendChild(button);
     });
@@ -816,7 +824,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           showToast(
             "Your browser does not support direct sharing. Copy and paste the link: " +
-            window.location.href,
+              window.location.href,
             "info"
           );
         }
@@ -837,7 +845,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const name = currentRestaurant.name || "";
-    const link = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${currentRestaurant.id}${currentCardId ? `&cardId=${currentCardId}` : ''}`;
+    const link = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${
+      currentRestaurant.id
+    }${currentCardId ? `&cardId=${currentCardId}` : ""}`;
     const yape = currentRestaurant.yape || "No disponible";
 
     const today = new Date()
@@ -920,20 +930,26 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="dish-image-wrapper">
           <img src="${imageUrl}" alt="${dish.name}">
           <div class="dish-like-control">
-              <button class="like-button dish-like-btn" data-dish-id="${dish.id}">${heartIcon}</button>
+              <button class="like-button dish-like-btn" data-dish-id="${
+                dish.id
+              }">${heartIcon}</button>
           </div>
       </div>
       <div class="dish-details">
           <h3 title="${dish.name}">${dish.name}</h3>
           <p title="S/. ${dish.price.toFixed(2)}">S/. ${dish.price.toFixed(2)}</p>
-          <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gusta</p> 
+          <p class="likes-count" id="likes-count-${dish.id}">${dish.likesCount || 0} me gusta</p>
       </div>
       <div class="quantity-container">
-        <div class="quantity-control" data-dish-id="${dish.id}" data-dish-name="${dish.name}" data-dish-price="${dish.price}">
+        <div class="quantity-control" data-dish-id="${
+          dish.id
+        }" data-dish-name="${dish.name}" data-dish-price="${dish.price}">
             <button class="quantity-btn add-btn">+</button>
             <div class="quantity-selector">
                 <button class="quantity-btn minus-btn">-</button>
-                <span class="quantity-display">${shoppingCart[dish.id] || 0}</span>
+                <span class="quantity-display">${
+                  shoppingCart[dish.id] || 0
+                }</span>
                 <button class="quantity-btn plus-btn">+</button>
             </div>
         </div>
@@ -1061,8 +1077,8 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({
           dishId,
           content,
-          invitedId
-        })
+          invitedId,
+        }),
       });
 
       const data = await response.json();
@@ -1076,12 +1092,12 @@ document.addEventListener("DOMContentLoaded", () => {
       throw err;
     }
   }
-  const commentText = document.getElementById('commentText');
-  const progressBar = document.getElementById('progressBar');
-  const charCounter = document.getElementById('charCounter'); // Asegúrate de tener este elemento en el HTML
+  const commentText = document.getElementById("commentText");
+  const progressBar = document.getElementById("progressBar");
+  const charCounter = document.getElementById("charCounter"); // Asegúrate de tener este elemento en el HTML
   const maxLength = commentText.maxLength;
 
-  commentText.addEventListener('input', () => {
+  commentText.addEventListener("input", () => {
     const length = commentText.value.length;
     const progress = (length / maxLength) * 100;
 
@@ -1092,23 +1108,23 @@ document.addEventListener("DOMContentLoaded", () => {
     charCounter.textContent = `${length} / ${maxLength}`;
 
     // Resetear clases de color
-    commentText.classList.remove('border-green', 'border-yellow', 'border-red');
-    charCounter.classList.remove('text-green', 'text-yellow', 'text-red'); // si usas colores dinámicos en texto
-    progressBar.classList.remove('bg-green', 'bg-yellow', 'bg-red'); // opcional si usas clases para color
+    commentText.classList.remove("border-green", "border-yellow", "border-red");
+    charCounter.classList.remove("text-green", "text-yellow", "text-red"); // si usas colores dinámicos en texto
+    progressBar.classList.remove("bg-green", "bg-yellow", "bg-red"); // opcional si usas clases para color
 
     // Aplicar color según el progreso
     if (progress < 50) {
-      progressBar.style.backgroundColor = '#4caf50'; // verde
-      commentText.classList.add('border-green');
-      charCounter.classList.add('text-green');
+      progressBar.style.backgroundColor = "#4caf50"; // verde
+      commentText.classList.add("border-green");
+      charCounter.classList.add("text-green");
     } else if (progress < 90) {
-      progressBar.style.backgroundColor = '#ffc107'; // amarillo
-      commentText.classList.add('border-yellow');
-      charCounter.classList.add('text-yellow');
+      progressBar.style.backgroundColor = "#ffc107"; // amarillo
+      commentText.classList.add("border-yellow");
+      charCounter.classList.add("text-yellow");
     } else {
-      progressBar.style.backgroundColor = '#f44336'; // rojo
-      commentText.classList.add('border-red');
-      charCounter.classList.add('text-red');
+      progressBar.style.backgroundColor = "#f44336"; // rojo
+      commentText.classList.add("border-red");
+      charCounter.classList.add("text-red");
     }
   });
   function resetCommentUI() {
@@ -1124,6 +1140,49 @@ document.addEventListener("DOMContentLoaded", () => {
     textarea.classList.add("border-yellow"); // color por defecto
     charCounter.textContent = `0 / ${maxLength}`;
   }
+
+  function showLogoutModal({ duration = 2400 } = {}) {
+    return new Promise((resolve) => {
+      // Overlay
+      const overlay = document.createElement("div");
+      overlay.className = "logout-modal__overlay";
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-label", "Sesión cerrada correctamente");
+
+      // Tarjeta del modal
+      overlay.innerHTML = `
+      <div class="logout-modal__card">
+        <div class="logout-modal__icon" aria-hidden="true">
+          <!-- Check en SVG para no depender de librerías -->
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none">
+            <path d="M20 6L9 17l-5-5" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="logout-modal__title">Sesión cerrada correctamente</div>
+        <div class="logout-modal__text">Vuelve pronto 👋</div>
+      </div>
+    `;
+
+      document.body.appendChild(overlay);
+
+      // Programar autocierre
+      const close = () => {
+        overlay.classList.add("logout-modal--closing");
+        // Espera a que termine la animación y limpia
+        const removeAfter = () => {
+          overlay.remove();
+          resolve();
+        };
+        overlay.addEventListener("animationend", removeAfter, { once: true });
+        // Fallback por si no dispara animationend
+        setTimeout(removeAfter, 350);
+      };
+
+      setTimeout(close, duration);
+    });
+  }
+
   initializeMenuPage();
   setupMyRestaurantButton();
 });
