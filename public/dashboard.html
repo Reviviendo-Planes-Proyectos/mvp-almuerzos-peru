@@ -170,12 +170,17 @@
   </div>
   <div id="main-content">
     <section id="cards-section">
-      <header class="main-header">
-        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
-        <a href="index.html">
-          <img style="width: 250px" src="images/logo.png" />
-        </a>
-        <button class="logout-button" onclick="logout()">
+      <header class="main-header" style="background: linear-gradient(135deg, #FF8C00, #FFA500); padding: 1rem; color: white; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button class="menu-btn" onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">☰</button>
+          <div>
+            <a href="index.html" style="text-decoration: none; color: inherit;">
+              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Almuerzos Perú</h1>
+            </a>
+            <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">MIS CARTAS</p>
+          </div>
+        </div>
+        <button class="logout-button" onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s;">
           Cerrar sesión
         </button>
       </header>
@@ -206,6 +211,20 @@
     </section>
 
     <section id="dishes-section">
+      <header class="main-header" style="background: linear-gradient(135deg, #FF8C00, #FFA500); padding: 1rem; color: white; display: flex; align-items: center; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+          <button class="menu-btn" onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">☰</button>
+          <div>
+            <a href="index.html" style="text-decoration: none; color: inherit;">
+              <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Almuerzos Perú</h1>
+            </a>
+            <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">PLATOS</p>
+          </div>
+        </div>
+        <button class="logout-button" onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s;">
+          Cerrar sesión
+        </button>
+      </header>
       <div class="container">
         <div class="dishes-header">
           <button class="back-button" onclick="showCards()">
