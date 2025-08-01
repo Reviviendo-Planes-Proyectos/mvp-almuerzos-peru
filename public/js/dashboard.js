@@ -227,7 +227,7 @@ async function loadDishes(cardId) {
           )}`;
 
         dishElement.innerHTML = `
-    <div class="item-details">
+    <div class="item-details" style="cursor: pointer; flex: 1;">
         <img src="${imageUrl}" alt="Foto de ${
           dish.name
         }" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
@@ -246,9 +246,16 @@ async function loadDishes(cardId) {
         <span class="slider"></span>
     </label>
 `;
-        dishElement
-          .querySelector(".edit-dish-btn")
-          .addEventListener("click", () => openEditDishModal(dish));
+        
+        // Hacer clickeable toda la carta excepto el toggle
+        const itemDetails = dishElement.querySelector(".item-details");
+        itemDetails.addEventListener("click", () => openEditDishModal(dish));
+        
+        // Prevenir que el click en el toggle active la edición
+        const toggleSwitch = dishElement.querySelector(".toggle-switch");
+        toggleSwitch.addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
         dishesListDiv.appendChild(dishElement);
       });
 

@@ -592,7 +592,7 @@ app.get("/api/restaurants/:restaurantId", async (req, res) => {
 
 app.get("/api/restaurants-paginated", async (req, res) => {
   try {
-    const { limit = 12, lastDocId, district } = req.query;
+    const { limit = 12, lastDocId, district, search } = req.query;
     let query = db.collection("restaurants").orderBy("createdAt", "desc");
 
     if (district && district !== "Todos") {
@@ -610,7 +610,7 @@ app.get("/api/restaurants-paginated", async (req, res) => {
     }
 
     const snapshot = await query.limit(parseInt(limit)).get();
-    const restaurants = [];
+    let restaurants = [];
 
     const restaurantPromises = snapshot.docs.map(async (doc) => {
       const restaurantData = { id: doc.id, ...doc.data() };
@@ -638,9 +638,19 @@ app.get("/api/restaurants-paginated", async (req, res) => {
 
     const restaurantsWithLikes = await Promise.all(restaurantPromises);
 
+    // Filtrar por búsqueda si se proporciona el parámetro search
+    if (search && search.trim() !== '') {
+      const searchTerm = search.toLowerCase().trim();
+      restaurants = restaurantsWithLikes.filter(restaurant => 
+        restaurant.name && restaurant.name.toLowerCase().includes(searchTerm)
+      );
+    } else {
+      restaurants = restaurantsWithLikes;
+    }
+
     const lastVisible = snapshot.docs[snapshot.docs.length - 1];
     res.status(200).json({
-      restaurants: restaurantsWithLikes,
+      restaurants: restaurants,
       lastDocId: lastVisible ? lastVisible.id : null,
     });
   } catch (error) {

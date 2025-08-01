@@ -191,11 +191,41 @@
     </div>
 
      <main class="main-content container">
-      <div class="zone-selector">
-        <h3>Restaurantes en:</h3>
-        <select id="district-filter" placeholder="Buscar distrito...">
-        </select>
-      </div> 
+      <div class="district-search-container">
+        <div class="search-wrapper">
+          <div class="search-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M21 21L16.514 16.506L21 21ZM19 10.5C19 15.194 15.194 19 10.5 19C5.806 19 2 15.194 2 10.5C2 5.806 5.806 2 10.5 2C15.194 2 19 5.806 19 10.5Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <input type="text" id="district-search" placeholder="Buscar por distrito o nombre..." list="districts-list" autocomplete="off" />
+          <datalist id="districts-list">
+          </datalist>
+        </div>
+      </div>
+
+      <div class="available-restaurants">
+        <div class="available-restaurants-content">
+          <svg class="available-restaurants-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Plato -->
+            <circle cx="12" cy="14" r="8" fill="#f5f5f5" stroke="#ddd" stroke-width="2"/>
+            <circle cx="12" cy="14" r="6" fill="#fff" stroke="#e0e0e0" stroke-width="1"/>
+            <!-- Tenedor -->
+            <path d="M6 3V11" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M5 3V8" stroke="#666" stroke-width="1" stroke-linecap="round"/>
+            <path d="M7 3V8" stroke="#666" stroke-width="1" stroke-linecap="round"/>
+            <!-- Cuchillo -->
+            <path d="M18 3V11" stroke="#666" stroke-width="1.5" stroke-linecap="round"/>
+            <path d="M17.5 3L18.5 4L17.5 5" stroke="#666" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Comida en el plato -->
+            <circle cx="10" cy="13" r="1.5" fill="#ff9800"/>
+            <circle cx="14" cy="15" r="1" fill="#4caf50"/>
+            <circle cx="12" cy="16" r="0.8" fill="#f44336"/>
+          </svg>
+          <span class="available-restaurants-text">Restaurantes disponibles</span>
+          <span class="available-restaurants-count">26 restaurantes activos</span>
+        </div>
+      </div>
 
       <div id="restaurants-list" class="restaurant-grid">
         <p style="text-align: center; grid-column: 1 / -1">
