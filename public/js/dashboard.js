@@ -283,6 +283,8 @@ async function handleUpdateCardName() {
     });
     if (!response.ok) throw new Error("Error del servidor al actualizar.");
     originalCardName = newName;
+    // Actualizar la lista de cartas para reflejar el cambio inmediatamente
+    await loadRestaurantCards();
     showToast("Nombre de la carta actualizado con éxito.");
   } catch (error) {
     console.error("Error al actualizar el nombre:", error);
@@ -471,16 +473,24 @@ function showDishes(cardId, cardName) {
   const saveButton = document.getElementById("save-card-changes-btn");
   if (cardNameInput) {
     cardNameInput.value = cardName;
-    cardNameInput.oninput = () => {
-      if (saveButton) {
-        const hasChanged = cardNameInput.value.trim() !== originalCardName;
-        const isNotEmpty = cardNameInput.value.trim() !== "";
-        saveButton.disabled = !hasChanged || !isNotEmpty;
+    // Guardar automáticamente cuando el usuario salga del campo
+    cardNameInput.onblur = async () => {
+      const newName = cardNameInput.value.trim();
+      if (newName !== originalCardName && newName !== "") {
+        await handleUpdateCardName();
       }
     };
+    // Habilitar/deshabilitar botón según cambios
+    cardNameInput.oninput = () => {
+      const newName = cardNameInput.value.trim();
+      const hasChanged = newName !== originalCardName;
+      const isNotEmpty = newName !== "";
+      saveButton.disabled = !(hasChanged && isNotEmpty);
+    };
   }
+  // Mantener el botón visible y funcional
   if (saveButton) {
-    saveButton.disabled = !0;
+    saveButton.style.display = "block";
     saveButton.onclick = handleUpdateCardName;
   }
   loadDishes(cardId);
@@ -491,8 +501,15 @@ function showCards() {
   currentCardId = null;
   const cardNameInput = document.getElementById("card-name-input");
   const saveButton = document.getElementById("save-card-changes-btn");
-  if (cardNameInput) cardNameInput.oninput = null;
-  if (saveButton) saveButton.onclick = null;
+  if (cardNameInput) {
+    cardNameInput.oninput = null;
+    cardNameInput.onblur = null;
+  }
+  if (saveButton) {
+    saveButton.onclick = null;
+    saveButton.disabled = true;
+    saveButton.style.display = "block";
+  }
   loadRestaurantCards();
 }
 let currentlyOpenModal = null;
