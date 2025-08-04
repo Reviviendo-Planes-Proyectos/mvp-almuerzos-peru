@@ -38,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
       currentUser = user;
       document.getElementById("cards-section").style.display = "block";
       loadDashboardData();
+      
+      // Actualizar el estado del restaurante cada minuto
+      setInterval(updateRestaurantStatus, 60000);
     } else {
       window.location.href = "/login.html";
     }
@@ -144,6 +147,9 @@ async function loadDashboardData() {
         hoursElement.textContent = "8:00 pm";
       }
     }
+
+    // Actualizar estado del restaurante (ABIERTO/CERRADO) basado en el horario actual
+    updateRestaurantStatus();
     
     // Actualizar calificación y cantidad de reseñas usando el nuevo endpoint
     const ratingElement = document.getElementById("restaurant-rating");
@@ -176,6 +182,65 @@ async function loadDashboardData() {
         '<p style="text-align: center; color: red; font-weight: 700;">Error de conexión o permisos.<br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos de dueño.</p>';
     }
   }
+}
+
+// Función para actualizar el estado del restaurante (ABIERTO/CERRADO)
+function updateRestaurantStatus() {
+  if (!currentRestaurant || !currentRestaurant.schedule) return;
+  
+  const statusBadge = document.querySelector('.status-badge');
+  if (!statusBadge) return;
+  
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes(); // Tiempo actual en minutos
+  const today = now.getDay(); // 0 = domingo, 1 = lunes, etc.
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const currentDay = dayNames[today];
+  
+  let daySchedule = currentRestaurant.schedule[currentDay];
+  
+  // Si no hay horario para hoy, usar lunes como fallback
+  if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+    daySchedule = currentRestaurant.schedule.monday;
+  }
+  
+  if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+    // Si no hay horario definido, mostrar como cerrado
+    statusBadge.textContent = 'CERRADO';
+    statusBadge.style.backgroundColor = '#ef4444';
+    return;
+  }
+  
+  // Convertir horarios a minutos
+  const openTime = convertTimeToMinutes(daySchedule.from);
+  const closeTime = convertTimeToMinutes(daySchedule.to);
+  
+  // Verificar si está dentro del horario
+  let isOpen = false;
+  
+  if (closeTime > openTime) {
+    // Horario normal (ej: 9:00 - 22:00)
+    isOpen = currentTime >= openTime && currentTime <= closeTime;
+  } else {
+    // Horario que cruza medianoche (ej: 20:00 - 02:00)
+    isOpen = currentTime >= openTime || currentTime <= closeTime;
+  }
+  
+  // Actualizar la etiqueta
+  if (isOpen) {
+    statusBadge.textContent = 'ABIERTO';
+    statusBadge.style.backgroundColor = '#00b44e';
+  } else {
+    statusBadge.textContent = 'CERRADO';
+    statusBadge.style.backgroundColor = '#ef4444';
+  }
+}
+
+// Función auxiliar para convertir tiempo HH:MM a minutos
+function convertTimeToMinutes(timeString) {
+  if (!timeString) return 0;
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
 async function loadRestaurantCards() {
