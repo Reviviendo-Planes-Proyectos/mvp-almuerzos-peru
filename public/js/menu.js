@@ -49,6 +49,65 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentCardId = null;
 
+  // --- Funciones para el estado del restaurante ---
+  function updateRestaurantStatus() {
+    if (!currentRestaurant || !currentRestaurant.schedule) return;
+    
+    const statusBadge = document.querySelector('.status-badge');
+    if (!statusBadge) return;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Tiempo actual en minutos
+    const today = now.getDay(); // 0 = domingo, 1 = lunes, etc.
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = dayNames[today];
+    
+    let daySchedule = currentRestaurant.schedule[currentDay];
+    
+    // Si no hay horario para hoy, usar lunes como fallback
+    if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+      daySchedule = currentRestaurant.schedule.monday;
+    }
+    
+    if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+      // Si no hay horario definido, mostrar como cerrado
+      statusBadge.textContent = 'CERRADO';
+      statusBadge.style.backgroundColor = '#ef4444';
+      return;
+    }
+    
+    // Convertir horarios a minutos
+    const openTime = convertTimeToMinutes(daySchedule.from);
+    const closeTime = convertTimeToMinutes(daySchedule.to);
+    
+    // Verificar si está dentro del horario
+    let isOpen = false;
+    
+    if (closeTime > openTime) {
+      // Horario normal (ej: 9:00 - 22:00)
+      isOpen = currentTime >= openTime && currentTime <= closeTime;
+    } else {
+      // Horario que cruza medianoche (ej: 20:00 - 02:00)
+      isOpen = currentTime >= openTime || currentTime <= closeTime;
+    }
+    
+    // Actualizar la etiqueta
+    if (isOpen) {
+      statusBadge.textContent = 'ABIERTO';
+      statusBadge.style.backgroundColor = '#00b44e';
+    } else {
+      statusBadge.textContent = 'CERRADO';
+      statusBadge.style.backgroundColor = '#ef4444';
+    }
+  }
+
+  // Función auxiliar para convertir tiempo HH:MM a minutos
+  function convertTimeToMinutes(timeString) {
+    if (!timeString) return 0;
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
+
   // --- Funciones auxiliares ---
   function showToast(message, type = "info", duration = 3000) {
     if (!toastNotification) return;
@@ -689,15 +748,70 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateUI() {
     if (!currentRestaurant) return;
 
-    menuBanner.style.backgroundImage = `url('${
-      currentRestaurant.photoUrl ||
-      "https://placehold.co/600x200/555/FFF?text=Restaurant"
-    }')`;
-    restaurantNameElement.textContent =
-      currentRestaurant.name.length > 40
-        ? currentRestaurant.name.substring(0, 40) + "..."
-        : currentRestaurant.name;
+    // No necesitamos más el background image ya que tenemos el nuevo diseño
+    restaurantNameElement.textContent = currentRestaurant.name || "Restaurante";
     restaurantDescriptionElement.textContent = currentRestaurant.description;
+
+    // Actualizar logo del restaurante
+    const logoImg = document.getElementById("restaurant-logo");
+    const logoPlaceholder = document.getElementById("restaurant-icon-placeholder");
+    
+    if (currentRestaurant.logoUrl && logoImg && logoPlaceholder) {
+      logoImg.src = currentRestaurant.logoUrl;
+      logoImg.style.display = "block";
+      logoPlaceholder.style.display = "none";
+    } else if (logoImg && logoPlaceholder) {
+      logoImg.style.display = "none";
+      logoPlaceholder.style.display = "block";
+    }
+    
+    // Actualizar la ubicación del restaurante
+    const locationElement = document.getElementById("restaurant-location");
+    if (locationElement) {
+      locationElement.textContent = currentRestaurant.district || "Ubicación no disponible";
+    }
+    
+    // Actualizar horario de cierre (usando el horario del día actual o lunes como default)
+    const hoursElement = document.getElementById("restaurant-hours");
+    if (hoursElement && currentRestaurant.schedule) {
+      const today = new Date().getDay(); // 0 = domingo, 1 = lunes, etc.
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const currentDay = dayNames[today];
+      
+      if (currentRestaurant.schedule[currentDay] && currentRestaurant.schedule[currentDay].to) {
+        // Mostrar solo la hora de cierre
+        hoursElement.textContent = currentRestaurant.schedule[currentDay].to;
+      } else if (currentRestaurant.schedule.monday && currentRestaurant.schedule.monday.to) {
+        // Usar lunes como fallback
+        hoursElement.textContent = currentRestaurant.schedule.monday.to;
+      } else {
+        hoursElement.textContent = "8:00 pm";
+      }
+    }
+    
+    // Actualizar calificación usando el endpoint
+    const ratingElement = document.getElementById("restaurant-rating");
+    if (ratingElement) {
+      // Llamar al endpoint de rating del restaurante
+      fetch(`/api/restaurants/${currentRestaurant.id}/rating`)
+        .then(response => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error('Rating endpoint not available');
+          }
+        })
+        .then(ratingData => {
+          ratingElement.textContent = `${ratingData.rating} • ${ratingData.reviewCount}`;
+        })
+        .catch(error => {
+          console.log('Using fallback rating data');
+          ratingElement.textContent = "4.0 • 100";
+        });
+    }
+
+    // Actualizar estado del restaurante
+    updateRestaurantStatus();
 
     if (shareButton) {
       shareButton.style.display = "flex";
@@ -1185,4 +1299,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initializeMenuPage();
   setupMyRestaurantButton();
+  
+  // Actualizar el estado del restaurante cada minuto
+  setInterval(updateRestaurantStatus, 60000);
 });
