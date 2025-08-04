@@ -38,6 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
       currentUser = user;
       document.getElementById("cards-section").style.display = "block";
       loadDashboardData();
+      
+      // Actualizar el estado del restaurante cada minuto
+      setInterval(updateRestaurantStatus, 60000);
     } else {
       window.location.href = "/login.html";
     }
@@ -108,13 +111,67 @@ async function loadDashboardData() {
     const banner = document.getElementById("restaurant-banner");
     document.getElementById("restaurant-name").textContent =
       currentRestaurant.name;
-    if (currentRestaurant.photoUrl && banner) {
-      banner.style.backgroundImage = `url('${currentRestaurant.photoUrl}')`;
-    } else if (banner) {
-      banner.style.backgroundImage = `url('https://placehold.co/600x150/333/FFF?text=${encodeURIComponent(
-        currentRestaurant.name
-      )}')`;
+    
+    // Actualizar el logo del restaurante
+    const logoImg = document.getElementById("restaurant-logo");
+    const logoPlaceholder = document.getElementById("restaurant-icon-placeholder");
+    if (currentRestaurant.logoUrl && logoImg && logoPlaceholder) {
+      logoImg.src = currentRestaurant.logoUrl;
+      logoImg.style.display = "block";
+      logoPlaceholder.style.display = "none";
+    } else if (logoImg && logoPlaceholder) {
+      logoImg.style.display = "none";
+      logoPlaceholder.style.display = "block";
     }
+    
+    // Actualizar la ubicación del restaurante
+    const locationElement = document.getElementById("restaurant-location");
+    if (locationElement) {
+      locationElement.textContent = currentRestaurant.district || "Ubicación no disponible";
+    }
+    
+    // Actualizar horario de cierre (usando el horario del día actual o lunes como default)
+    const hoursElement = document.getElementById("restaurant-hours");
+    if (hoursElement && currentRestaurant.schedule) {
+      const today = new Date().getDay(); // 0 = domingo, 1 = lunes, etc.
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const currentDay = dayNames[today];
+      
+      if (currentRestaurant.schedule[currentDay] && currentRestaurant.schedule[currentDay].to) {
+        // Mostrar solo la hora de cierre
+        hoursElement.textContent = currentRestaurant.schedule[currentDay].to;
+      } else if (currentRestaurant.schedule.monday && currentRestaurant.schedule.monday.to) {
+        // Usar lunes como fallback
+        hoursElement.textContent = currentRestaurant.schedule.monday.to;
+      } else {
+        hoursElement.textContent = "8:00 pm";
+      }
+    }
+
+    // Actualizar estado del restaurante (ABIERTO/CERRADO) basado en el horario actual
+    updateRestaurantStatus();
+    
+    // Actualizar calificación y cantidad de reseñas usando el nuevo endpoint
+    const ratingElement = document.getElementById("restaurant-rating");
+    if (ratingElement) {
+      try {
+        const ratingResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/rating`);
+        if (ratingResponse.ok) {
+          const ratingData = await ratingResponse.json();
+          
+          ratingElement.textContent = `${ratingData.rating} • ${ratingData.reviewCount}`;
+        } else {
+     
+          ratingElement.textContent = "4.0 • 100";
+        }
+      } catch (error) {
+        console.error("Error fetching restaurant rating:", error);
+  
+        ratingElement.textContent = "4.0 • 100";
+      }
+    }
+    
+    
     await loadRestaurantCards(); // Llama a la siguiente función de carga
     if (loadingOverlay) loadingOverlay.style.display = "none";
     if (mainContent) mainContent.style.display = "block";
@@ -125,6 +182,65 @@ async function loadDashboardData() {
         '<p style="text-align: center; color: red; font-weight: 700;">Error de conexión o permisos.<br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos de dueño.</p>';
     }
   }
+}
+
+// Función para actualizar el estado del restaurante (ABIERTO/CERRADO)
+function updateRestaurantStatus() {
+  if (!currentRestaurant || !currentRestaurant.schedule) return;
+  
+  const statusBadge = document.querySelector('.status-badge');
+  if (!statusBadge) return;
+  
+  const now = new Date();
+  const currentTime = now.getHours() * 60 + now.getMinutes(); // Tiempo actual en minutos
+  const today = now.getDay(); // 0 = domingo, 1 = lunes, etc.
+  const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+  const currentDay = dayNames[today];
+  
+  let daySchedule = currentRestaurant.schedule[currentDay];
+  
+  // Si no hay horario para hoy, usar lunes como fallback
+  if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+    daySchedule = currentRestaurant.schedule.monday;
+  }
+  
+  if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+    // Si no hay horario definido, mostrar como cerrado
+    statusBadge.textContent = 'CERRADO';
+    statusBadge.style.backgroundColor = '#ef4444';
+    return;
+  }
+  
+  // Convertir horarios a minutos
+  const openTime = convertTimeToMinutes(daySchedule.from);
+  const closeTime = convertTimeToMinutes(daySchedule.to);
+  
+  // Verificar si está dentro del horario
+  let isOpen = false;
+  
+  if (closeTime > openTime) {
+    // Horario normal (ej: 9:00 - 22:00)
+    isOpen = currentTime >= openTime && currentTime <= closeTime;
+  } else {
+    // Horario que cruza medianoche (ej: 20:00 - 02:00)
+    isOpen = currentTime >= openTime || currentTime <= closeTime;
+  }
+  
+  // Actualizar la etiqueta
+  if (isOpen) {
+    statusBadge.textContent = 'ABIERTO';
+    statusBadge.style.backgroundColor = '#00b44e';
+  } else {
+    statusBadge.textContent = 'CERRADO';
+    statusBadge.style.backgroundColor = '#ef4444';
+  }
+}
+
+// Función auxiliar para convertir tiempo HH:MM a minutos
+function convertTimeToMinutes(timeString) {
+  if (!timeString) return 0;
+  const [hours, minutes] = timeString.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
 async function loadRestaurantCards() {
@@ -227,8 +343,12 @@ async function loadDishes(cardId) {
           )}`;
 
         dishElement.innerHTML = `
-    <div class="item-details">
-        <img src="${imageUrl}" alt="Foto de ${dish.name}" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
+
+    <div class="item-details" style="cursor: pointer; flex: 1;">
+        <img src="${imageUrl}" alt="Foto de ${
+          dish.name
+        }" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
+
         <div>
             <h3 title="${dish.name}">${dish.name}</h3>
             <p>S/. ${dish.price.toFixed(2)}</p>
@@ -251,9 +371,16 @@ async function loadDishes(cardId) {
         </label>
     </div>
 `;
-        dishElement
-          .querySelector(".edit-dish-btn")
-          .addEventListener("click", () => openEditDishModal(dish));
+        
+        // Hacer clickeable toda la carta excepto el toggle
+        const itemDetails = dishElement.querySelector(".item-details");
+        itemDetails.addEventListener("click", () => openEditDishModal(dish));
+        
+        // Prevenir que el click en el toggle active la edición
+        const toggleSwitch = dishElement.querySelector(".toggle-switch");
+        toggleSwitch.addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
         dishesListDiv.appendChild(dishElement);
       });
 
@@ -269,35 +396,69 @@ async function loadDishes(cardId) {
 }
 
 async function handleUpdateCardName() {
-  if (!currentCardId) return;
+  if (!currentCardId) {
+    console.error("No hay currentCardId disponible");
+    return;
+  }
+  
   const saveButton = document.getElementById("save-card-changes-btn");
   const cardNameInput = document.getElementById("card-name-input");
+  
+  if (!saveButton || !cardNameInput) {
+    console.error("Elementos del DOM no encontrados");
+    return;
+  }
+  
   const newName = cardNameInput.value.trim();
   if (newName === originalCardName || newName === "") return;
-  saveButton.disabled = !0;
+  
+  // Verificar que currentUser esté disponible
+  if (!currentUser) {
+    console.error("Usuario no autenticado");
+    showToast("Error: usuario no autenticado.");
+    return;
+  }
+  
+  // Feedback inmediato sin bloquear la UI
+  saveButton.disabled = true;
   saveButton.textContent = "Guardando...";
+  
   try {
-    const idToken = await currentUser.getIdToken(); // Get token
+    const idToken = await currentUser.getIdToken();
     const response = await fetch(`/api/cards/${currentCardId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`, // Add token
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ name: newName }),
     });
-    if (!response.ok) throw new Error("Error del servidor al actualizar.");
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error del servidor:", errorText);
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+    
+    // Actualizar estado local inmediatamente
     originalCardName = newName;
-    // Actualizar la lista de cartas para reflejar el cambio inmediatamente
-    await loadRestaurantCards();
-    showToast("Nombre de la carta actualizado con éxito.");
+    
+    // Mostrar éxito inmediatamente sin recargar toda la lista
+    showToast("Nombre actualizado con éxito.");
+    
+    // Actualizar solo el título de la carta actual en el DOM
+    const cardTitle = document.querySelector('.card-title');
+    if (cardTitle) {
+      cardTitle.textContent = newName;
+    }
+    
   } catch (error) {
     console.error("Error al actualizar el nombre:", error);
-    alert("No se pudieron guardar los cambios.");
+    showToast("Error al guardar los cambios.");
     cardNameInput.value = originalCardName;
   } finally {
     saveButton.textContent = "Guardar cambios";
-    saveButton.disabled = !0;
+    saveButton.disabled = true;
   }
 }
 
@@ -478,20 +639,103 @@ function showDishes(cardId, cardName) {
   const saveButton = document.getElementById("save-card-changes-btn");
   if (cardNameInput) {
     cardNameInput.value = cardName;
-    // Guardar automáticamente cuando el usuario salga del campo
-    cardNameInput.onblur = async () => {
-      const newName = cardNameInput.value.trim();
-      if (newName !== originalCardName && newName !== "") {
-        await handleUpdateCardName();
+    
+    // Variables para el sistema de auto-guardado unificado
+    let saveTimeout = null;
+    let isSaving = false;
+    
+    // Función unificada de guardado con debouncing
+    const debouncedSave = async (delay = 500) => {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
       }
+      
+      saveTimeout = setTimeout(async () => {
+        const newName = cardNameInput.value.trim();
+        if (newName !== originalCardName && newName !== "" && !isSaving && currentUser && currentCardId) {
+          isSaving = true;
+          try {
+            const idToken = await currentUser.getIdToken();
+            const response = await fetch(`/api/cards/${currentCardId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`,
+              },
+              body: JSON.stringify({ name: newName }),
+              keepalive: true
+            });
+            
+            if (response.ok) {
+              originalCardName = newName;
+              console.log("Nombre guardado automáticamente:", newName);
+              
+              // Actualizar el título en el DOM
+              const cardTitle = document.querySelector('.card-title');
+              if (cardTitle) {
+                cardTitle.textContent = newName;
+              }
+            } else {
+              console.error("Error al guardar:", response.status);
+            }
+          } catch (error) {
+            console.error("Error al guardar:", error);
+          } finally {
+            isSaving = false;
+          }
+        }
+      }, delay);
     };
-    // Habilitar/deshabilitar botón según cambios
+    
+    // Función de guardado inmediato para casos críticos
+    const immediateSave = async () => {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+        saveTimeout = null;
+      }
+      await debouncedSave(0);
+    };
+    
+    // Event listeners unificados
     cardNameInput.oninput = () => {
+      // Guardar con debounce largo mientras escribe
+      debouncedSave(1000);
+      
+      // Lógica del botón (mantener funcionalidad existente)
       const newName = cardNameInput.value.trim();
       const hasChanged = newName !== originalCardName;
       const isNotEmpty = newName !== "";
       saveButton.disabled = !(hasChanged && isNotEmpty);
+      showCharacterLimitAlert(cardNameInput.value.length >= 35);
     };
+    
+    cardNameInput.onblur = () => {
+      // Guardar inmediatamente al salir del campo
+      debouncedSave(100);
+    };
+    
+    // Solo agregar event listeners globales si no existen ya
+    if (!cardNameInput.dataset.cleanupListeners) {
+      const handleVisibilityChange = async () => {
+        if (document.visibilityState === 'hidden') {
+          await immediateSave();
+        }
+      };
+      
+      const handleBeforeUnload = async () => {
+        await immediateSave();
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      
+      // Almacenar referencias para cleanup
+      cardNameInput.handleVisibilityChange = handleVisibilityChange;
+      cardNameInput.handleBeforeUnload = handleBeforeUnload;
+      cardNameInput.debouncedSave = debouncedSave;
+      cardNameInput.immediateSave = immediateSave;
+      cardNameInput.dataset.cleanupListeners = 'true';
+    }
   }
   // Mantener el botón visible y funcional
   if (saveButton) {
@@ -509,6 +753,34 @@ function showCards() {
   if (cardNameInput) {
     cardNameInput.oninput = null;
     cardNameInput.onblur = null;
+    
+    // Limpiar event listeners globales y timeouts si fueron agregados
+    if (cardNameInput.dataset.cleanupListeners === 'true') {
+      // Limpiar timeout pendiente si existe
+      if (cardNameInput.debouncedSave) {
+        // Forzar guardado inmediato antes de limpiar
+        cardNameInput.immediateSave();
+      }
+      
+      // Remover los event listeners usando las referencias almacenadas
+      if (cardNameInput.handleVisibilityChange) {
+        document.removeEventListener('visibilitychange', cardNameInput.handleVisibilityChange);
+        delete cardNameInput.handleVisibilityChange;
+      }
+      if (cardNameInput.handleBeforeUnload) {
+        window.removeEventListener('beforeunload', cardNameInput.handleBeforeUnload);
+        delete cardNameInput.handleBeforeUnload;
+      }
+      
+      // Limpiar referencias a funciones
+      delete cardNameInput.debouncedSave;
+      delete cardNameInput.immediateSave;
+      delete cardNameInput.dataset.cleanupListeners;
+    }
+    
+    // Limpiar alerta
+    const alert = document.getElementById("character-limit-alert");
+    if (alert) alert.style.display = "none";
   }
   if (saveButton) {
     saveButton.onclick = null;
@@ -2528,4 +2800,21 @@ window.addEventListener("DOMContentLoaded", () => {
   if (mainName && sideName)
     sideName.textContent = mainName.textContent || "Restaurante";
 });
+
+// Función para mostrar/ocultar alerta de límite de caracteres
+function showCharacterLimitAlert(show) {
+  const alert = document.getElementById("character-limit-alert");
+  if (alert) {
+    if (show) {
+      alert.style.display = "flex";
+      // Agregar un pequeño delay para la animación
+      setTimeout(() => {
+        alert.style.opacity = "1";
+      }, 10);
+    } else {
+      alert.style.display = "none";
+      alert.style.opacity = "0";
+    }
+  }
+}
  */

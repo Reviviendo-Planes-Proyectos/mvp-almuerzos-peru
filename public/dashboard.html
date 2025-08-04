@@ -186,9 +186,37 @@
       </header>
 
       <div class="container">
-        <div id="restaurant-banner" class="restaurant-banner"
-          style="background-size: cover; background-position: center">
-          <h2 id="restaurant-name">Cargando...</h2>
+        <div id="restaurant-banner" class="restaurant-banner">
+          <div class="restaurant-header">
+            <div class="restaurant-icon">
+              <img id="restaurant-logo" src="" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: none;">
+              <svg id="restaurant-icon-placeholder" width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 13C8.66 13 10 11.66 10 10S8.66 7 7 7 4 8.34 4 10 5.34 13 7 13Z" fill="currentColor"/>
+                <path d="M20 13V6C20 5.45 19.55 5 19 5H14C13.45 5 13 5.45 13 6V13C13 13.55 13.45 14 14 14H19C19.55 14 20 13.55 20 13Z" fill="currentColor"/>
+                <path d="M21 15H3C2.45 15 2 15.45 2 16V18C2 18.55 2.45 19 3 19H21C21.55 19 22 18.55 22 18V16C22 15.45 21.55 15 21 15Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div class="restaurant-info">
+              <h2 id="restaurant-name">Cargando...</h2>
+              <div class="restaurant-details">
+                <div class="restaurant-detail">
+                  <span class="detail-icon">🕐</span>
+                  <span id="restaurant-hours"></span>
+                </div>
+                <div class="restaurant-detail">
+                  <span class="detail-icon">⭐</span>
+                  <span id="restaurant-rating"></span>
+                </div>
+                <div class="restaurant-detail">
+                  <span class="detail-icon">📍</span>
+                  <span id="restaurant-location"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="restaurant-status">
+            <span class="status-badge">ABIERTO</span>
+          </div>
           <button class="edit-restaurant-btn" onclick="openEditRestaurantModal()">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -256,6 +284,10 @@
             <div class="card-name-input-wrapper">
               <input type="text" id="card-name-input" class="card-name-input" maxlength="35" />
             </div>
+            <div class="character-limit-alert" id="character-limit-alert" style="display: none;">
+              <span class="alert-icon">👨‍🍳</span>
+              <span class="alert-text">¡Perfecto! Has usado todos los caracteres disponibles para el nombre de tu carta</span>
+            </div>
             <button class="whatsapp-share-button" onclick="shareCardOnWhatsApp()">
               <img src="images/celular.png" alt="Icono" class="whatsapp-icon" />
               Compartir carta en WhatsApp
@@ -273,11 +305,11 @@
 
           <div id="dishes-list"></div>
 
-          <!-- <div style="text-align: center; margin-top: 2rem">
+          <div style="text-align: center; margin-top: 2rem; display: none;">
             <button id="save-card-changes-btn" class="primary-button dark-button" style="width: 100%" disabled>
               Guardar cambios
             </button>
-          </div> -->
+          </div>
         </div>
       </div>
 

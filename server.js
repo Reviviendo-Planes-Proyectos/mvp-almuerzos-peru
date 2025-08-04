@@ -592,7 +592,7 @@ app.get("/api/restaurants/:restaurantId", async (req, res) => {
 
 app.get("/api/restaurants-paginated", async (req, res) => {
   try {
-    const { limit = 12, lastDocId, district } = req.query;
+    const { limit = 12, lastDocId, district, search, dish } = req.query;
     let query = db.collection("restaurants").orderBy("createdAt", "desc");
 
     if (district && district !== "Todos") {
@@ -610,7 +610,7 @@ app.get("/api/restaurants-paginated", async (req, res) => {
     }
 
     const snapshot = await query.limit(parseInt(limit)).get();
-    const restaurants = [];
+    let restaurants = [];
 
     const restaurantPromises = snapshot.docs.map(async (doc) => {
       const restaurantData = { id: doc.id, ...doc.data() };
@@ -638,9 +638,46 @@ app.get("/api/restaurants-paginated", async (req, res) => {
 
     const restaurantsWithLikes = await Promise.all(restaurantPromises);
 
+    // Filtrar por búsqueda si se proporciona el parámetro search
+    if (search && search.trim() !== '') {
+      const searchTerm = search.toLowerCase().trim();
+      restaurants = restaurantsWithLikes.filter(restaurant => 
+        restaurant.name && restaurant.name.toLowerCase().includes(searchTerm)
+      );
+    } else if (dish && dish.trim() !== '') {
+      // Filtrar por platillo si se proporciona el parámetro dish
+      const dishTerm = dish.toLowerCase().trim();
+      const restaurantPromises = restaurantsWithLikes.map(async (restaurant) => {
+        const cardsSnapshot = await db
+          .collection("cards")
+          .where("restaurantId", "==", restaurant.id)
+          .get();
+        
+        for (const cardDoc of cardsSnapshot.docs) {
+          const dishesSnapshot = await db
+            .collection("dishes")
+            .where("cardId", "==", cardDoc.id)
+            .get();
+          
+          for (const dishDoc of dishesSnapshot.docs) {
+            const dishData = dishDoc.data();
+            if (dishData.name && dishData.name.toLowerCase().includes(dishTerm)) {
+              return restaurant;
+            }
+          }
+        }
+        return null;
+      });
+      
+      const filteredResults = await Promise.all(restaurantPromises);
+      restaurants = filteredResults.filter(restaurant => restaurant !== null);
+    } else {
+      restaurants = restaurantsWithLikes;
+    }
+
     const lastVisible = snapshot.docs[snapshot.docs.length - 1];
     res.status(200).json({
-      restaurants: restaurantsWithLikes,
+      restaurants: restaurants,
       lastDocId: lastVisible ? lastVisible.id : null,
     });
   } catch (error) {
@@ -666,6 +703,100 @@ app.get("/api/districts", async (req, res) => {
     res.status(200).json(sortedDistricts);
   } catch (error) {
     console.error("Error fetching districts:", error);
+    res.status(500).json({ error: "An error occurred on the server." });
+  }
+});
+
+// Endpoint para obtener todos los platillos únicos
+app.get("/api/all-dishes", async (req, res) => {
+  try {
+    const dishesSet = new Set();
+    
+    // Obtener todos los platillos de todas las cartas
+    const dishesSnapshot = await db.collection("dishes").get();
+    
+    dishesSnapshot.forEach((doc) => {
+      const dishData = doc.data();
+      if (dishData.name && dishData.name.trim() !== "") {
+        dishesSet.add(dishData.name.trim());
+      }
+    });
+
+    const sortedDishes = Array.from(dishesSet).sort();
+    res.status(200).json(sortedDishes);
+  } catch (error) {
+    console.error("Error fetching dishes:", error);
+    res.status(500).json({ error: "An error occurred on the server." });
+  }
+});
+
+// Endpoint para obtener el rating de un restaurante basado en los likes de sus platos
+app.get("/api/restaurants/:restaurantId/rating", async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    
+    // Verificar que el restaurante existe
+    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
+    if (!restaurantDoc.exists) {
+      return res.status(404).json({ error: "Restaurant not found." });
+    }
+    
+    let totalLikes = 0;
+    let totalDishes = 0;
+    
+    // Obtener todas las cartas del restaurante
+    const cardsSnapshot = await db
+      .collection("cards")
+      .where("restaurantId", "==", restaurantId)
+      .get();
+    
+    // Para cada carta, obtener sus platos y sumar los likes
+    for (const cardDoc of cardsSnapshot.docs) {
+      const dishesSnapshot = await db
+        .collection("dishes")
+        .where("cardId", "==", cardDoc.id)
+        .get();
+      
+      dishesSnapshot.forEach((dishDoc) => {
+        const dishData = dishDoc.data();
+        totalLikes += dishData.likesCount || 0;
+        totalDishes++;
+      });
+    }
+    
+    // Calcular rating basado en los likes
+    let rating = 0;
+    let reviewCount = totalLikes;
+    
+    if (totalDishes > 0) {
+      // Algoritmo para convertir likes en rating (de 1 a 5 estrellas)
+      const avgLikesPerDish = totalLikes / totalDishes;
+      
+      // Escala logarítmica para el rating
+      if (avgLikesPerDish >= 50) rating = 5.0;
+      else if (avgLikesPerDish >= 25) rating = 4.8;
+      else if (avgLikesPerDish >= 15) rating = 4.5;
+      else if (avgLikesPerDish >= 8) rating = 4.2;
+      else if (avgLikesPerDish >= 4) rating = 4.0;
+      else if (avgLikesPerDish >= 2) rating = 3.5;
+      else if (avgLikesPerDish >= 1) rating = 3.0;
+      else rating = 2.5;
+    } else {
+      // Si no hay platos, usar valores por defecto
+      rating = 4.0;
+      reviewCount = Math.floor(Math.random() * 500) + 100; // Entre 100-600 reseñas simuladas
+    }
+    
+    res.status(200).json({
+      restaurantId,
+      rating: parseFloat(rating.toFixed(1)),
+      reviewCount,
+      totalLikes,
+      totalDishes
+    });
+    
+  } catch (error) {
+    console.error("Error fetching restaurant rating:", error);
     res.status(500).json({ error: "An error occurred on the server." });
   }
 });

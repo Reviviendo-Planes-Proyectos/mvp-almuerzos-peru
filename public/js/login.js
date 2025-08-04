@@ -20,14 +20,152 @@ let compressedLogoImageFile = null;
 
 // --- 3. FUNCIONES AUXILIARES DE UI (TOASTS, PANTALLAS, REDIRECCIÓN) ---
 
-// Función para mostrar alerta visual en el formulario
-function showModalAlert(message, type = "error") {
-  // Buscar el formulario activo
-  const activeForm = document.querySelector("#restaurant-form");
+// Función para mostrar modal de éxito con diseño del logout
+function showSuccessModal(message) {
+  // Crear overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'success-modal__overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: success-fade-in 0.3s ease;
+  `;
 
-  if (activeForm) {
+  // Crear tarjeta del modal
+  const card = document.createElement('div');
+  card.className = 'success-modal__card';
+  card.style.cssText = `
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    max-width: 400px;
+    width: 90%;
+    animation: success-pop-in 0.3s ease;
+  `;
+
+  // Crear icono de éxito (checkmark)
+  const icon = document.createElement('div');
+  icon.className = 'success-modal__icon';
+  icon.style.cssText = `
+    width: 64px;
+    height: 64px;
+    background-color: #22c55e;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+  `;
+  
+  icon.innerHTML = `
+    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20,6 9,17 4,12"></polyline>
+    </svg>
+  `;
+
+  // Crear título
+  const title = document.createElement('h3');
+  title.className = 'success-modal__title';
+  title.style.cssText = `
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+  `;
+  title.textContent = '¡Éxito!';
+
+  // Crear texto del mensaje
+  const text = document.createElement('p');
+  text.className = 'success-modal__text';
+  text.style.cssText = `
+    color: #6b7280;
+    margin: 0;
+    line-height: 1.5;
+  `;
+  text.textContent = message;
+
+  // Ensamblar el modal
+  card.appendChild(icon);
+  card.appendChild(title);
+  card.appendChild(text);
+  overlay.appendChild(card);
+
+  // Agregar estilos de animación
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes success-fade-in {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes success-pop-in {
+      from {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+    @keyframes success-fade-out {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    @keyframes success-pop-out {
+      from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+      to {
+        opacity: 0;
+        transform: scale(0.8) translateY(-20px);
+      }
+    }
+  `;
+  document.head.appendChild(style);
+
+  // Agregar al DOM
+  document.body.appendChild(overlay);
+
+  // Auto-cerrar después de 3 segundos
+  setTimeout(() => {
+    overlay.style.animation = 'success-fade-out 0.3s ease';
+    card.style.animation = 'success-pop-out 0.3s ease';
+    setTimeout(() => {
+      if (overlay.parentNode) {
+        overlay.parentNode.removeChild(overlay);
+      }
+      if (style.parentNode) {
+        style.parentNode.removeChild(style);
+      }
+    }, 300);
+  }, 3000);
+}
+
+// Función para mostrar alerta visual en el formulario (mantener para compatibilidad)
+function showModalAlert(message, type = "error") {
+  if (type === "success") {
+    showSuccessModal(message);
+    return;
+  }
+  
+  // Buscar el contenedor del formulario activo
+  const activeFormContainer = document.querySelector("#restaurant-form");
+  const activeForm = document.querySelector("#new-restaurant-form");
+
+  if (activeFormContainer && activeForm) {
     // Remover alerta anterior si existe
-    const existingAlert = activeForm.querySelector(".modal-alert");
+    const existingAlert = activeFormContainer.querySelector(".modal-alert");
     if (existingAlert) {
       existingAlert.remove();
     }
@@ -50,18 +188,8 @@ function showModalAlert(message, type = "error") {
 
     alertContainer.textContent = message;
 
-    // Buscar dónde insertar la alerta (después de los campos de imagen)
-    const form = activeForm.querySelector("form");
-    if (form) {
-      const formGroups = form.querySelectorAll(".form-group");
-      if (formGroups.length >= 3) {
-        // Insertar después del segundo grupo (logo) y antes del tercer grupo (nombre)
-        formGroups[2].parentNode.insertBefore(alertContainer, formGroups[2]);
-      } else {
-        // Fallback: insertar al inicio del formulario
-        form.insertBefore(alertContainer, form.firstChild);
-      }
-    }
+    // Insertar la alerta al inicio del formulario
+    activeForm.insertBefore(alertContainer, activeForm.firstChild);
 
     // Mostrar la alerta con animación
     setTimeout(() => {
@@ -780,11 +908,15 @@ async function handleRestaurantRegistration(e) {
         );
       }
 
-       showToast(
+      showModalAlert(
         "Restaurante registrado con éxito. Redirigiendo a tu dashboard...",
         "success"
       ); 
-      redirectToDashboard();
+      
+      // Esperar 3.5 segundos para que el usuario vea el modal antes de redirigir
+      setTimeout(() => {
+        redirectToDashboard();
+      }, 3500);
     } else {
       const error = await response.json();
       throw new Error(
