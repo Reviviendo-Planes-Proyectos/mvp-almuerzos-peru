@@ -1012,6 +1012,57 @@ input:checked + .slider:before {
     padding-right: 50px; /* espacio para el botón */
   }
 
+  .character-counter {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.75rem;
+    color: var(--gray-text);
+    background-color: var(--white);
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    pointer-events: none;
+  }
+
+  .character-limit-alert {
+    background-color: var(--brand-yellow-light);
+    border: 2px solid var(--brand-yellow);
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    animation: slideDown 0.3s ease-out;
+    box-shadow: 0 2px 8px rgba(255, 209, 0, 0.2);
+  }
+
+  .character-limit-alert .alert-icon {
+    font-size: 1.5rem;
+    color: var(--brand-yellow);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+  }
+
+  .character-limit-alert .alert-text {
+    color: var(--brand-dark);
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .floating-icon-btn {
     position: absolute;
     right: 10px;
@@ -1038,28 +1089,23 @@ input:checked + .slider:before {
   }
 
 
- .dashed-container {
-  border: 3px dashed #ccc;
-  border-radius: 20px;
-  text-align: center;
-  background: linear-gradient(to bottom, #ffffff, #f5f5f5);
-  margin-bottom: 20px;
-  padding: 0; 
-  overflow: hidden; 
-}
+  /* boton nuevo plato */
+  .dashed-container {
+    border: 3px dashed #ccc;
+    border-radius: 20px;
+    text-align: center;
+    background: linear-gradient(to bottom, #ffffff, #f5f5f5);
+    margin-bottom: 20px;
+  }
 
-.dashed-container button.primary-button {
-  all: unset; 
-  display: block;
-  width: 100%;
-  height: 100%;
-  padding: 0.45rem 0;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #555;
-  cursor: pointer;
-  text-align: center;
-}
+  .primary-button {
+    font-size: 1.5rem;
+    font-weight: 600;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    color: #555;
+  }
 
   .circle-button-container {
     display: flex;

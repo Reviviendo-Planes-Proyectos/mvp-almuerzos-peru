@@ -1,0 +1,10 @@
+[33ma683d9c[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/home[m[33m)[m feat(ui): implementar dropdown personalizado para búsqueda de distritos
+[33m1c73622[m[33m ([m[1;31morigin/feature/home[m[33m)[m feat(home): rediseño del home y corrección del botón editar
+[33m3aaba10[m feat: Mejorar alineación de elementos en tarjetas de restaurante
+[33me876aa1[m[33m ([m[1;32mfeature/fix_switch_platos[m[33m)[m Merge: Resolver conflictos y agregar cambios de develop
+[33m83977c9[m WIP: cambios antes de merge con develop
+[33mf16007c[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m Merge pull request #71 from Reviviendo-Planes-Proyectos/feature/fix_switch_platos
+[33mb779092[m Merge pull request #73 from Reviviendo-Planes-Proyectos/feature/leonardo-60
+[33m740a440[m[33m ([m[1;31morigin/feature/fix_switch_platos[m[33m)[m fix: mostrar texto 'Ver platos' completo en tarjetas del dashboard
+[33m4d072ed[m feat: implementar guardado automático y restaurar botón guardar cambios
+[33m78ddc2d[m[33m ([m[1;31morigin/feature/leonardo-60[m[33m)[m chore: mejora de vista y boton de aniadir plato ademas de compartir plato.

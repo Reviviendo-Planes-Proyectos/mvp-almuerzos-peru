@@ -343,8 +343,12 @@ async function loadDishes(cardId) {
           )}`;
 
         dishElement.innerHTML = `
-    <div class="item-details">
-        <img src="${imageUrl}" alt="Foto de ${dish.name}" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
+
+    <div class="item-details" style="cursor: pointer; flex: 1;">
+        <img src="${imageUrl}" alt="Foto de ${
+          dish.name
+        }" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
+
         <div>
             <h3 title="${dish.name}">${dish.name}</h3>
             <p>S/. ${dish.price.toFixed(2)}</p>
@@ -367,9 +371,16 @@ async function loadDishes(cardId) {
         </label>
     </div>
 `;
-        dishElement
-          .querySelector(".edit-dish-btn")
-          .addEventListener("click", () => openEditDishModal(dish));
+        
+        // Hacer clickeable toda la carta excepto el toggle
+        const itemDetails = dishElement.querySelector(".item-details");
+        itemDetails.addEventListener("click", () => openEditDishModal(dish));
+        
+        // Prevenir que el click en el toggle active la edición
+        const toggleSwitch = dishElement.querySelector(".toggle-switch");
+        toggleSwitch.addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
         dishesListDiv.appendChild(dishElement);
       });
 
@@ -594,6 +605,9 @@ function showDishes(cardId, cardName) {
   const saveButton = document.getElementById("save-card-changes-btn");
   if (cardNameInput) {
     cardNameInput.value = cardName;
+    
+
+    
     // Guardar automáticamente cuando el usuario salga del campo
     cardNameInput.onblur = async () => {
       const newName = cardNameInput.value.trim();
@@ -601,12 +615,16 @@ function showDishes(cardId, cardName) {
         await handleUpdateCardName();
       }
     };
-    // Habilitar/deshabilitar botón según cambios
+    
+    // Habilitar/deshabilitar botón según cambios y manejar contador
     cardNameInput.oninput = () => {
       const newName = cardNameInput.value.trim();
       const hasChanged = newName !== originalCardName;
       const isNotEmpty = newName !== "";
       saveButton.disabled = !(hasChanged && isNotEmpty);
+      
+      // Mostrar/ocultar alerta de límite
+      showCharacterLimitAlert(cardNameInput.value.length >= 35);
     };
   }
   // Mantener el botón visible y funcional
@@ -625,6 +643,9 @@ function showCards() {
   if (cardNameInput) {
     cardNameInput.oninput = null;
     cardNameInput.onblur = null;
+    // Limpiar alerta
+    const alert = document.getElementById("character-limit-alert");
+    if (alert) alert.style.display = "none";
   }
   if (saveButton) {
     saveButton.onclick = null;
@@ -2644,4 +2665,21 @@ window.addEventListener("DOMContentLoaded", () => {
   if (mainName && sideName)
     sideName.textContent = mainName.textContent || "Restaurante";
 });
+
+// Función para mostrar/ocultar alerta de límite de caracteres
+function showCharacterLimitAlert(show) {
+  const alert = document.getElementById("character-limit-alert");
+  if (alert) {
+    if (show) {
+      alert.style.display = "flex";
+      // Agregar un pequeño delay para la animación
+      setTimeout(() => {
+        alert.style.opacity = "1";
+      }, 10);
+    } else {
+      alert.style.display = "none";
+      alert.style.opacity = "0";
+    }
+  }
+}
  */
