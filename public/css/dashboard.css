@@ -203,6 +203,12 @@ body {
   overflow: hidden;
 }
 
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .clickable-card {
   cursor: pointer;
   transition: background-color 0.2s ease;
