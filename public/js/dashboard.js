@@ -396,35 +396,69 @@ async function loadDishes(cardId) {
 }
 
 async function handleUpdateCardName() {
-  if (!currentCardId) return;
+  if (!currentCardId) {
+    console.error("No hay currentCardId disponible");
+    return;
+  }
+  
   const saveButton = document.getElementById("save-card-changes-btn");
   const cardNameInput = document.getElementById("card-name-input");
+  
+  if (!saveButton || !cardNameInput) {
+    console.error("Elementos del DOM no encontrados");
+    return;
+  }
+  
   const newName = cardNameInput.value.trim();
   if (newName === originalCardName || newName === "") return;
-  saveButton.disabled = !0;
+  
+  // Verificar que currentUser esté disponible
+  if (!currentUser) {
+    console.error("Usuario no autenticado");
+    showToast("Error: usuario no autenticado.");
+    return;
+  }
+  
+  // Feedback inmediato sin bloquear la UI
+  saveButton.disabled = true;
   saveButton.textContent = "Guardando...";
+  
   try {
-    const idToken = await currentUser.getIdToken(); // Get token
+    const idToken = await currentUser.getIdToken();
     const response = await fetch(`/api/cards/${currentCardId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`, // Add token
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ name: newName }),
     });
-    if (!response.ok) throw new Error("Error del servidor al actualizar.");
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error del servidor:", errorText);
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
+    
+    // Actualizar estado local inmediatamente
     originalCardName = newName;
-    // Actualizar la lista de cartas para reflejar el cambio inmediatamente
-    await loadRestaurantCards();
-    showToast("Nombre de la carta actualizado con éxito.");
+    
+    // Mostrar éxito inmediatamente sin recargar toda la lista
+    showToast("Nombre actualizado con éxito.");
+    
+    // Actualizar solo el título de la carta actual en el DOM
+    const cardTitle = document.querySelector('.card-title');
+    if (cardTitle) {
+      cardTitle.textContent = newName;
+    }
+    
   } catch (error) {
     console.error("Error al actualizar el nombre:", error);
-    alert("No se pudieron guardar los cambios.");
+    showToast("Error al guardar los cambios.");
     cardNameInput.value = originalCardName;
   } finally {
     saveButton.textContent = "Guardar cambios";
-    saveButton.disabled = !0;
+    saveButton.disabled = true;
   }
 }
 
@@ -606,26 +640,102 @@ function showDishes(cardId, cardName) {
   if (cardNameInput) {
     cardNameInput.value = cardName;
     
-
+    // Variables para el sistema de auto-guardado unificado
+    let saveTimeout = null;
+    let isSaving = false;
     
-    // Guardar automáticamente cuando el usuario salga del campo
-    cardNameInput.onblur = async () => {
-      const newName = cardNameInput.value.trim();
-      if (newName !== originalCardName && newName !== "") {
-        await handleUpdateCardName();
+    // Función unificada de guardado con debouncing
+    const debouncedSave = async (delay = 500) => {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
       }
+      
+      saveTimeout = setTimeout(async () => {
+        const newName = cardNameInput.value.trim();
+        if (newName !== originalCardName && newName !== "" && !isSaving && currentUser && currentCardId) {
+          isSaving = true;
+          try {
+            const idToken = await currentUser.getIdToken();
+            const response = await fetch(`/api/cards/${currentCardId}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${idToken}`,
+              },
+              body: JSON.stringify({ name: newName }),
+              keepalive: true
+            });
+            
+            if (response.ok) {
+              originalCardName = newName;
+              console.log("Nombre guardado automáticamente:", newName);
+              
+              // Actualizar el título en el DOM
+              const cardTitle = document.querySelector('.card-title');
+              if (cardTitle) {
+                cardTitle.textContent = newName;
+              }
+            } else {
+              console.error("Error al guardar:", response.status);
+            }
+          } catch (error) {
+            console.error("Error al guardar:", error);
+          } finally {
+            isSaving = false;
+          }
+        }
+      }, delay);
     };
     
-    // Habilitar/deshabilitar botón según cambios y manejar contador
+    // Función de guardado inmediato para casos críticos
+    const immediateSave = async () => {
+      if (saveTimeout) {
+        clearTimeout(saveTimeout);
+        saveTimeout = null;
+      }
+      await debouncedSave(0);
+    };
+    
+    // Event listeners unificados
     cardNameInput.oninput = () => {
+      // Guardar con debounce largo mientras escribe
+      debouncedSave(1000);
+      
+      // Lógica del botón (mantener funcionalidad existente)
       const newName = cardNameInput.value.trim();
       const hasChanged = newName !== originalCardName;
       const isNotEmpty = newName !== "";
       saveButton.disabled = !(hasChanged && isNotEmpty);
-      
-      // Mostrar/ocultar alerta de límite
       showCharacterLimitAlert(cardNameInput.value.length >= 35);
     };
+    
+    cardNameInput.onblur = () => {
+      // Guardar inmediatamente al salir del campo
+      debouncedSave(100);
+    };
+    
+    // Solo agregar event listeners globales si no existen ya
+    if (!cardNameInput.dataset.cleanupListeners) {
+      const handleVisibilityChange = async () => {
+        if (document.visibilityState === 'hidden') {
+          await immediateSave();
+        }
+      };
+      
+      const handleBeforeUnload = async () => {
+        await immediateSave();
+      };
+      
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      window.addEventListener('beforeunload', handleBeforeUnload);
+      
+      // Almacenar referencias para cleanup
+      cardNameInput.handleVisibilityChange = handleVisibilityChange;
+      cardNameInput.handleBeforeUnload = handleBeforeUnload;
+      cardNameInput.debouncedSave = debouncedSave;
+      cardNameInput.immediateSave = immediateSave;
+      cardNameInput.dataset.cleanupListeners = 'true';
+    }
   }
   // Mantener el botón visible y funcional
   if (saveButton) {
@@ -643,6 +753,31 @@ function showCards() {
   if (cardNameInput) {
     cardNameInput.oninput = null;
     cardNameInput.onblur = null;
+    
+    // Limpiar event listeners globales y timeouts si fueron agregados
+    if (cardNameInput.dataset.cleanupListeners === 'true') {
+      // Limpiar timeout pendiente si existe
+      if (cardNameInput.debouncedSave) {
+        // Forzar guardado inmediato antes de limpiar
+        cardNameInput.immediateSave();
+      }
+      
+      // Remover los event listeners usando las referencias almacenadas
+      if (cardNameInput.handleVisibilityChange) {
+        document.removeEventListener('visibilitychange', cardNameInput.handleVisibilityChange);
+        delete cardNameInput.handleVisibilityChange;
+      }
+      if (cardNameInput.handleBeforeUnload) {
+        window.removeEventListener('beforeunload', cardNameInput.handleBeforeUnload);
+        delete cardNameInput.handleBeforeUnload;
+      }
+      
+      // Limpiar referencias a funciones
+      delete cardNameInput.debouncedSave;
+      delete cardNameInput.immediateSave;
+      delete cardNameInput.dataset.cleanupListeners;
+    }
+    
     // Limpiar alerta
     const alert = document.getElementById("character-limit-alert");
     if (alert) alert.style.display = "none";
