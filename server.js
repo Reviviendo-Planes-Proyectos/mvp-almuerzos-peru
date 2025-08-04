@@ -592,7 +592,7 @@ app.get("/api/restaurants/:restaurantId", async (req, res) => {
 
 app.get("/api/restaurants-paginated", async (req, res) => {
   try {
-    const { limit = 12, lastDocId, district, search } = req.query;
+    const { limit = 12, lastDocId, district, search, dish } = req.query;
     let query = db.collection("restaurants").orderBy("createdAt", "desc");
 
     if (district && district !== "Todos") {
@@ -644,6 +644,33 @@ app.get("/api/restaurants-paginated", async (req, res) => {
       restaurants = restaurantsWithLikes.filter(restaurant => 
         restaurant.name && restaurant.name.toLowerCase().includes(searchTerm)
       );
+    } else if (dish && dish.trim() !== '') {
+      // Filtrar por platillo si se proporciona el parámetro dish
+      const dishTerm = dish.toLowerCase().trim();
+      const restaurantPromises = restaurantsWithLikes.map(async (restaurant) => {
+        const cardsSnapshot = await db
+          .collection("cards")
+          .where("restaurantId", "==", restaurant.id)
+          .get();
+        
+        for (const cardDoc of cardsSnapshot.docs) {
+          const dishesSnapshot = await db
+            .collection("dishes")
+            .where("cardId", "==", cardDoc.id)
+            .get();
+          
+          for (const dishDoc of dishesSnapshot.docs) {
+            const dishData = dishDoc.data();
+            if (dishData.name && dishData.name.toLowerCase().includes(dishTerm)) {
+              return restaurant;
+            }
+          }
+        }
+        return null;
+      });
+      
+      const filteredResults = await Promise.all(restaurantPromises);
+      restaurants = filteredResults.filter(restaurant => restaurant !== null);
     } else {
       restaurants = restaurantsWithLikes;
     }
@@ -676,6 +703,29 @@ app.get("/api/districts", async (req, res) => {
     res.status(200).json(sortedDistricts);
   } catch (error) {
     console.error("Error fetching districts:", error);
+    res.status(500).json({ error: "An error occurred on the server." });
+  }
+});
+
+// Endpoint para obtener todos los platillos únicos
+app.get("/api/all-dishes", async (req, res) => {
+  try {
+    const dishesSet = new Set();
+    
+    // Obtener todos los platillos de todas las cartas
+    const dishesSnapshot = await db.collection("dishes").get();
+    
+    dishesSnapshot.forEach((doc) => {
+      const dishData = doc.data();
+      if (dishData.name && dishData.name.trim() !== "") {
+        dishesSet.add(dishData.name.trim());
+      }
+    });
+
+    const sortedDishes = Array.from(dishesSet).sort();
+    res.status(200).json(sortedDishes);
+  } catch (error) {
+    console.error("Error fetching dishes:", error);
     res.status(500).json({ error: "An error occurred on the server." });
   }
 });

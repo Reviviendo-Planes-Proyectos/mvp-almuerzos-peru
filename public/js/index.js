@@ -33,8 +33,11 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
   let lastVisibleDocId = null;
   let currentDistrictFilter = "";
   let currentSearchQuery = "";
+  let currentDishFilter = "";
   let currentUserFavorites = new Set();
   let tomSelectInstance = null;
+  let allDistricts = [];
+  let allDishes = [];
 
   function showToast(message, type, duration = 3000) {
     const toast = document.getElementById("toast-notification");
@@ -391,6 +394,57 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
     }
   }
 
+  // Función para cargar todos los platillos únicos desde Firebase
+  async function loadAllDishes() {
+    try {
+      const response = await fetch('/api/all-dishes');
+      if (!response.ok) throw new Error('Error al cargar platillos');
+      const dishes = await response.json();
+      allDishes = dishes.map(dish => dish.toLowerCase());
+      return allDishes;
+    } catch (error) {
+      console.error('Error loading dishes:', error);
+      return [];
+    }
+  }
+
+  // Función para interpretar el tipo de búsqueda
+  function interpretSearchQuery(query) {
+    if (!query || query.trim() === '') {
+      return { type: 'none', value: '' };
+    }
+
+    const searchTerm = query.trim();
+    const searchLower = searchTerm.toLowerCase();
+
+    // Verificar si es un distrito exacto
+    const exactDistrict = allDistricts.find(district => 
+      district.toLowerCase() === searchLower
+    );
+    if (exactDistrict) {
+      return { type: 'district', value: exactDistrict };
+    }
+
+    // Verificar si es un distrito parcial
+    const partialDistrict = allDistricts.find(district => 
+      district.toLowerCase().includes(searchLower)
+    );
+    if (partialDistrict && searchLower.length >= 3) {
+      return { type: 'district', value: partialDistrict };
+    }
+
+    // Verificar si es un platillo
+    const matchingDish = allDishes.find(dish => 
+      dish.includes(searchLower) || searchLower.includes(dish)
+    );
+    if (matchingDish) {
+      return { type: 'dish', value: searchTerm };
+    }
+
+    // Por defecto, buscar por nombre de restaurante
+    return { type: 'restaurant', value: searchTerm };
+  }
+
   async function loadRestaurants(reset = false) {
     if (reset) {
       if (restaurantsList)
@@ -409,6 +463,9 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
     }
     if (currentSearchQuery && currentSearchQuery.trim() !== "") {
       url += `&search=${encodeURIComponent(currentSearchQuery)}`;
+    }
+    if (currentDishFilter && currentDishFilter.trim() !== "") {
+      url += `&dish=${encodeURIComponent(currentDishFilter)}`;
     }
     try {
       const response = await fetch(url);
@@ -575,7 +632,13 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
     if (!districtSearch || !customDropdown || !dropdownContent) return;
 
     try {
+      // Cargar distritos
       const districts = await loadAllDistricts();
+      allDistricts = [...districts];
+      
+      // Cargar platillos en paralelo
+      await loadAllDishes();
+      
       let isDropdownOpen = false;
       let filteredDistricts = [...districts];
       
@@ -669,17 +732,24 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
         
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
-          // Verificar si el valor coincide exactamente con un distrito
-          const isExactDistrict = districts.includes(e.target.value.trim());
+          const searchResult = interpretSearchQuery(e.target.value);
           
-          if (isExactDistrict) {
-            // Si es un distrito exacto, filtrar por distrito
-            currentDistrictFilter = e.target.value.trim();
-            currentSearchQuery = "";
-          } else {
-            // Si no es un distrito exacto, buscar por nombre
-            currentSearchQuery = e.target.value.trim();
-            currentDistrictFilter = "";
+          // Resetear todos los filtros
+          currentDistrictFilter = "";
+          currentSearchQuery = "";
+          currentDishFilter = "";
+          
+          // Aplicar el filtro correspondiente según el tipo de búsqueda
+          switch (searchResult.type) {
+            case 'district':
+              currentDistrictFilter = searchResult.value;
+              break;
+            case 'dish':
+              currentDishFilter = searchResult.value;
+              break;
+            case 'restaurant':
+              currentSearchQuery = searchResult.value;
+              break;
           }
           
           loadRestaurants(true);

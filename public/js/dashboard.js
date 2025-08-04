@@ -236,7 +236,8 @@ async function loadDishes(cardId) {
         <div>
             <h3 title="${dish.name}">${dish.name}</h3>
             <p>S/. ${dish.price.toFixed(2)}</p>
-            <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p>
+            <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
+            <button class="edit-dish-btn" style="margin-top: 4px;">Editar</button>
         </div>
     </div>
     <label class="toggle-switch">
