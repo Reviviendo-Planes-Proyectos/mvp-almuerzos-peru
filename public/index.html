@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Almuerzos Perú</title>
 
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/index.css" as="style" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" as="style" />
+    
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -14,104 +18,284 @@
     <link rel="stylesheet" href="css/index.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" />
     <style>
- 
+/* Toast Notifications - Diseño mejorado y visible */
 .toast {
-    visibility: hidden; /* Hidden by default */
-    min-width: 250px;
-    margin-left: -125px; /* Centered */
-    background-color: #333;
-    color: #fff;
+    visibility: hidden;
+    min-width: 280px;
+    max-width: 85vw;
+    margin-left: -140px;
+    background: linear-gradient(135deg, var(--brand-yellow, #ffd100) 0%, #ffdd33 100%);
+    color: var(--brand-dark, #1f2937);
     text-align: center;
-    border-radius: 5px;
-    padding: 16px;
+    border-radius: 12px;
+    padding: 16px 20px;
     position: fixed;
     z-index: 10000;
     left: 50%;
-    bottom: 30px; 
-    font-size: 17px;
-    white-space: nowrap;
+    top: 20px;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 8px 25px rgba(255, 209, 0, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     opacity: 0;
-    transition: opacity 0.5s, visibility 0.5s;
+    transform: translateY(-50px);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .toast.show {
     visibility: visible; 
     opacity: 1;
+    transform: translateY(0);
 }
 
-
-.toast.info { background-color: #2196F3; } 
-.toast.success { background-color: #4CAF50; }
-.toast.error { background-color: #f44336; }
-.toast.warning { background-color: #ff9800; } 
-
-
-
-
-        .cont-but{
-          background-color: #1f2937; /* var(--brand-dark) */
-          color: #ffffff; /* var(--white) */
-          border-radius: 10px;
-          padding: 8px 15px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-weight: bold;
-          min-width: 160px;
-          height: 56px;
-        }
-
-.cont-com{
-          background-color: #ffffff;
-          border-radius: 10px;
-          padding: 8px 15px;
-          margin-right: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          min-width: 160px;
-          height: 56px;
+.toast:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 12px 35px rgba(255, 209, 0, 0.6);
 }
 
-.cont-gen{
-   display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: row;
+.toast.info { 
+    background: linear-gradient(135deg, var(--brand-yellow, #ffd100) 0%, #ffdd33 100%);
+    color: var(--brand-dark, #1f2937);
+}
+.toast.success { 
+    background: linear-gradient(135deg, var(--brand-green, #00b44e) 0%, #00d056 100%);
+    color: white;
+}
+.toast.error { 
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    color: white;
+}
+.toast.warning { 
+    background: linear-gradient(135deg, #ff9800 0%, #ffb347 100%);
+    color: var(--brand-dark, #1f2937);
 }
 
-@media (max-width: 767px) {
-  .cont-gen{
-    flex-direction: row;
+/* Botones principales - Diseño mejorado y visible */
+.cont-but {
+    background: linear-gradient(135deg, var(--brand-dark, #1f2937) 0%, #374151 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    min-width: 180px;
+    height: 56px;
+    border: 2px solid transparent;
+    box-shadow: 0 4px 15px rgba(31, 41, 55, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+}
+
+.cont-but::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
     width: 100%;
-    gap: 10px;
-  }
-  .cont-but{
-    width: auto;
-    margin-top: 0;
-    justify-content: center;
-    padding: 8px 15px;
-  }
-  .cont-com{
-    width: auto;
-    justify-content: center;
-    margin-right: 0;
-    padding: 8px 15px;
-  }
-  .header-button{
-    width: auto;
-    flex-grow: 0;
-    margin-top: 0;
-    height: 40px;
-  }
-  .cont-but img, .cont-com img {
-    width: 20px;
-    height: 20px;
-    margin-right: 10px;
-  }
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,209,0,0.3), transparent);
+    transition: left 0.6s;
 }
 
+.cont-but:hover::before {
+    left: 100%;
+}
 
+.cont-but:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 15px 40px rgba(255, 209, 0, 0.5);
+    background: linear-gradient(135deg, var(--brand-yellow, #ffd100) 0%, #ffdd33 100%);
+    color: var(--brand-dark, #1f2937);
+    border-color: var(--brand-yellow, #ffd100);
+}
+
+.cont-but:active {
+    transform: translateY(-2px) scale(1.01);
+}
+
+.cont-com {
+    background: linear-gradient(135deg, white 0%, #f9fafb 100%);
+    border: 2px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 180px;
+    height: 56px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--brand-dark, #1f2937);
+    position: relative;
+    overflow: hidden;
+}
+
+.cont-com::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,209,0,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.cont-com:hover::before {
+    left: 100%;
+}
+
+.cont-com:hover {
+    transform: translateY(-6px) scale(1.03);
+    border-color: var(--brand-yellow, #ffd100);
+    box-shadow: 0 15px 40px rgba(255, 209, 0, 0.4);
+    background: linear-gradient(135deg, #fffbf0 0%, #fff9e6 100%);
+}
+
+.cont-com:active {
+    transform: translateY(-2px) scale(1.01);
+}
+
+/* Header general layout */
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    min-height: 60px; /* Altura mínima para consistencia */
+}
+
+.cont-gen {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Alinear hacia la derecha */
+    flex-direction: row;
+    gap: 15px;
+}
+
+/* Asegurar que elementos ocultos no ocupen espacio */
+.cont-gen > * {
+    transition: all 0.3s ease;
+}
+
+.cont-gen > *[style*="display: none"] {
+    display: none !important;
+}
+
+/* Mejorar la distribución cuando hay menos elementos */
+.cont-gen:has(> :only-child) {
+    justify-content: flex-end;
+}
+
+.cont-gen:has(> :first-child[style*="display: none"]) {
+    justify-content: flex-end;
+}
+
+/* Iconos con animación visible */
+.cont-but img, .cont-com img {
+    width: 24px;
+    height: 24px;
+    margin-right: 12px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cont-but:hover img {
+    transform: scale(1.2) rotate(15deg);
+    filter: brightness(1.1);
+}
+
+.cont-com:hover img {
+    transform: scale(1.2) rotate(-10deg);
+    filter: brightness(0.9);
+}
+
+/* Header button styles */
+.header-button {
+    background: none;
+    border: none;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.header-button:hover {
+    transform: scale(1.05);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Responsive mejorado */
+@media (max-width: 767px) {
+    .toast {
+        min-width: 260px;
+        margin-left: -130px;
+        font-size: 13px;
+        padding: 14px 18px;
+    }
+    
+    .cont-gen {
+        flex-direction: row;
+        width: 100%;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: flex-end; /* Mantener alineación a la derecha */
+    }
+    
+    .cont-but, .cont-com {
+        min-width: 140px;
+        padding: 10px 18px;
+        height: 48px;
+        font-size: 12px;
+    }
+    
+    .cont-but:hover, .cont-com:hover {
+        transform: translateY(-3px) scale(1.02);
+    }
+    
+    .cont-but img, .cont-com img {
+        width: 20px;
+        height: 20px;
+        margin-right: 8px;
+    }
+    
+    .header-button {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .toast {
+        min-width: 240px;
+        margin-left: -120px;
+        font-size: 12px;
+        padding: 12px 16px;
+    }
+    
+    .cont-gen {
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        align-items: center; /* Centrar en móviles muy pequeños */
+    }
+    
+    .cont-but, .cont-com {
+        width: 100%;
+        max-width: 280px;
+    }
+}
     </style>
   </head>
   <body>
@@ -125,12 +309,8 @@
           />
         </a>
 
-        <div class="cont-gen"
-         
-        >
-          <div class="cont-com"
-           
-          >
+        <div class="cont-gen">
+          <div class="cont-com">
             <img style="width: 25px" src="images/login.svg" alt="Login Icon" />
             <button id="my-account-btn" class="header-button">
               Soy Comensal
@@ -168,10 +348,6 @@
           </div>
 
           <div class="cont-but" id="my-restaurant">
-  
-          <div class="cont-but"
-           
-          >
             <img
               style="width: 25px"
               src="images/restauranteb.png"
@@ -181,8 +357,7 @@
            Mi Restaurante
           </button> 
           </div>
-        </div> 
-      </div>
+        </div>
     </header>
 
     <div class="hero-section">
@@ -267,13 +442,14 @@
         </button>
       </div>
     </div>
-    <div id="toast-notification" class="toast"></div>
+    
+    <!-- Firebase scripts must load before our scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js" defer></script>
 
-    <script src="js/index.js"></script>
+    <script src="js/index.js" defer></script>
   </body>
 </html>

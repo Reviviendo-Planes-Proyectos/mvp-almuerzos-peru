@@ -10,6 +10,12 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="css/menu.css">
+  
+  <!-- Preload critical resources -->
+  <link rel="preload" href="js/menu.js" as="script">
+  <link rel="preload" href="images/logo.png" as="image">
+  
+  <!-- Firebase scripts must load before our scripts -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
@@ -28,12 +34,12 @@
   <meta property="twitter:image" content="" id="twitter-image" />
 
 </head>
-<div id="custom-toast" class="custom-toast hidden"></div>
 <body>
+  <div id="custom-toast" class="custom-toast hidden"></div>
   <header class="main-header">
     <div class="container header-content">
       <a href="index.html" class="logo">
-        <img style="width: 200px" src="images/logo.png" alt="Almuerzos Perú" />
+        <img style="width: 200px" src="images/logo.png" alt="Almuerzos Perú" loading="eager" />
       </a>
       <div id="my-restaurant">
         <button id="my-restaurant-btn" class="header-button">
@@ -42,7 +48,7 @@
       </div>
 
       <div
-        style="background-color: #ffffff; visibility: hidden; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; display: flex; align-items: center;">
+        style="background-color: #ffffff; display: none; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; align-items: center;">
         <img style="width: 25px;" src="images/login.svg" alt="Login Icon">
         <button id="my-account-btn" class="header-button">
           Soy comenzal
@@ -86,7 +92,12 @@
           </svg>
         </div>
         <div class="restaurant-info">
-          <h2 id="restaurant-name">Cargando...</h2>
+          <div class="restaurant-title-container">
+            <h2 id="restaurant-name">Cargando...</h2>
+            <div class="restaurant-status mobile-status">
+              <div class="mobile-status-dot"></div>
+            </div>
+          </div>
           <div class="restaurant-details">
             <div class="restaurant-detail">
               <span class="detail-icon">🕐</span>
@@ -107,7 +118,7 @@
           </div>
         </div>
       </div>
-      <div class="restaurant-status">
+      <div class="restaurant-status desktop-status">
         <span class="status-badge">CARGANDO...</span>
       </div>
     </div>
@@ -156,26 +167,27 @@
     </div>
   </div>
 
-  <script src="js/menu.js"></script>
-
   <div id="commentModalOverlay" class="modal-overlay" style="display: none;">
-  <div class="modal-content">
-    <img id="commentDishImage" src="" alt="Plato" class="modal-image" />
-    <h2 id="commentDishName"></h2>
-    <p>¿Qué tal te pareció el platillo? ¿Cómo podríamos mejorarlo?</p>
-    <textarea id="commentText" rows="4" maxlength="120" placeholder="Escribe tu comentario aquí..."></textarea>
-    <div class="progress-row">
-    <div class="progress-container">
-      <div id="progressBar" class="progress-bar"></div>
+    <div class="modal-content">
+      <img id="commentDishImage" src="" alt="Plato" class="modal-image" />
+      <h2 id="commentDishName"></h2>
+      <p>¿Qué tal te pareció el platillo? ¿Cómo podríamos mejorarlo?</p>
+      <textarea id="commentText" rows="4" maxlength="120" placeholder="Escribe tu comentario aquí..."></textarea>
+      <div class="progress-row">
+        <div class="progress-container">
+          <div id="progressBar" class="progress-bar"></div>
         </div>
-          <span id="charCounter" class="char-counter">0 / 120</span>
-        </div>
+        <span id="charCounter" class="char-counter">0 / 120</span>
+      </div>
       <div class="modal-buttons">
-      <button id="omitCommentBtn">Omitir</button>
-      <button id="submitCommentBtn">Enviar comentario</button>
+        <button id="omitCommentBtn">Omitir</button>
+        <button id="submitCommentBtn">Enviar comentario</button>
+      </div>
     </div>
   </div>
-  </div>
+
+  <!-- Load JavaScript at the end for better performance -->
+  <script defer src="js/menu.js"></script>
 </body>
 
 </html>

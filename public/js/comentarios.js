@@ -4,6 +4,9 @@ let currentRestaurant = null;
 let allComments = [];
 let filteredComments = [];
 
+// Variables de cache para comentarios
+let commentsCache = new Map();
+
 // Inicialización de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyDNbgT9yeSBMhsftW4FOe_SB7bfSg44CPI",
@@ -14,10 +17,42 @@ const firebaseConfig = {
   appId: "1:92623435008:web:8d4b4d58c0ccb9edb5afe5",
 };
 
-firebase.initializeApp(firebaseConfig);
+// Variables globales de Firebase
+let auth;
 
+// Inicializar Firebase cuando esté disponible
+function waitForFirebaseAndInitialize() {
+  if (typeof firebase !== 'undefined' && firebase.apps) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    console.log('Firebase initialized successfully in comentarios');
+    return true;
+  }
+  return false;
+}
 
-const auth = firebase.auth();
+// Intentar inicializar Firebase inmediatamente
+if (!waitForFirebaseAndInitialize()) {
+  // Si no está disponible, esperar un poco
+  let attempts = 0;
+  const maxAttempts = 20;
+  const checkFirebase = setInterval(() => {
+    attempts++;
+    if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
+      clearInterval(checkFirebase);
+      if (attempts >= maxAttempts) {
+        console.error('Firebase failed to load after maximum attempts in comentarios');
+      }
+    }
+  }, 100);
+}
+
+// Inicializar Firebase de forma lazy
+document.addEventListener("DOMContentLoaded", () => {
+  // Firebase ya está inicializado arriba
+});
 
 // Función para crear datos de ejemplo (solo para pruebas)
 function createSampleComments() {

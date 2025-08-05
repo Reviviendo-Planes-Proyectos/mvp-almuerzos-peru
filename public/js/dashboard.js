@@ -6,8 +6,50 @@ const firebaseConfig = {
   messagingSenderId: "92623435008",
   appId: "1:92623435008:web:8d4b4d58c0ccb9edb5afe5",
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+
+// Variables de cache para optimizar rendimiento
+let dashboardCache = new Map();
+let restaurantDataCache = null;
+
+// Variables globales de Firebase
+let auth, db, storage;
+
+// Inicializar Firebase cuando esté disponible
+function waitForFirebaseAndInitialize() {
+  if (typeof firebase !== 'undefined' && firebase.apps && firebase.auth && firebase.firestore && firebase.storage) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    db = firebase.firestore();
+    storage = firebase.storage();
+    console.log('Firebase initialized successfully in dashboard');
+    return true;
+  }
+  return false;
+}
+
+// Intentar inicializar Firebase inmediatamente
+if (!waitForFirebaseAndInitialize()) {
+  // Si no está disponible, esperar un poco
+  let attempts = 0;
+  const maxAttempts = 20;
+  const checkFirebase = setInterval(() => {
+    attempts++;
+    if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
+      clearInterval(checkFirebase);
+      if (attempts >= maxAttempts) {
+        console.error('Firebase failed to load after maximum attempts in dashboard');
+      }
+    }
+  }, 100);
+}
+
+// Inicializar Firebase de forma lazy
+document.addEventListener("DOMContentLoaded", () => {
+  showLoadingState();
+});
+
 let currentUser = null;
 let currentRestaurant = null;
 let currentCardId = null;
@@ -19,9 +61,34 @@ let originalCardName = "";
 let cropper = null;
 let currentImageInput = null;
 let currentPreview = null;
+
+// Función para mostrar estado de carga optimizado
+function showLoadingState() {
+  const loadingOverlay = document.getElementById("loading-overlay");
+  if (loadingOverlay) {
+    loadingOverlay.innerHTML = `
+      <div style="text-align: center;">
+        <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #ffd100; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+        <p style="font-weight: 700; font-size: 1.25rem; color: #1f2937;">Cargando Dashboard...</p>
+      </div>
+      <style>
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      </style>
+    `;
+  }
+}
 let currentPlaceholder = null;
 let currentDeleteBtn = null;
+
 function checkAuthStatus() {
+  if (!auth) {
+    console.warn('Firebase auth not initialized yet');
+    return;
+  }
+  
   if (auth.currentUser) {
     currentUser = auth.currentUser;
     if (document.getElementById("cards-section").style.display !== "block") {
@@ -32,19 +99,29 @@ function checkAuthStatus() {
     window.location.replace("/login.html");
   }
 }
+
 document.addEventListener("DOMContentLoaded", () => {
-  auth.onAuthStateChanged((user) => {
-    if (user) {
-      currentUser = user;
-      document.getElementById("cards-section").style.display = "block";
-      loadDashboardData();
-      
-      // Actualizar el estado del restaurante cada minuto
-      setInterval(updateRestaurantStatus, 60000);
+  // Esperar a que Firebase esté listo antes de configurar auth
+  const waitForAuth = () => {
+    if (auth) {
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          currentUser = user;
+          document.getElementById("cards-section").style.display = "block";
+          loadDashboardData();
+          
+          // Actualizar el estado del restaurante cada minuto
+          setInterval(updateRestaurantStatus, 60000);
+        } else {
+          window.location.href = "/login.html";
+        }
+      });
     } else {
-      window.location.href = "/login.html";
+      setTimeout(waitForAuth, 100);
     }
-  });
+  };
+  
+  waitForAuth();
   document
     .getElementById("new-card-form")
     .addEventListener("submit", handleCreateCard);
@@ -339,16 +416,9 @@ async function loadDishes(cardId) {
             <h3 title="${dish.name}">${dish.name}</h3>
             <p>S/. ${dish.price.toFixed(2)}</p>
             <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
-            <button class="edit-dish-btn" style="margin-top: 4px;">Editar</button>
         </div>
     </div>
     <div class="item-actions">
-        <button class="edit-dish-btn" style="background: none; border: none; color: #666; cursor: pointer; padding: 0.25rem;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-        </button>
         <label class="toggle-switch">
             <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${
               dish.isActive ? "checked" : ""
@@ -396,6 +466,7 @@ async function handleUpdateCardName() {
   }
   
   const newName = cardNameInput.value.trim();
+  
   if (newName === originalCardName || newName === "") return;
   
   // Verificar que currentUser esté disponible
@@ -405,7 +476,7 @@ async function handleUpdateCardName() {
     return;
   }
   
-  // Feedback inmediato sin bloquear la UI
+  // Mostrar estado de carga
   saveButton.disabled = true;
   saveButton.textContent = "Guardando...";
   
@@ -429,18 +500,21 @@ async function handleUpdateCardName() {
     // Actualizar estado local inmediatamente
     originalCardName = newName;
     
-    // Mostrar éxito inmediatamente sin recargar toda la lista
-    showToast("Nombre actualizado con éxito.");
-    
     // Actualizar solo el título de la carta actual en el DOM
     const cardTitle = document.querySelector('.card-title');
     if (cardTitle) {
       cardTitle.textContent = newName;
     }
     
+    // Actualizar la lista de cartas para reflejar el cambio inmediatamente
+    await loadRestaurantCards();
+    
+    // Mostrar toast de éxito
+    showToast("Nombre de la carta guardado correctamente");
+    
   } catch (error) {
     console.error("Error al actualizar el nombre:", error);
-    showToast("Error al guardar los cambios.");
+    showToast("Error al guardar el nombre de la carta", "error");
     cardNameInput.value = originalCardName;
   } finally {
     saveButton.textContent = "Guardar cambios";
@@ -504,9 +578,7 @@ async function handleCreateDish(event) {
     if (compressedDishImageFile) {
       const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
       const idToken = await currentUser.getIdToken();
-      const storageRef = firebase
-        .storage()
-        .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
+      const storageRef = storage.ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedDishImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
     }
@@ -606,14 +678,20 @@ async function handleDeleteCard() {
   }
 }
 async function logout() {
+  if (!auth) {
+    console.warn('Firebase auth not initialized');
+    return;
+  }
+  
   await showLogoutModal({ duration: 2500 }); // 2.5 s
-  auth
-    .signOut()
-    
+  auth.signOut();
 }
 window.addEventListener("pageshow", function (event) {
   if (event.persisted) {
-    checkAuthStatus();
+    // Verificar que auth esté disponible antes de usarlo
+    if (auth) {
+      checkAuthStatus();
+    }
   }
 });
 function showDishes(cardId, cardName) {
@@ -623,111 +701,47 @@ function showDishes(cardId, cardName) {
   document.getElementById("dishes-section").style.display = "block";
   const cardNameInput = document.getElementById("card-name-input");
   const saveButton = document.getElementById("save-card-changes-btn");
+  
   if (cardNameInput) {
     cardNameInput.value = cardName;
     
-    // Variables para el sistema de auto-guardado unificado
-    let saveTimeout = null;
-    let isSaving = false;
+    // Limpiar eventos anteriores
+    cardNameInput.onblur = null;
+    cardNameInput.oninput = null;
     
-    // Función unificada de guardado con debouncing
-    const debouncedSave = async (delay = 500) => {
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
-      }
-      
-      saveTimeout = setTimeout(async () => {
-        const newName = cardNameInput.value.trim();
-        if (newName !== originalCardName && newName !== "" && !isSaving && currentUser && currentCardId) {
-          isSaving = true;
-          try {
-            const idToken = await currentUser.getIdToken();
-            const response = await fetch(`/api/cards/${currentCardId}`, {
-              method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${idToken}`,
-              },
-              body: JSON.stringify({ name: newName }),
-              keepalive: true
-            });
-            
-            if (response.ok) {
-              originalCardName = newName;
-              console.log("Nombre guardado automáticamente:", newName);
-              
-              // Actualizar el título en el DOM
-              const cardTitle = document.querySelector('.card-title');
-              if (cardTitle) {
-                cardTitle.textContent = newName;
-              }
-            } else {
-              console.error("Error al guardar:", response.status);
-            }
-          } catch (error) {
-            console.error("Error al guardar:", error);
-          } finally {
-            isSaving = false;
-          }
+    // Guardar automáticamente cuando el usuario salga del campo
+    cardNameInput.addEventListener('blur', async function() {
+      const newName = this.value.trim();
+      if (newName !== originalCardName && newName !== "") {
+        try {
+          await handleUpdateCardName();
+        } catch (error) {
+          console.error("Error al guardar nombre de carta:", error);
         }
-      }, delay);
-    };
-    
-    // Función de guardado inmediato para casos críticos
-    const immediateSave = async () => {
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
-        saveTimeout = null;
       }
-      await debouncedSave(0);
-    };
+    });
     
-    // Event listeners unificados
-    cardNameInput.oninput = () => {
-      // Guardar con debounce largo mientras escribe
-      debouncedSave(1000);
-      
-      // Lógica del botón (mantener funcionalidad existente)
-      const newName = cardNameInput.value.trim();
+    // Habilitar/deshabilitar botón según cambios y manejar contador
+    cardNameInput.addEventListener('input', function() {
+      const newName = this.value.trim();
       const hasChanged = newName !== originalCardName;
       const isNotEmpty = newName !== "";
-      saveButton.disabled = !(hasChanged && isNotEmpty);
-      showCharacterLimitAlert(cardNameInput.value.length >= 35);
-    };
-    
-    cardNameInput.onblur = () => {
-      // Guardar inmediatamente al salir del campo
-      debouncedSave(100);
-    };
-    
-    // Solo agregar event listeners globales si no existen ya
-    if (!cardNameInput.dataset.cleanupListeners) {
-      const handleVisibilityChange = async () => {
-        if (document.visibilityState === 'hidden') {
-          await immediateSave();
-        }
-      };
       
-      const handleBeforeUnload = async () => {
-        await immediateSave();
-      };
+      if (saveButton) {
+        saveButton.disabled = !(hasChanged && isNotEmpty);
+      }
       
-      document.addEventListener('visibilitychange', handleVisibilityChange);
-      window.addEventListener('beforeunload', handleBeforeUnload);
-      
-      // Almacenar referencias para cleanup
-      cardNameInput.handleVisibilityChange = handleVisibilityChange;
-      cardNameInput.handleBeforeUnload = handleBeforeUnload;
-      cardNameInput.debouncedSave = debouncedSave;
-      cardNameInput.immediateSave = immediateSave;
-      cardNameInput.dataset.cleanupListeners = 'true';
-    }
+      // Mostrar/ocultar alerta de límite
+      showCharacterLimitAlert(this.value.length >= 35);
+    });
   }
+  
   // Mantener el botón visible y funcional
   if (saveButton) {
     saveButton.style.display = "block";
     saveButton.onclick = handleUpdateCardName;
   }
+  
   loadDishes(cardId);
 }
 function showCards() {
@@ -736,43 +750,27 @@ function showCards() {
   currentCardId = null;
   const cardNameInput = document.getElementById("card-name-input");
   const saveButton = document.getElementById("save-card-changes-btn");
+  
   if (cardNameInput) {
-    cardNameInput.oninput = null;
+    // Limpiar eventos anteriores
     cardNameInput.onblur = null;
+    cardNameInput.oninput = null;
     
-    // Limpiar event listeners globales y timeouts si fueron agregados
-    if (cardNameInput.dataset.cleanupListeners === 'true') {
-      // Limpiar timeout pendiente si existe
-      if (cardNameInput.debouncedSave) {
-        // Forzar guardado inmediato antes de limpiar
-        cardNameInput.immediateSave();
-      }
-      
-      // Remover los event listeners usando las referencias almacenadas
-      if (cardNameInput.handleVisibilityChange) {
-        document.removeEventListener('visibilitychange', cardNameInput.handleVisibilityChange);
-        delete cardNameInput.handleVisibilityChange;
-      }
-      if (cardNameInput.handleBeforeUnload) {
-        window.removeEventListener('beforeunload', cardNameInput.handleBeforeUnload);
-        delete cardNameInput.handleBeforeUnload;
-      }
-      
-      // Limpiar referencias a funciones
-      delete cardNameInput.debouncedSave;
-      delete cardNameInput.immediateSave;
-      delete cardNameInput.dataset.cleanupListeners;
-    }
+    // Remover event listeners agregados dinámicamente
+    const newInput = cardNameInput.cloneNode(true);
+    cardNameInput.parentNode.replaceChild(newInput, cardNameInput);
     
     // Limpiar alerta
     const alert = document.getElementById("character-limit-alert");
     if (alert) alert.style.display = "none";
   }
+  
   if (saveButton) {
     saveButton.onclick = null;
     saveButton.disabled = true;
     saveButton.style.display = "block";
   }
+  
   loadRestaurantCards();
 }
 let currentlyOpenModal = null;
@@ -1763,9 +1761,7 @@ async function handleUpdateRestaurant(event) {
       const imageFileName = `local-${Date.now()}-${
         compressedRestaurantImageFile.name
       }`;
-      const storageRef = firebase
-        .storage()
-        .ref(`restaurants/${currentRestaurant.id}/${imageFileName}`);
+      const storageRef = storage.ref(`restaurants/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedRestaurantImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
     } else if (window.restaurantImageWasDeleted) {
@@ -1779,9 +1775,7 @@ async function handleUpdateRestaurant(event) {
       const logoFileName = `logo-${Date.now()}-${
         compressedRestaurantLogoFile.name
       }`;
-      const logoStorageRef = firebase
-        .storage()
-        .ref(`restaurants/${currentRestaurant.id}/${logoFileName}`);
+      const logoStorageRef = storage.ref(`restaurants/${currentRestaurant.id}/${logoFileName}`);
       const uploadLogoTask = await logoStorageRef.put(
         compressedRestaurantLogoFile
       );
@@ -1931,9 +1925,7 @@ async function handleUpdateDish(event) {
     if (compressedDishImageFile) {
       submitButton.textContent = "Subiendo imagen...";
       const imageFileName = `${Date.now()}-${compressedDishImageFile.name}`;
-      const storageRef = firebase
-        .storage()
-        .ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
+      const storageRef = storage.ref(`dishes/${currentRestaurant.id}/${imageFileName}`);
       const uploadTask = await storageRef.put(compressedDishImageFile);
       photoUrl = await uploadTask.ref.getDownloadURL();
     } else if (window.imageWasDeleted) {
@@ -1978,15 +1970,27 @@ async function handleUpdateDish(event) {
     submitButton.textContent = "Guardar cambios";
   }
 }
-function showToast(message) {
+function showToast(message, type = "success") {
   const toast = document.getElementById("toast-notification");
   const toastMessage = document.getElementById("toast-message");
   if (!toast || !toastMessage) return;
+  
   toastMessage.textContent = message;
+  
+  // Remover clases de tipo anteriores
+  toast.classList.remove("toast-success", "toast-error");
+  
+  // Agregar clase según el tipo
+  if (type === "error") {
+    toast.classList.add("toast-error");
+  } else {
+    toast.classList.add("toast-success");
+  }
+  
   toast.classList.add("show");
   setTimeout(() => {
     toast.classList.remove("show");
-  }, 3000);
+  }, 1500);
 }
 
 // Función para mostrar alertas dentro del modal activo
