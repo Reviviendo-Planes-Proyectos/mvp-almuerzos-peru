@@ -102,7 +102,7 @@ async function loadComments() {
     return;
   }
 
-
+  console.log("🔍 Cargando comentarios para restaurante:", currentRestaurant.id);
 
   // Mostrar indicador de carga
   showLoadingIndicator();
@@ -120,22 +120,23 @@ async function loadComments() {
       }
     );
 
+    console.log("📡 Respuesta del servidor:", response.status);
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Error del servidor al obtener comentarios:", errorText);
+      console.error("❌ Error del servidor al obtener comentarios:", errorText);
       throw new Error(`Error ${response.status}: ${response.statusText}`);
     }
 
     const data = await response.json();
-
+    console.log("📄 Datos recibidos:", data);
 
     allComments = data.comments || [];
+    console.log("💬 Total de comentarios cargados:", allComments.length);
 
-    // TEMPORAL: Si no hay comentarios reales, mostrar datos de ejemplo
+    // Si no hay comentarios reales, mostrar mensaje apropiado
     if (allComments.length === 0) {
-      console.log("No hay comentarios reales, mostrando datos de ejemplo");
-      allComments = createSampleComments();
+      console.log("ℹ️ No hay comentarios para este restaurante");
     }
 
     filteredComments = [...allComments];
@@ -146,7 +147,7 @@ async function loadComments() {
     renderComments();
     populateFilterOptions();
   } catch (error) {
-    console.error("Error al cargar comentarios:", error);
+    console.error("❌ Error al cargar comentarios:", error);
     hideLoadingIndicator();
     showError(`No se pudieron cargar los comentarios: ${error.message}`);
   }
@@ -340,7 +341,71 @@ function checkAuthState() {
   } else {
     console.log("No hay usuario autenticado");
   }
+  
+  console.log("Current restaurant:", currentRestaurant);
+  if (currentRestaurant) {
+    console.log("Restaurant ID:", currentRestaurant.id);
+    console.log("Restaurant name:", currentRestaurant.name);
+  }
   console.log("==========================================");
+}
+
+// Función para recargar comentarios manualmente
+async function reloadComments() {
+  console.log("🔄 Recargando comentarios manualmente...");
+  await loadComments();
+}
+
+// Función para probar la conexión con el servidor
+async function testServerConnection() {
+  console.log("🔗 Probando conexión con el servidor...");
+  if (!currentUser || !currentRestaurant) {
+    console.error("❌ Usuario o restaurante no disponible");
+    return;
+  }
+  
+  try {
+    const idToken = await currentUser.getIdToken();
+    const response = await fetch(`/api/restaurants/${currentRestaurant.id}/comments`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    
+    console.log("📡 Respuesta del servidor:", response.status, response.statusText);
+    const data = await response.json();
+    console.log("📄 Datos completos:", data);
+  } catch (error) {
+    console.error("❌ Error en conexión:", error);
+  }
+}
+
+// Función para obtener todos los comentarios de debug
+async function debugAllComments() {
+  console.log("🔍 Obteniendo TODOS los comentarios de la base de datos...");
+  if (!currentUser) {
+    console.error("❌ Usuario no disponible");
+    return;
+  }
+  
+  try {
+    const idToken = await currentUser.getIdToken();
+    const response = await fetch(`/api/debug/comments`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    
+    console.log("📡 Respuesta del debug:", response.status, response.statusText);
+    const data = await response.json();
+    console.log("📄 Todos los comentarios en la BD:", data);
+  } catch (error) {
+    console.error("❌ Error en debug:", error);
+  }
 }
 
 // Función para cerrar sesión

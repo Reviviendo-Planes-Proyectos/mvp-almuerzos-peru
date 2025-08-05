@@ -336,3 +336,14 @@
   object-fit: cover;
   margin-right: 12px;
 }
+
+/* Estilos para asegurar altura completa en la página de comentarios */
+body {
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.main-content {
+  min-height: calc(100vh - 80px);
+}

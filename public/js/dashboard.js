@@ -204,7 +204,23 @@ async function loadDashboardData() {
     // Actualizar la ubicación del restaurante
     const locationElement = document.getElementById("restaurant-location");
     if (locationElement) {
-      locationElement.textContent = currentRestaurant.district || "Ubicación no disponible";
+      const locationUrl = currentRestaurant.location;
+      const locationText = currentRestaurant.district || "Ubicación no disponible";
+      
+      if (locationUrl && locationUrl.trim() !== "") {
+        // Si hay URL de ubicación, configurar como enlace
+        locationElement.href = locationUrl;
+        locationElement.textContent = locationText;
+        locationElement.style.display = "inline";
+        locationElement.style.pointerEvents = "auto";
+      } else {
+        // Si no hay URL, mostrar solo texto sin enlace
+        locationElement.href = "#";
+        locationElement.textContent = locationText;
+        locationElement.style.pointerEvents = "none";
+        locationElement.style.textDecoration = "none";
+        locationElement.style.cursor = "default";
+      }
     }
     
     // Actualizar horario de cierre (usando el horario del día actual o lunes como default)
@@ -614,35 +630,87 @@ async function handleCreateDish(event) {
 async function handleToggleCard(event) {
   const cardId = event.target.dataset.id;
   const isActive = event.target.checked;
+  
+  console.log('Toggle card called:', { cardId, isActive });
+  
+  if (!currentUser) {
+    console.error('No current user found');
+    showToast("Usuario no autenticado", "error");
+    event.target.checked = !isActive;
+    return;
+  }
+  
   try {
-    await fetch(`/api/cards/${cardId}/toggle`, {
+    const idToken = await currentUser.getIdToken();
+    console.log('Making request to toggle card:', `/api/cards/${cardId}/toggle`);
+    
+    const response = await fetch(`/api/cards/${cardId}/toggle`, {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
       body: JSON.stringify({ isActive }),
     });
+    
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Response error:', errorText);
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log('Toggle card success:', result);
+    showToast(isActive ? "Carta activada" : "Carta desactivada", "success");
   } catch (error) {
     console.error("Error al actualizar la carta:", error);
-    alert("No se pudo actualizar el estado de la carta.");
-    event.target.checked = !isActive;
+    showToast("No se pudo actualizar el estado de la carta.", "error");
+    event.target.checked = !isActive; // Revertir el switch si hay error
   }
 }
 async function handleToggleDish(event) {
   const dishId = event.target.dataset.id;
   const isActive = event.target.checked;
+  
+  console.log('Toggle dish called:', { dishId, isActive });
+  
+  if (!currentUser) {
+    console.error('No current user found');
+    showToast("Usuario no autenticado", "error");
+    event.target.checked = !isActive;
+    return;
+  }
+  
   try {
     const idToken = await currentUser.getIdToken();
-    await fetch(`/api/dishes/${dishId}/toggle`, {
+    console.log('Making request to toggle dish:', `/api/dishes/${dishId}/toggle`);
+    
+    const response = await fetch(`/api/dishes/${dishId}/toggle`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`, // Add token
+        Authorization: `Bearer ${idToken}`,
       },
       body: JSON.stringify({ isActive }),
     });
+    
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Response error:', errorText);
+      throw new Error(`Error ${response.status}: ${response.statusText}`);
+    }
+    
+    const result = await response.json();
+    console.log('Toggle dish success:', result);
+    showToast(isActive ? "Plato activado" : "Plato desactivado", "success");
   } catch (error) {
     console.error("Error al actualizar el plato:", error);
-    alert("No se pudo actualizar el estado del plato.");
-    event.target.checked = !isActive;
+    showToast("No se pudo actualizar el estado del plato.", "error");
+    event.target.checked = !isActive; // Revertir el switch si hay error
   }
 }
 async function handleDeleteCard() {

@@ -23,6 +23,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
+  /* Asegurar altura completa */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 .container {
   max-width: 600px;

@@ -26,6 +26,10 @@ body {
   text-rendering: optimizeSpeed;
   /* Optimización de contenedor principal */
   contain: layout style paint;
+  /* Asegurar altura completa */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 .image-upload-box {
   position: relative;
@@ -1595,4 +1599,13 @@ input:checked + .slider:before {
   .logout-modal__card {
     animation: none !important;
   }
+}
+
+/* Estilos para asegurar altura completa en todas las páginas */
+#main-content {
+  min-height: calc(100vh - 80px) !important;
+}
+
+.main-content {
+  min-height: calc(100vh - 80px);
 }

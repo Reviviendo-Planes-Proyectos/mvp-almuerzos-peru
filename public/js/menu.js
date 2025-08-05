@@ -1044,7 +1044,23 @@ async function initializeApp() {
     // Actualizar la ubicación del restaurante
     const locationElement = document.getElementById("restaurant-location");
     if (locationElement) {
-      locationElement.textContent = currentRestaurant.district || "Ubicación no disponible";
+      const locationUrl = currentRestaurant.location;
+      const locationText = currentRestaurant.district || "Ubicación no disponible";
+      
+      if (locationUrl && locationUrl.trim() !== "") {
+        // Si hay URL de ubicación, configurar como enlace
+        locationElement.href = locationUrl;
+        locationElement.textContent = locationText;
+        locationElement.style.display = "inline";
+        locationElement.style.pointerEvents = "auto";
+      } else {
+        // Si no hay URL, mostrar solo texto sin enlace
+        locationElement.href = "#";
+        locationElement.textContent = locationText;
+        locationElement.style.pointerEvents = "none";
+        locationElement.style.textDecoration = "none";
+        locationElement.style.cursor = "default";
+      }
     }
     
     // Actualizar horario de cierre (usando el horario del día actual o lunes como default)
@@ -1434,6 +1450,24 @@ async function initializeApp() {
       submitBtn.textContent = "Enviando...";
       submitBtn.classList.add("sending");
 
+      // Validar que tenemos un restaurantId válido
+      if (!currentRestaurantId) {
+        console.error('❌ No hay restaurantId disponible');
+        showCustomToast("Error: No se pudo identificar el restaurante");
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        return;
+      }
+
+      // Validar que tenemos todos los datos necesarios
+      if (!comment || comment.length < 3) {
+        console.error('❌ Comentario demasiado corto');
+        showCustomToast("El comentario debe tener al menos 3 caracteres");
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        return;
+      }
+
       const commentContent = {
         invitedId: user.uid,
         dishId: dishId,
@@ -1441,23 +1475,38 @@ async function initializeApp() {
         restaurantId: currentRestaurantId,
       };
 
-      submitDishComment(commentContent);
+      console.log('📝 Preparando comentario con datos completos:', commentContent);
+      console.log('🏪 RestaurantId confirmado:', currentRestaurantId);
+      console.log('🍽️ DishId confirmado:', dishId);
+      console.log('👤 UserId confirmado:', user.uid);
 
-      // Marcar como enviado
-      window.sentComments[dishId] = true;
+      submitDishComment(commentContent)
+        .then((result) => {
+          console.log('✅ Comentario enviado exitosamente:', result);
+          // Marcar como enviado solo si fue exitoso
+          window.sentComments[dishId] = true;
 
-      // Eliminar el dishId del localStorage
-      const stored = JSON.parse(localStorage.getItem("commentedDishes")) || [];
-      const updated = stored.filter((id) => id !== dishId);
-      localStorage.setItem("commentedDishes", JSON.stringify(updated));
+          // Eliminar el dishId del localStorage
+          const stored = JSON.parse(localStorage.getItem("commentedDishes")) || [];
+          const updated = stored.filter((id) => id !== dishId);
+          localStorage.setItem("commentedDishes", JSON.stringify(updated));
 
-      setTimeout(() => {
-        submitBtn.textContent = "Enviar comentario";
-        submitBtn.classList.remove("sending");
-        document.getElementById("commentModalOverlay").style.display = "none";
-        showCustomToast("Comentario enviado con éxito");
-        toggleCommentIcon(dishId, 0);
-      }, 1000);
+          setTimeout(() => {
+            submitBtn.textContent = "Enviar comentario";
+            submitBtn.classList.remove("sending");
+            document.getElementById("commentModalOverlay").style.display = "none";
+            showCustomToast("Comentario enviado con éxito");
+            toggleCommentIcon(dishId, 0);
+          }, 1000);
+        })
+        .catch((error) => {
+          console.error('❌ Error al enviar comentario:', error);
+          setTimeout(() => {
+            submitBtn.textContent = "Enviar comentario";
+            submitBtn.classList.remove("sending");
+            showCustomToast("Error al enviar comentario. Intenta de nuevo.");
+          }, 1000);
+        });
     };
   }
 
@@ -1472,12 +1521,27 @@ async function initializeApp() {
       toast.classList.add("hidden");
     }, 3000);
   }
-  async function submitDishComment({ invitedId, dishId, content }) {
+  async function submitDishComment({ invitedId, dishId, content, restaurantId }) {
     try {
       const user = auth ? auth.currentUser : null;
       if (!user) {
         throw new Error("Usuario no autenticado.");
       }
+
+      // Validaciones adicionales del lado del cliente
+      if (!restaurantId) {
+        throw new Error("RestaurantId es requerido para asociar el comentario correctamente.");
+      }
+
+      if (!dishId) {
+        throw new Error("DishId es requerido.");
+      }
+
+      if (!content || content.trim().length < 3) {
+        throw new Error("El comentario debe tener al menos 3 caracteres.");
+      }
+
+      console.log("📝 Enviando comentario con validaciones completas:", { invitedId, dishId, content, restaurantId });
 
       const response = await fetch("/api/comments", {
         method: "POST",
@@ -1486,16 +1550,21 @@ async function initializeApp() {
         },
         body: JSON.stringify({
           dishId,
-          content,
+          content: content.trim(),
           invitedId,
+          restaurantId,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        console.error("❌ Error del servidor:", data);
         throw new Error(data.error || "Error al guardar el comentario.");
       }
+      
+      console.log("✅ Comentario enviado exitosamente:", data);
+      console.log("🏪 Confirmado para restaurante:", data.restaurantId);
       return data;
     } catch (err) {
       console.error("❌ Error al enviar comentario:", err.message);

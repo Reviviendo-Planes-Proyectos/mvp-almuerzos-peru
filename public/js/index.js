@@ -58,6 +58,7 @@ const customDropdown = document.getElementById("custom-dropdown");
 const dropdownContent = document.getElementById("dropdown-content");
 const dropdownArrow = document.querySelector(".dropdown-arrow");
   const myRestaurantButton = document.getElementById("my-restaurant-btn");
+  const availableRestaurantsCount = document.querySelector(".available-restaurants-count");
 
   const myAccountBtn = document.getElementById("my-account-btn");
   const logoutText = document.getElementById("logout-text");
@@ -521,6 +522,37 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
     return { type: 'restaurant', value: searchTerm };
   }
 
+  // Función para cargar el contador de restaurantes disponibles
+  async function loadRestaurantsCount() {
+    try {
+      let url = '/api/restaurants-paginated?limit=1&includeCount=true';
+      
+      if (currentDistrictFilter && currentDistrictFilter.trim() !== "") {
+        url += `&district=${encodeURIComponent(currentDistrictFilter)}`;
+      }
+      if (currentSearchQuery && currentSearchQuery.trim() !== "") {
+        url += `&search=${encodeURIComponent(currentSearchQuery)}`;
+      }
+      if (currentDishFilter && currentDishFilter.trim() !== "") {
+        url += `&dish=${encodeURIComponent(currentDishFilter)}`;
+      }
+
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("Error al cargar el contador de restaurantes");
+      
+      const data = await response.json();
+      
+      if (availableRestaurantsCount && data.totalCount !== undefined) {
+        availableRestaurantsCount.textContent = `(${data.totalCount})`;
+      }
+    } catch (error) {
+      console.error("Error loading restaurants count:", error);
+      if (availableRestaurantsCount) {
+        availableRestaurantsCount.textContent = '';
+      }
+    }
+  }
+
   async function loadRestaurants(reset = false) {
     if (reset) {
       if (restaurantsList)
@@ -532,6 +564,12 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
     }
     if (loadMoreBtn) loadMoreBtn.disabled = true;
     let url = `/api/restaurants-paginated?limit=12`;
+    
+    // Incluir contador solo en el reset (primera carga)
+    if (reset) {
+      url += '&includeCount=true';
+    }
+    
     if (lastVisibleDocId) {
       url += `&lastDocId=${lastVisibleDocId}`;
     }
@@ -550,6 +588,12 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
       const data = await response.json();
       const restaurants = data.restaurants;
       lastVisibleDocId = data.lastDocId;
+      
+      // Actualizar contador si está disponible (solo en reset)
+      if (reset && data.totalCount !== undefined && availableRestaurantsCount) {
+        availableRestaurantsCount.textContent = `(${data.totalCount})`;
+      }
+      
       if (reset) {
         restaurantsList.innerHTML = "";
         currentRestaurantsLoaded = 0;

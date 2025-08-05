@@ -1,3 +1,13 @@
+/* Estilos base para la página de favoritos */
+body {
+  font-family: "Nunito", sans-serif;
+  background-color: #ffd100;
+  color: #1f2937;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
 .favorites-container {
   max-width: 800px;
   margin: 50px auto;
@@ -7,6 +17,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
   /* Optimización de contenedor */
   contain: layout style paint;
+  min-height: calc(100vh - 140px);
 }
 
 .favorites-container h1 {

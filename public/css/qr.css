@@ -2,6 +2,7 @@
   padding: 32px 20px;
   max-width: 400px;
   margin: 0 auto;
+  min-height: calc(100vh - 80px);
 }
 
 .qr-card {
