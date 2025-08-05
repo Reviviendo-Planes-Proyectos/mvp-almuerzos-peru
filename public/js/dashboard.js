@@ -228,25 +228,11 @@ async function loadDashboardData() {
     // Actualizar estado del restaurante (ABIERTO/CERRADO) basado en el horario actual
     updateRestaurantStatus();
     
-    // Actualizar calificación y cantidad de reseñas usando el nuevo endpoint
-    const ratingElement = document.getElementById("restaurant-rating");
-    if (ratingElement) {
-      try {
-        const ratingResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/rating`);
-        if (ratingResponse.ok) {
-          const ratingData = await ratingResponse.json();
-          
-          ratingElement.textContent = `${ratingData.rating} • ${ratingData.reviewCount}`;
-        } else {
-     
-          ratingElement.textContent = "4.0 • 100";
-        }
-      } catch (error) {
-        console.error("Error fetching restaurant rating:", error);
-  
-        ratingElement.textContent = "4.0 • 100";
-      }
-    }
+    // Actualizar contador total de likes
+    await updateTotalLikesCounter();
+    
+    // Actualizar información de delivery/local
+    updateDeliveryInfo();
     
     
     await loadRestaurantCards(); // Llama a la siguiente función de carga
@@ -466,19 +452,33 @@ async function loadDishes(cardId) {
 }
 
 async function handleUpdateCardName() {
-  if (!currentCardId) return;
+  if (!currentCardId) {
+    console.error("No hay currentCardId disponible");
+    return;
+  }
   
   const saveButton = document.getElementById("save-card-changes-btn");
   const cardNameInput = document.getElementById("card-name-input");
+  
+  if (!saveButton || !cardNameInput) {
+    console.error("Elementos del DOM no encontrados");
+    return;
+  }
+  
   const newName = cardNameInput.value.trim();
   
   if (newName === originalCardName || newName === "") return;
   
-  // Mostrar estado de carga
-  if (saveButton) {
-    saveButton.disabled = true;
-    saveButton.textContent = "Guardando...";
+  // Verificar que currentUser esté disponible
+  if (!currentUser) {
+    console.error("Usuario no autenticado");
+    showToast("Error: usuario no autenticado.");
+    return;
   }
+  
+  // Mostrar estado de carga
+  saveButton.disabled = true;
+  saveButton.textContent = "Guardando...";
   
   try {
     const idToken = await currentUser.getIdToken();
@@ -491,9 +491,20 @@ async function handleUpdateCardName() {
       body: JSON.stringify({ name: newName }),
     });
     
-    if (!response.ok) throw new Error("Error del servidor al actualizar.");
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Error del servidor:", errorText);
+      throw new Error(`Error del servidor: ${response.status}`);
+    }
     
+    // Actualizar estado local inmediatamente
     originalCardName = newName;
+    
+    // Actualizar solo el título de la carta actual en el DOM
+    const cardTitle = document.querySelector('.card-title');
+    if (cardTitle) {
+      cardTitle.textContent = newName;
+    }
     
     // Actualizar la lista de cartas para reflejar el cambio inmediatamente
     await loadRestaurantCards();
@@ -506,10 +517,8 @@ async function handleUpdateCardName() {
     showToast("Error al guardar el nombre de la carta", "error");
     cardNameInput.value = originalCardName;
   } finally {
-    if (saveButton) {
-      saveButton.textContent = "Guardar cambios";
-      saveButton.disabled = true;
-    }
+    saveButton.textContent = "Guardar cambios";
+    saveButton.disabled = true;
   }
 }
 
@@ -702,9 +711,7 @@ function showDishes(cardId, cardName) {
     
     // Guardar automáticamente cuando el usuario salga del campo
     cardNameInput.addEventListener('blur', async function() {
-      console.log('Blur event triggered'); // Debug
       const newName = this.value.trim();
-      console.log('New name:', newName, 'Original name:', originalCardName); // Debug
       if (newName !== originalCardName && newName !== "") {
         try {
           await handleUpdateCardName();
@@ -2775,6 +2782,78 @@ function showLogoutModal({ duration = 2400 } = {}) {
     });
   }
 
+
+// Función para actualizar el contador total de likes
+async function updateTotalLikesCounter() {
+  if (!currentRestaurant) return;
+  
+  const totalLikesElement = document.getElementById('restaurant-total-likes');
+  if (!totalLikesElement) return;
+  
+  try {
+    const idToken = await currentUser.getIdToken();
+    const cardsResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/cards`, {
+      headers: { 'Authorization': `Bearer ${idToken}` }
+    });
+    
+    if (!cardsResponse.ok) {
+      totalLikesElement.textContent = '0';
+      return;
+    }
+    
+    const cards = await cardsResponse.json();
+    let totalLikes = 0;
+    
+    for (const card of cards) {
+      if (!card.isActive) continue;
+      
+      const dishesResponse = await fetch(`/api/cards/${card.id}/dishes`, {
+        headers: { 'Authorization': `Bearer ${idToken}` }
+      });
+      
+      if (dishesResponse.ok) {
+        const dishes = await dishesResponse.json();
+        dishes.forEach(dish => {
+          if (dish.isActive) {
+            totalLikes += dish.likesCount || 0;
+          }
+        });
+      }
+    }
+    
+    totalLikesElement.textContent = totalLikes.toString();
+  } catch (error) {
+    console.error('Error updating total likes counter:', error);
+    totalLikesElement.textContent = '0';
+  }
+}
+
+// Función para actualizar la información de delivery/local
+function updateDeliveryInfo() {
+  if (!currentRestaurant) return;
+  
+  const deliveryIcon = document.getElementById('restaurant-delivery-icon');
+  const deliveryText = document.getElementById('restaurant-delivery-text');
+  
+  if (!deliveryIcon || !deliveryText) return;
+  
+  const hasDelivery = currentRestaurant.hasDelivery;
+  const hasLocalService = currentRestaurant.hasLocalService;
+  
+  if (hasDelivery && hasLocalService) {
+    deliveryIcon.textContent = '🚚';
+    deliveryText.textContent = 'Delivery y atención local';
+  } else if (hasDelivery) {
+    deliveryIcon.textContent = '🚚';
+    deliveryText.textContent = 'Solo delivery';
+  } else if (hasLocalService) {
+    deliveryIcon.textContent = '🏪';
+    deliveryText.textContent = 'Solo atención en local';
+  } else {
+    deliveryIcon.textContent = '❌';
+    deliveryText.textContent = 'Sin atención disponible';
+  }
+}
 
 /* // Poner el nombre real del restaurante en el sidebar
 window.addEventListener("DOMContentLoaded", () => {
