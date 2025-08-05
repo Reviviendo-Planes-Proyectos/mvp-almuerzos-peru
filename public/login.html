@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login - Almuerzos Perú</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/login.css" as="style" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" as="style" />
+    
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -509,24 +514,27 @@
       </div>
     </div>
 
+    <!-- Firebase scripts must load before our scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+    
     <!-- Cropper.js CSS -->
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"
     />
     <!-- Cropper.js JavaScript -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js" defer></script>
     <!-- Browser Image Compression -->
-    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js" defer></script>
     <script src="https://apis.google.com/js/platform.js" async defer></script>
+    
     <meta
       name="google-signin-client_id"
       content="92623435008-vgv02v2cps8vb9pio5kgms9ad4hjlb5m.apps.googleusercontent.com"
     />
-    <script src="js/login.js"></script>
+    <script src="js/login.js" defer></script>
   </body>
 </html>

@@ -6,11 +6,50 @@ const firebaseConfig = {
   messagingSenderId: "92623435008",
   appId: "1:92623435008:web:8d4b4d58c0ccb9edb5afe5",
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+
+// Variables globales de Firebase
+let auth, db;
+
+// Variables de cache global
+let restaurantsCache = new Map();
+let districtsCache = null;
+let dishesCache = null;
+
+// Inicializar Firebase cuando esté disponible
+function waitForFirebaseAndInitialize() {
+  if (typeof firebase !== 'undefined' && firebase.apps) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    db = firebase.firestore();
+    console.log('Firebase initialized successfully');
+    return true;
+  }
+  return false;
+}
+
+// Intentar inicializar Firebase inmediatamente
+if (!waitForFirebaseAndInitialize()) {
+  // Si no está disponible, esperar un poco
+  let attempts = 0;
+  const maxAttempts = 20;
+  const checkFirebase = setInterval(() => {
+    attempts++;
+    if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
+      clearInterval(checkFirebase);
+      if (attempts >= maxAttempts) {
+        console.error('Firebase failed to load after maximum attempts');
+      }
+    }
+  }, 100);
+}
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Mostrar skeleton loading inmediatamente
+  showSkeletonLoading();
+  
+  // Firebase ya está inicializado globalmente
   const restaurantsList = document.getElementById("restaurants-list");
   const loadMoreBtn = document.getElementById("load-more-btn");
   // const districtFilter = document.getElementById("district-filter"); // Comentado - no se usa
@@ -38,6 +77,32 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
   let tomSelectInstance = null;
   let allDistricts = [];
   let allDishes = [];
+  let totalRestaurantsCount = 0; // Nueva variable para contar total de restaurantes
+
+  // Función para mostrar skeleton loading
+  function showSkeletonLoading() {
+    const restaurantsList = document.getElementById("restaurants-list");
+    if (restaurantsList) {
+      restaurantsList.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; padding: 1rem;">
+          ${Array(6).fill().map(() => `
+            <div style="background: #f3f4f6; border-radius: 12px; padding: 1rem; min-height: 200px; animation: pulse 1.5s ease-in-out infinite alternate;">
+              <div style="background: #e5e7eb; height: 120px; border-radius: 8px; margin-bottom: 1rem;"></div>
+              <div style="background: #e5e7eb; height: 20px; border-radius: 4px; margin-bottom: 0.5rem;"></div>
+              <div style="background: #e5e7eb; height: 16px; border-radius: 4px; width: 70%;"></div>
+            </div>
+          `).join('')}
+        </div>
+        <style>
+          @keyframes pulse {
+            0% { opacity: 1; }
+            100% { opacity: 0.5; }
+          }
+        </style>
+      `;
+    }
+  }
+  let currentRestaurantsLoaded = 0; // Nueva variable para contar restaurantes cargados
 
   function showToast(message, type, duration = 3000) {
     const toast = document.getElementById("toast-notification");
@@ -60,118 +125,14 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
   // Inicializar búsqueda de distritos
   initializeDistrictSearch();
 
-  if (myRestaurantButton) {
-    setupMyRestaurantButton();
-  }
+  // Configurar eventos después de que Firebase esté listo
+  setupEventListeners();
 
-  if (myAccountBtn) {
-    myAccountBtn.addEventListener("click", () => {
-      if (!auth.currentUser) {
-        loginModalOverlay.style.display = "flex";
-      } else {
-        window.location.href = "favorites.html";
-      }
-    });
-  }
+  // Configurar observador de autenticación
+  auth.onAuthStateChanged(handleAuthStateChange);
 
-  if (loginModalCloseBtn) {
-    loginModalCloseBtn.addEventListener("click", () => {
-      loginModalOverlay.style.display = "none";
-    });
-  }
-
-  if (loginModalOverlay) {
-    loginModalOverlay.addEventListener("click", (event) => {
-      if (event.target === loginModalOverlay) {
-        loginModalOverlay.style.display = "none";
-      }
-    });
-  }
-
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener("click", async () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      try {
-        await auth.signInWithPopup(provider);
-      } catch (error) {
-        console.error("Error during Google login:", error);
-        showToast("Error during login. Please try again.", "error");
-      }
-    });
-  }
-
-  auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      myAccountBtn.textContent = user.displayName || user.email;
-      logoutText.style.display = "inline";
-
-      // *** Lógica INTELIGENTE para upsert de comensales (QUEDA IGUAL) ***
-      const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
-      let userRole = null;
-      if (userRoleResponse.ok) {
-        const roleData = await userRoleResponse.json();
-        userRole = roleData.role;
-      }
-
-      const restaurantBtn = document.getElementById("my-restaurant");
-      if (userRole === "customer") {
-        restaurantBtn.style.display = "none";
-      } else {
-        restaurantBtn.style.display = "flex";
-      }
-
-      if (userRole !== "owner") {
-        await upsertUser(user, "customer"); // Esto lo guardará en 'invited'
-      } else {
-        console.log(
-          `User ${user.uid} is an owner. Skipping customer upsert in index.js.`
-        );
-        // Opcional: Si el owner ha llegado aquí, podrías asegurar que su 'lastLogin' en 'users' se actualice.
-        // Esto lo manejará el backend si el login.js lo llama con role: 'owner'
-      }
-      // *** FIN Lógica INTELIGENTE ***
-
-      // *** ESTE BLOQUE DE CÓDIGO ES EL QUE DEBES ELIMINAR ***
-      // const userDocRef = db.collection("users").doc(user.uid);
-      // try {
-      //     const docSnapshot = await userDocRef.get();
-      //     if (!docSnapshot.exists) {
-      //         await userDocRef.set({
-      //             uid: user.uid,
-      //             displayName: user.displayName,
-      //             email: user.email,
-      //             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-      //             role: "customer",
-      //         });
-      //         console.log("New customer registered in Firestore:", user.uid);
-      //     } else {
-      //         await userDocRef.update({
-      //             lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
-      //         });
-      //     }
-      // } catch (error) {
-      //     console.error("Error managing user data in Firestore:", error);
-      // }
-      // *** FIN DEL BLOQUE A ELIMINAR ***
-
-      await loadUserFavorites(user.uid);
-      favoritesCountDisplay.style.display = "flex";
-      favoritesCounter.textContent = currentUserFavorites.size;
-
-      loginModalOverlay.style.display = "none";
-      loadRestaurants(true);
-    } else {
-      myAccountBtn.textContent = "Soy Comensal";
-      logoutText.style.display = "none";
-      favoritesCountDisplay.style.display = "none";
-      currentUserFavorites.clear();
-
-      const restaurantBtn = document.getElementById("my-restaurant");
-      restaurantBtn.style.display = "flex";
-
-      loadRestaurants(true);
-    }
-  });
+  // Cargar restaurantes inicial
+  loadRestaurants(true);
 
   async function upsertUser(user, role) {
     try {
@@ -246,39 +207,154 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
     });
   }
 
+  function setupEventListeners() {
+    if (myAccountBtn) {
+      myAccountBtn.addEventListener("click", () => {
+        if (!auth.currentUser) {
+          loginModalOverlay.style.display = "flex";
+        } else {
+          window.location.href = "favorites.html";
+        }
+      });
+    }
+
+    if (loginModalCloseBtn) {
+      loginModalCloseBtn.addEventListener("click", () => {
+        loginModalOverlay.style.display = "none";
+      });
+    }
+
+    if (loginModalOverlay) {
+      loginModalOverlay.addEventListener("click", (event) => {
+        if (event.target === loginModalOverlay) {
+          loginModalOverlay.style.display = "none";
+        }
+      });
+    }
+
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener("click", async () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+          await auth.signInWithPopup(provider);
+        } catch (error) {
+          console.error("Error during Google login:", error);
+          showToast("Error during login. Please try again.", "error");
+        }
+      });
+    }
+
+    // Configurar el botón Mi Restaurante con un pequeño delay para asegurar Firebase
+    if (myRestaurantButton) {
+      setTimeout(() => {
+        setupMyRestaurantButton();
+      }, 100);
+    }
+  }
+
+  async function handleAuthStateChange(user) {
+    if (user) {
+      myAccountBtn.textContent = user.displayName || user.email;
+      logoutText.style.display = "inline";
+
+      // *** Lógica INTELIGENTE para upsert de comensales (QUEDA IGUAL) ***
+      const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
+      let userRole = null;
+      if (userRoleResponse.ok) {
+        const roleData = await userRoleResponse.json();
+        userRole = roleData.role;
+      }
+
+      const restaurantBtn = document.getElementById("my-restaurant");
+      if (userRole === "customer") {
+        restaurantBtn.style.display = "none";
+      } else {
+        restaurantBtn.style.display = "flex";
+      }
+
+      if (userRole !== "owner") {
+        await upsertUser(user, "customer"); // Esto lo guardará en 'invited'
+      } else {
+        console.log(
+          `User ${user.uid} is an owner. Skipping customer upsert in index.js.`
+        );
+      }
+
+      await loadUserFavorites(user.uid);
+      favoritesCountDisplay.style.display = "flex";
+      if (favoritesCounter) {
+        favoritesCounter.textContent = currentUserFavorites.size;
+      }
+      loginModalOverlay.style.display = "none";
+      updateDishLikeButtons();
+      loadRestaurants(true);
+    } else {
+      myAccountBtn.textContent = "Soy Comensal";
+      logoutText.style.display = "none";
+      favoritesCountDisplay.style.display = "none";
+      currentUserFavorites.clear();
+
+      const restaurantBtn = document.getElementById("my-restaurant");
+      restaurantBtn.style.display = "flex";
+
+      updateDishLikeButtons();
+      loadRestaurants(true);
+    }
+  }
+
   function setupMyRestaurantButton() {
     if (!myRestaurantButton) return;
+    
+    // Verificar que Firebase esté inicializado
+    if (!auth || !firebase.apps.length) {
+      console.error('Firebase not initialized when setting up restaurant button');
+      return;
+    }
+    
     myRestaurantButton.textContent = "Mi Restaurante";
     myRestaurantButton.disabled = false;
 
     myRestaurantButton.onclick = async () => {
-      myRestaurantButton.textContent = "Verificando...";
-      myRestaurantButton.disabled = true;
-
-      const user = auth.currentUser;
-      if (user) {
-        const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
-        if (!userRoleResponse.ok) {
-          showToast("Error verifying user role. Please try again.", "error");
-          myRestaurantButton.textContent = "Mi Restaurante";
-          myRestaurantButton.disabled = false;
+      try {
+        // Verificar que Firebase esté disponible
+        if (!auth || !firebase.apps.length) {
+          showToast("Error: Sistema no inicializado. Recarga la página.", "error");
           return;
         }
-        const userRoleData = await userRoleResponse.json();
-        const userRole = userRoleData.role;
 
-        if (userRole === "owner") {
-          window.location.href = "/dashboard.html";
+        myRestaurantButton.textContent = "Verificando...";
+        myRestaurantButton.disabled = true;
+
+        const user = auth.currentUser;
+        if (user) {
+          const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
+          if (!userRoleResponse.ok) {
+            showToast("Error verifying user role. Please try again.", "error");
+            myRestaurantButton.textContent = "Mi Restaurante";
+            myRestaurantButton.disabled = false;
+            return;
+          }
+          const userRoleData = await userRoleResponse.json();
+          const userRole = userRoleData.role;
+
+          if (userRole === "owner") {
+            window.location.href = "dashboard.html";
+          } else {
+            showToast(
+              "You do not have permission to access the restaurant dashboard.",
+              "warning"
+            );
+            myRestaurantButton.textContent = "Mi Restaurante";
+            myRestaurantButton.disabled = false;
+          }
         } else {
-          showToast(
-            "You do not have permission to access the restaurant dashboard.",
-            "warning"
-          );
-          myRestaurantButton.textContent = "Mi Restaurante";
-          myRestaurantButton.disabled = false;
+          window.location.href = "login.html";
         }
-      } else {
-        window.location.href = "/login.html";
+      } catch (error) {
+        console.error('Error in restaurant button:', error);
+        showToast("Error inesperado. Intenta de nuevo.", "error");
+        myRestaurantButton.textContent = "Mi Restaurante";
+        myRestaurantButton.disabled = false;
       }
     };
   }
@@ -451,6 +527,7 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
         restaurantsList.innerHTML =
           '<p style="text-align: center; grid-column: 1 / -1;">Cargando restaurantes...</p>';
       lastVisibleDocId = null;
+      currentRestaurantsLoaded = 0;
       if (loadMoreBtn) loadMoreBtn.style.display = "none";
     }
     if (loadMoreBtn) loadMoreBtn.disabled = true;
@@ -475,6 +552,7 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
       lastVisibleDocId = data.lastDocId;
       if (reset) {
         restaurantsList.innerHTML = "";
+        currentRestaurantsLoaded = 0;
       }
       if (restaurants.length === 0 && reset) {
         restaurantsList.innerHTML =
@@ -510,8 +588,24 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
           };
 
           const scheduleText = getCurrentSchedule(restaurant.schedule);
-          const deliveryText = restaurant.hasDelivery ? "Delivery disponible" : "Solo atención en local";
-          const deliveryIcon = restaurant.hasDelivery ? "🚚" : "🏪";
+          
+          // Lógica mejorada para mostrar servicios disponibles
+          let deliveryText = "";
+          let deliveryIcon = "";
+          
+          if (restaurant.hasDelivery && restaurant.hasLocalService) {
+            deliveryText = "Delivery  • Atención en local";
+            deliveryIcon = "🚚";
+          } else if (restaurant.hasDelivery) {
+            deliveryText = "Delivery";
+            deliveryIcon = "🚚";
+          } else if (restaurant.hasLocalService) {
+            deliveryText = "Atención en local";
+            deliveryIcon = "•";
+          } else {
+            deliveryText = "Consultar disponibilidad";
+            deliveryIcon = "📞";
+          }
 
           restaurantCard.innerHTML = `
             <img src="${imageUrl}" alt="${safeName}" class="restaurant-card-image">
@@ -548,9 +642,24 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
             restaurantCard.classList.add("is-visible");
           }, 10 * index);
         });
+        
+        // Actualizar contador de restaurantes cargados
+        currentRestaurantsLoaded += restaurants.length;
       }
+      
+      // Lógica mejorada para mostrar el botón "Ver más"
       if (loadMoreBtn) {
-        loadMoreBtn.style.display = lastVisibleDocId ? "block" : "none";
+        // Solo mostrar el botón si:
+        // 1. Hay más restaurantes para cargar (lastVisibleDocId existe)
+        // 2. Ya se han cargado al menos 10 restaurantes (para cumplir con el requisito)
+        // 3. El número de restaurantes en esta carga es igual al límite (12), lo que indica que probablemente hay más
+        const shouldShowButton = lastVisibleDocId && 
+                                 currentRestaurantsLoaded >= 10 && 
+                                 restaurants.length > 0;
+        loadMoreBtn.style.display = shouldShowButton ? "block" : "none";
+        
+        // Log para debug (se puede remover en producción)
+        console.log(`Botón Ver más - lastDocId: ${!!lastVisibleDocId}, cargados: ${currentRestaurantsLoaded}, nuevos: ${restaurants.length}, mostrar: ${shouldShowButton}`);
       }
     } catch (error) {
       console.error("Error al cargar restaurantes:", error);
@@ -781,6 +890,4 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
       console.error("Error initializing district search:", error);
     }
   }
-
-  loadRestaurants(true);
 });

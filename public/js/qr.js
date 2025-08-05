@@ -82,8 +82,46 @@ const firebaseConfig = {
   messagingSenderId: "92623435008",
   appId: "1:92623435008:web:8d4b4d58c0ccb9edb5afe5",
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
+
+// Variables de cache para QR
+let qrCache = new Map();
+
+// Variables globales de Firebase
+let auth;
+
+// Inicializar Firebase cuando esté disponible
+function waitForFirebaseAndInitialize() {
+  if (typeof firebase !== 'undefined' && firebase.apps) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    console.log('Firebase initialized successfully in qr');
+    return true;
+  }
+  return false;
+}
+
+// Intentar inicializar Firebase inmediatamente
+if (!waitForFirebaseAndInitialize()) {
+  // Si no está disponible, esperar un poco
+  let attempts = 0;
+  const maxAttempts = 20;
+  const checkFirebase = setInterval(() => {
+    attempts++;
+    if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
+      clearInterval(checkFirebase);
+      if (attempts >= maxAttempts) {
+        console.error('Firebase failed to load after maximum attempts in qr');
+      }
+    }
+  }, 100);
+}
+
+// Inicializar Firebase de forma lazy
+document.addEventListener("DOMContentLoaded", () => {
+  // Firebase ya está inicializado arriba
+});
 
 
 
@@ -94,12 +132,11 @@ let CURRENT_WHATSAPP = "";
 
 async function loadQRForOwner() {
  
-  if (!window.firebase || !firebase.auth) {
-    console.error("Firebase no está cargado en esta página.");
+  if (!auth) {
+    console.error("Firebase auth no está cargado en esta página.");
     return;
   }
 
-  const auth = firebase.auth();
   const user =
     auth.currentUser ||
     (await new Promise((res) => {

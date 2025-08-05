@@ -12,16 +12,24 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Optimización de scroll suave */
+  scroll-behavior: smooth;
 }
 body {
   font-family: "Nunito", sans-serif;
   background-color: var(--brand-yellow);
   color: var(--brand-dark);
+  /* Optimizaciones de renderizado */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
 }
 .container {
   max-width: 600px;
   margin: 0 auto;
   padding: 0 1.5rem 1.5rem 1.5rem;
+  /* Optimización de contenedor principal */
+  contain: layout style paint;
 }
 .main-header {
   padding: 1rem 1.5rem;
@@ -169,12 +177,82 @@ body {
   gap: 0.5rem;
 }
 
+.restaurant-title-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .restaurant-info h2 {
   color: white;
   font-size: 1.3rem;
   font-weight: 800;
   margin: 0;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mobile-status {
+  display: none !important; /* Asegurar que nunca se muestre en desktop */
+}
+
+.mobile-status-dot {
+  width: 12px; /* Aumentado de 8px a 12px (50% más) */
+  height: 12px;
+  background-color: #00b44e;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+  animation: statusPulse 2s infinite;
+  will-change: transform; /* Optimización para animaciones */
+}
+
+.mobile-status-dot.closed {
+  background-color: #ef4444;
+  animation: statusPulse 2s infinite;
+}
+
+/* Animación de radar/vibración */
+@keyframes statusPulse {
+  0% {
+    transform: scale3d(1, 1, 1);
+    box-shadow: 0 0 0 0 rgba(0, 180, 78, 0.7);
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+    box-shadow: 0 0 0 6px rgba(0, 180, 78, 0);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+    box-shadow: 0 0 0 0 rgba(0, 180, 78, 0);
+  }
+}
+
+/* Animación específica para estado cerrado */
+.mobile-status-dot.closed {
+  animation: statusPulseClosed 2s infinite;
+}
+
+@keyframes statusPulseClosed {
+  0% {
+    transform: scale3d(1, 1, 1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  50% {
+    transform: scale3d(1.1, 1.1, 1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale3d(1, 1, 1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
+}
+
+.desktop-status {
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  position: relative;
+  z-index: 2;
 }
 
 .restaurant-details {
@@ -343,6 +421,13 @@ body {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.quantity-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
 .quantity-control {
   display: flex;
   align-items: center;
@@ -493,16 +578,6 @@ body {
     margin: 0;
   }
 
-  .restaurant-status {
-    margin-left: 0;
-    align-self: center;
-  }
-
-  .status-badge {
-    font-size: 0.65rem;
-    padding: 0.3rem 0.6rem;
-  }
-
   .menu-banner {
     flex-direction: column;
     align-items: stretch;
@@ -548,14 +623,37 @@ body {
     flex: 0 0 auto;
   }
   
-  .restaurant-status {
-    align-self: center;
-    margin-left: 0;
-    margin-top: 0.5rem;
-    position: relative;
-    z-index: 2;
-    display: flex;
-    justify-content: center;
+  /* En móvil: ocultar status de escritorio y mostrar el punto al lado del título */
+  .desktop-status {
+    display: none !important;
+  }
+  
+  .mobile-status {
+    display: flex !important;
+    align-items: center;
+  }
+  
+  .restaurant-title-container {
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: nowrap;
+  }
+  
+  .mobile-status-dot {
+    width: 12px !important; /* Aumentado de 8px a 12px */
+    height: 12px !important;
+    margin-top: 0;
+    flex-shrink: 0;
+  }
+  
+  .mobile-status-dot:not(.closed) {
+    background-color: #00b44e !important;
+    animation: statusPulse 2s infinite;
+  }
+  
+  .mobile-status-dot.closed {
+    background-color: #ef4444 !important;
+    animation: statusPulseClosed 2s infinite;
   }
 }
 
@@ -608,6 +706,17 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+  /* Optimizaciones de rendimiento para imágenes */
+  will-change: auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: optimize-contrast;
+  backface-visibility: hidden;
+  transition: transform 0.2s ease;
+}
+
+.dish-image-wrapper img:hover {
+  transform: scale3d(1.05, 1.05, 1);
+  will-change: transform;
 }
 .dish-like-control {
   position: absolute;
@@ -930,14 +1039,14 @@ textarea {
   background-color: var(--brand-green);
   color: white;
   width: 400px;
-  height: 100px;
+  height: 60px; /* Reducido de 100px a 60px */
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
   padding: 0 20px;
   border-radius: 12px;
-  font-size: 18px;
+  font-size: 16px; /* Reducido de 18px a 16px */
   z-index: 9999;
   opacity: 0;
   pointer-events: none;
