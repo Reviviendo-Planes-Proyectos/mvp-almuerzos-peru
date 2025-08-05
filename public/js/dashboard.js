@@ -248,19 +248,27 @@ async function loadDashboardData() {
     const ratingElement = document.getElementById("restaurant-rating");
     if (ratingElement) {
       try {
-        const ratingResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/rating`);
+        const idToken = await currentUser.getIdToken();
+        const ratingResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/rating`, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+        
         if (ratingResponse.ok) {
           const ratingData = await ratingResponse.json();
           
-          ratingElement.textContent = `${ratingData.rating} • ${ratingData.reviewCount}`;
+          // Mostrar el número total de likes (corazones) que tiene el restaurante
+          ratingElement.textContent = `${ratingData.totalLikes}`;
         } else {
-     
-          ratingElement.textContent = "4.0 • 100";
+          console.error("Error fetching restaurant rating:", ratingResponse.status, ratingResponse.statusText);
+          // Fallback: mostrar valores por defecto
+          ratingElement.textContent = "0";
         }
       } catch (error) {
         console.error("Error fetching restaurant rating:", error);
-  
-        ratingElement.textContent = "4.0 • 100";
+        // Fallback: mostrar valores por defecto
+        ratingElement.textContent = "0";
       }
     }
     
