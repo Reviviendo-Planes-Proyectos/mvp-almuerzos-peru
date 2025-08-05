@@ -864,7 +864,7 @@ async function initializeApp() {
       .doc(dishId);
 
     try {
-      // Verificar si ya existe un like en las últimas 24 horas
+      // Verificar si ya existe un like en las últimas 12 horas
       const likeDoc = await likeDocRef.get();
 
       if (likeDoc.exists) {
@@ -878,10 +878,10 @@ async function initializeApp() {
           const hoursElapsed = timeDifference / (1000 * 60 * 60);
           //const secondsElapsed = timeDifference / 1000;
 
-          if (hoursElapsed < 24) {
+          if (hoursElapsed < 12) {
             //if (secondsElapsed < 30) {
             showToast(
-              "Solo puedes dar un like por día. Inténtalo nuevamente mañana.",
+              "Ya diste like. Inténtalo mañana",
               "warning"
             );
             return;
@@ -907,17 +907,20 @@ async function initializeApp() {
 
       const result = await response.json();
 
-      // ✅ Guardar el nuevo like en dailyLikes para control de tiempo
-      await likeDocRef.set({
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      });
-
-      // ✅ Cambiar icono en el botón pero mantenerlo habilitado para futuras validaciones
+      // ✅ Cambiar icono en el botón inmediatamente para feedback visual rápido
       button.innerHTML = "❤️";
       button.disabled = false;
       button.classList.add("liked");
 
-      showToast("¡Gracias por tu like!", "success");
+      // ✅ Mostrar toast de confirmación inmediatamente tras la respuesta exitosa
+      showToast("¡Gracias por tu like!", "success", 1500);
+
+      // ✅ Guardar el nuevo like en dailyLikes para control de tiempo (en background)
+      likeDocRef.set({
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      }).catch(error => {
+        console.error("Error guardando en dailyLikes:", error);
+      });
 
       // ✅ Actualizar contador de likes en pantalla
       const likesCountEl = document.getElementById(`likes-count-${dishId}`);

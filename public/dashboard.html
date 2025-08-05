@@ -231,8 +231,8 @@
           </button>
         </div>
 
-        <div class="dashed-container" style="text-align: center; margin: 2rem 0" onclick="openModal('newCardModal')">
-          <button class="primary-button">
+        <div style="text-align: center; margin: 2rem 0">
+          <button class="primary-button" onclick="openModal('newCardModal')">
             Nueva carta +
           </button>
         </div>
@@ -267,13 +267,13 @@
               <path d="M12 19l-7-7 7-7"></path>
             </svg>
           </button>
-          <button id="delete-card-button" class="delete-button">
+         <!--  <button id="delete-card-button" class="delete-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
-          </button>
+          </button> -->
         </div>
 
         <div class="dish-list-container">
@@ -488,11 +488,11 @@
   <div id="editDishModal" class="modal-backdrop" onclick="closeModal(event)">
     <div class="modal-content">
       <button id="open-delete-dish-alert-btn" class="delete-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="3 6 5 6 21 6"></polyline>
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-        </svg>
+        </svg> -->
       </button>
       <button class="modal-close-btn" onclick="closeModal(event)">
         &times;
@@ -959,7 +959,7 @@
       </div>
       <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
         <button id="cancel-crop-btn" class="primary-button" style="min-width: 100px;">Cancelar</button>
-        <button id="save-crop-btn" class="primary-button dark-button dashed-container" style="min-width: 100px;">Guardar</button>
+        <button id="save-crop-btn" class="primary-button dark-button" style="min-width: 100px;">Guardar</button>
       </div>
     </div>
   </div>

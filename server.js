@@ -1557,46 +1557,7 @@ app.delete('/api/dishes/:dishId', authenticateAndAuthorize, async (req, res) => 
 });
 
 
-app.post('/api/dishes/:dishId/like', async (req, res) => {
-    try {
-      const { dishId } = req.params;
-      const { isActive } = req.body;
 
-      const dishDoc = await db.collection("dishes").doc(dishId).get();
-      if (!dishDoc.exists) {
-        return res.status(404).json({ error: "Dish not found." });
-      }
-      const cardIdOfDish = dishDoc.data().cardId;
-      const cardDoc = await db.collection("cards").doc(cardIdOfDish).get();
-      if (!cardDoc.exists) {
-        return res.status(500).json({ error: "Associated card not found." });
-      }
-      const restaurantIdOfCard = cardDoc.data().restaurantId;
-      const restaurantDoc = await db
-        .collection("restaurants")
-        .doc(restaurantIdOfCard)
-        .get();
-      if (
-        !restaurantDoc.exists ||
-        restaurantDoc.data().ownerId !== req.user.uid
-      ) {
-        return res
-          .status(403)
-          .json({
-            error: "Forbidden: You do not own this dish's card or restaurant.",
-          });
-      }
-
-      await db.collection("dishes").doc(dishId).update({ isActive });
-      res
-        .status(200)
-        .json({ message: `Dish ${dishId} updated to ${isActive}` });
-    } catch (error) {
-      console.error("Error updating dish:", error);
-      res.status(500).json({ error: "An error occurred on the server." });
-    }
-  }
-);
 
 app.delete(
   "/api/dishes/:dishId",
