@@ -486,6 +486,12 @@ async function handleUpdateCardName() {
   
   const saveButton = document.getElementById("save-card-changes-btn");
   const cardNameInput = document.getElementById("card-name-input");
+  
+  if (!saveButton || !cardNameInput) {
+    console.error("Elementos del DOM no encontrados");
+    return;
+  }
+  
   const newName = cardNameInput.value.trim();
   
   if (newName === originalCardName || newName === "") return;
