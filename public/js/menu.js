@@ -49,6 +49,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let currentCardId = null;
 
+  // --- Función para actualizar contador de corazones dinámico ---
+  function updateTotalLikesCounter() {
+    const totalLikesElement = document.getElementById("restaurant-total-likes");
+    if (!totalLikesElement || !allCardsData) {
+      return;
+    }
+
+    let totalLikes = 0;
+
+    // Sumar los likes de todos los platillos activos de todas las cartas
+    allCardsData.forEach(card => {
+      if (card.dishes && Array.isArray(card.dishes)) {
+        card.dishes.forEach(dish => {
+          // Solo contar platillos activos (habilitados)
+          if (dish.isActive) {
+            totalLikes += dish.likesCount || 0;
+          }
+        });
+      }
+    });
+
+    totalLikesElement.textContent = totalLikes;
+  }
+
   // --- Funciones para el estado del restaurante ---
   function updateRestaurantStatus() {
     if (!currentRestaurant || !currentRestaurant.schedule) return;
@@ -628,11 +652,25 @@ document.addEventListener("DOMContentLoaded", () => {
         likesCountEl.innerText = `${result.likesCount} me gusta`;
       }
 
+      // ✅ Actualizar el likesCount en allCardsData para mantener sincronización
+      allCardsData.forEach(card => {
+        if (card.dishes && Array.isArray(card.dishes)) {
+          card.dishes.forEach(dish => {
+            if (dish.id === dishId) {
+              dish.likesCount = result.likesCount;
+            }
+          });
+        }
+      });
+
       // Actualizar el contador de favoritos del usuario
       if (favoritesCounter) {
         const currentCount = parseInt(favoritesCounter.textContent) || 0;
         favoritesCounter.textContent = currentCount + 1;
       }
+
+      // Actualizar el contador de corazones dinámico del restaurante
+      updateTotalLikesCounter();
     } catch (error) {
       console.error("Error al dar like:", error);
       showToast("Hubo un error al registrar tu like.", "error");
@@ -789,25 +827,35 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     
-    // Actualizar calificación usando el endpoint
-    const ratingElement = document.getElementById("restaurant-rating");
-    if (ratingElement) {
-      // Llamar al endpoint de rating del restaurante
-      fetch(`/api/restaurants/${currentRestaurant.id}/rating`)
-        .then(response => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error('Rating endpoint not available');
-          }
-        })
-        .then(ratingData => {
-          ratingElement.textContent = `${ratingData.rating} • ${ratingData.reviewCount}`;
-        })
-        .catch(error => {
-          console.log('Using fallback rating data');
-          ratingElement.textContent = "4.0 • 100";
-        });
+    // Actualizar contador de corazones dinámico
+    const totalLikesElement = document.getElementById("restaurant-total-likes");
+    if (totalLikesElement) {
+      updateTotalLikesCounter();
+    }
+
+    // Actualizar tipo de atención (delivery/local)
+    const deliveryIconElement = document.getElementById("restaurant-delivery-icon");
+    const deliveryTextElement = document.getElementById("restaurant-delivery-text");
+    if (deliveryIconElement && deliveryTextElement) {
+      let deliveryText = "";
+      let deliveryIcon = "";
+      
+      if (currentRestaurant.hasDelivery && currentRestaurant.hasLocalService) {
+        deliveryText = "Delivery y atención local";
+        deliveryIcon = "🚚🏪";
+      } else if (currentRestaurant.hasDelivery) {
+        deliveryText = "Solo delivery";
+        deliveryIcon = "🚚";
+      } else if (currentRestaurant.hasLocalService) {
+        deliveryText = "Solo atención en local";
+        deliveryIcon = "🏪";
+      } else {
+        deliveryText = "Sin atención disponible";
+        deliveryIcon = "❌";
+      }
+      
+      deliveryIconElement.textContent = deliveryIcon;
+      deliveryTextElement.textContent = deliveryText;
     }
 
     // Actualizar estado del restaurante
@@ -849,6 +897,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (currentCardId) {
         displayDishesForCard(currentCardId);
       }
+
+      // Actualizar el contador de corazones dinámico
+      updateTotalLikesCounter();
     } else {
       cardsNav.innerHTML = '<p style="color: white;">No cards available.</p>';
       dishesContainer.innerHTML =

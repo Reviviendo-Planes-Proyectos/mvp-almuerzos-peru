@@ -31,6 +31,22 @@ body {
   display: flex;
   justify-content: space-between;
 }
+/* Asegurar que en escritorio todos los elementos estén en línea horizontal */
+@media (min-width: 481px) {
+  .restaurant-info {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .schedule-likes-info {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.6rem;
+  }
+}
+
 @media (max-width: 640px) {
   .zone-selector {
     flex-direction: column;
@@ -174,7 +190,6 @@ body {
 }
 .restaurant-card:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  background-color: #fafafa;
 }
 .restaurant-card img {
   width: 125px;
@@ -248,7 +263,7 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .schedule-info {
@@ -278,12 +293,23 @@ body {
   font-weight: 400;
 }
 
-.schedule-icon, .delivery-icon {
+.schedule-icon {
   width: 12px;
   height: 12px;
   opacity: 0.8;
   display: inline-flex;
   align-items: center;
+}
+
+.delivery-icon {
+  opacity: 0.8;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.delivery-icon + .delivery-icon {
+  margin-left: 0;
 }
 
 .schedule-text, .delivery-text {
@@ -591,8 +617,20 @@ body {
   }
   
   .schedule-info {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.7rem;
     color: white;
+    font-weight: 400;
+  }
+  
+  .restaurant-likes {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    color: #d32f2f;
     font-weight: 400;
   }
   
@@ -602,11 +640,27 @@ body {
     font-weight: 400;
   }
   
-  .schedule-icon, .delivery-icon {
+  .schedule-icon {
     width: 9px;
     height: 9px;
   }
+  
+  .delivery-icon {
+    font-size: 0.7rem;
+  }
+  
+  .delivery-icon + .delivery-icon {
+    margin-left: 0.5rem;
+  }
 }
+
+.delivery-info {
+  font-size: 0.7rem;
+  color: #00d084;
+  font-weight: 400;
+}
+  
+
 
 @media (max-width: 480px) {
   .restaurant-card {
@@ -653,9 +707,18 @@ body {
   }
   
   .restaurant-info {
-    gap: 0.6rem;
-    flex-wrap: wrap;
+    gap: 0.3rem;
+    flex-direction: column;
+    align-items: flex-start;
     margin: 0;
+  }
+  
+  .schedule-likes-info {
+    display: flex;
+    flex-direction: row;
+    gap: 0.6rem;
+    align-items: center;
+    justify-content: flex-start;
   }
   
   .schedule-info {

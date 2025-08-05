@@ -510,8 +510,24 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
           };
 
           const scheduleText = getCurrentSchedule(restaurant.schedule);
-          const deliveryText = restaurant.hasDelivery ? "Delivery disponible" : "Solo atención en local";
-          const deliveryIcon = restaurant.hasDelivery ? "🚚" : "🏪";
+          
+          // Lógica dinámica para mostrar opciones de atención
+          let deliveryText = "";
+          let deliveryIconsHTML = "";
+          
+          if (restaurant.hasDelivery && restaurant.hasLocalService) {
+            deliveryText = "Delivery y atención local";
+            deliveryIconsHTML = `<span class="delivery-icon">🚚</span><span class="delivery-icon">🏪</span>`;
+          } else if (restaurant.hasDelivery) {
+            deliveryText = "Solo delivery";
+            deliveryIconsHTML = `<span class="delivery-icon">🚚</span>`;
+          } else if (restaurant.hasLocalService) {
+            deliveryText = "Solo atención en local";
+            deliveryIconsHTML = `<span class="delivery-icon">🏪</span>`;
+          } else {
+            deliveryText = "Sin atención disponible";
+            deliveryIconsHTML = `<span class="delivery-icon">❌</span>`;
+          }
 
           restaurantCard.innerHTML = `
             <img src="${imageUrl}" alt="${safeName}" class="restaurant-card-image">
@@ -522,16 +538,18 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
                   : safeName
               }</h4>
               <div class="restaurant-info">
-                <div class="schedule-info">
-                  <span class="schedule-icon">🕐</span>
-                  <span class="schedule-text">${scheduleText}</span>
-                </div>
-                <div class="restaurant-likes">
-                  <span class="heart-icon">❤️</span>
-                  <span class="likes-count">${totalLikes}</span>
+                <div class="schedule-likes-info">
+                  <div class="schedule-info">
+                    <span class="schedule-icon">🕐</span>
+                    <span class="schedule-text">${scheduleText}</span>
+                  </div>
+                  <div class="restaurant-likes">
+                    <span class="heart-icon">❤️</span>
+                    <span class="likes-count">${totalLikes}</span>
+                  </div>
                 </div>
                 <div class="delivery-info">
-                  <span class="delivery-icon">${deliveryIcon}</span>
+                  ${deliveryIconsHTML}
                   <span class="delivery-text">${deliveryText}</span>
                 </div>
               </div>

@@ -1049,3 +1049,35 @@ textarea {
     animation: none !important;
   }
 }
+
+/* Media queries para escritorio */
+@media (min-width: 768px) {
+  .restaurant-details {
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  
+  .restaurant-detail {
+    flex: 0 1 auto;
+    max-width: calc(50% - 0.25rem);
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    max-width: 800px;
+  }
+  
+  .restaurant-details {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  
+  .restaurant-detail {
+    flex: 0 1 auto;
+    max-width: calc(33.333% - 0.33rem);
+    min-width: fit-content;
+  }
+}
