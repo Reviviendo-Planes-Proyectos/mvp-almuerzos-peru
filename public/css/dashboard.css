@@ -12,16 +12,41 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  /* Optimización de scroll suave */
+  scroll-behavior: smooth;
 }
+
 body {
   font-family: "Nunito", sans-serif;
   background-color: var(--brand-yellow);
   color: var(--brand-dark);
+  /* Optimizaciones de renderizado */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeSpeed;
+  /* Optimización de contenedor principal */
+  contain: layout style paint;
+  /* Asegurar altura completa */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 .image-upload-box {
   position: relative;
+}
+
+/* Optimizaciones globales de imagen */
+img {
+  will-change: auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: optimize-contrast;
+  backface-visibility: hidden;
+  transition: transform 0.2s ease;
+}
+
+img:hover {
+  transform: scale3d(1.02, 1.02, 1);
+  will-change: transform;
 }
 .toast {
   position: fixed;
@@ -36,6 +61,14 @@ body {
   font-weight: 700;
   z-index: 2000;
   transition: top 0.5s ease-in-out;
+}
+
+.toast-success {
+  background-color: var(--brand-green);
+}
+
+.toast-error {
+  background-color: #ef4444;
 }
 .delete-confirm-btn {
   background-color: red !important;
@@ -1568,14 +1601,11 @@ input:checked + .slider:before {
   }
 }
 
-.edit-dish-btn {
-  margin-top: 6px; 
-    background-color: var(--brand-green); 
-    color: white; 
-    border: none; 
-    padding: 6px 12px; 
-    border-radius: 6px; 
-    font-size: 0.9rem; 
-    cursor: pointer; 
-    transition: background-color 0.3s;
+/* Estilos para asegurar altura completa en todas las páginas */
+#main-content {
+  min-height: calc(100vh - 80px) !important;
+}
+
+.main-content {
+  min-height: calc(100vh - 80px);
 }

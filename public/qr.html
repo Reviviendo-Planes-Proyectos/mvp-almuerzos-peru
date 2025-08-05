@@ -4,7 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>QR Code - Almuerzos Perú</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/dashboard.css" as="style" />
+    <link rel="preload" href="css/qr.css" as="style" />
+    
     <link rel="stylesheet" href="css/dashboard.css" />
     <link rel="stylesheet" href="css/qr.css" />
 </head>
@@ -116,17 +121,15 @@
         </div>
     </div>
 
-
-
-
+    <!-- Firebase scripts must load before our scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" defer></script>
 
-    <script src="js/sidebar.js"></script>
-    <script src="js/qr.js"></script>
-    <script src="js/dashboard.js"></script>
+    <script src="js/sidebar.js" defer></script>
+    <script src="js/qr.js" defer></script>
+    <script src="js/dashboard.js" defer></script>
 </body>
 
 </html>

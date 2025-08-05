@@ -6,17 +6,87 @@ const firebaseConfig = {
   messagingSenderId: "92623435008",
   appId: "1:92623435008:web:8d4b4d58c0ccb9edb5afe5",
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
 
-document.addEventListener("DOMContentLoaded", () => {
+// Variables de cache global para favoritos
+let favoritesCache = new Map();
+
+// Variables globales de Firebase
+let auth, db;
+
+// Inicializar Firebase cuando esté disponible
+function waitForFirebaseAndInitialize() {
+  if (typeof firebase !== 'undefined' && firebase.apps && firebase.auth && firebase.firestore) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    db = firebase.firestore();
+    console.log('Firebase initialized successfully in favorites');
+    return true;
+  }
+  return false;
+}
+
+// Intentar inicializar Firebase inmediatamente
+if (!waitForFirebaseAndInitialize()) {
+  // Si no está disponible, esperar un poco
+  let attempts = 0;
+  const maxAttempts = 20;
+  const checkFirebase = setInterval(() => {
+    attempts++;
+    if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
+      clearInterval(checkFirebase);
+      if (attempts >= maxAttempts) {
+        console.error('Firebase failed to load after maximum attempts in favorites');
+      }
+    }
+  }, 100);
+}
+
+// Inicialización asíncrona (versión simplificada)
+async function initializeFirebaseAsync() {
+  return new Promise((resolve) => {
+    const checkAuth = () => {
+      if (auth && db) {
+        resolve({ auth, db });
+      } else {
+        setTimeout(checkAuth, 100);
+      }
+    };
+    checkAuth();
+  });
+}
+
+document.addEventListener("DOMContentLoaded", async () => {
+  // Mostrar loading inmediatamente
+  showSkeletonLoading();
+  
+  // Inicializar Firebase de forma asíncrona
+  const { auth, db } = await initializeFirebaseAsync();
   const favoriteDishesList = document.getElementById("favorite-dishes-list");
   const backToHomeBtn = document.getElementById("back-to-home-btn");
   const myAccountBtn = document.getElementById("my-account-btn");
   const logoutText = document.getElementById("logout-text");
 
   let currentUserUid = null;
+
+  // Función para mostrar skeleton loading
+  function showSkeletonLoading() {
+    const favoriteDishesList = document.getElementById("favorite-dishes-list");
+    if (favoriteDishesList) {
+      favoriteDishesList.innerHTML = `
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem;">
+          ${Array(4).fill().map(() => `
+            <div style="background: #f3f4f6; border-radius: 12px; padding: 1rem; animation: pulse 1.5s ease-in-out infinite alternate;">
+              <div style="background: #e5e7eb; height: 150px; border-radius: 8px; margin-bottom: 1rem;"></div>
+              <div style="background: #e5e7eb; height: 20px; border-radius: 4px; margin-bottom: 0.5rem;"></div>
+              <div style="background: #e5e7eb; height: 16px; border-radius: 4px; width: 60%;"></div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+  }
 
   auth.onAuthStateChanged(async (user) => {
     if (user) {

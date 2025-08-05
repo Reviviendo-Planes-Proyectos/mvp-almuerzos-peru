@@ -6,48 +6,300 @@ const firebaseConfig = {
   messagingSenderId: "92623435008",
   appId: "1:92623435008:web:8d4b4d58c0ccb9edb5afe5",
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore(); // Necesario para gestionar los favoritos en Firestore
+
+// Variables globales de Firebase
+let auth, db;
+
+// Inicializar Firebase cuando esté disponible
+function waitForFirebaseAndInitialize() {
+  if (typeof firebase !== 'undefined' && firebase.apps && firebase.auth && firebase.firestore) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    db = firebase.firestore();
+    console.log('Firebase initialized successfully in menu');
+    return true;
+  }
+  return false;
+}
+
+// Intentar inicializar Firebase inmediatamente
+if (!waitForFirebaseAndInitialize()) {
+  // Si no está disponible, esperar un poco
+  let attempts = 0;
+  const maxAttempts = 20;
+  const checkFirebase = setInterval(() => {
+    attempts++;
+    if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
+      clearInterval(checkFirebase);
+      if (attempts >= maxAttempts) {
+        console.error('Firebase failed to load after maximum attempts in menu');
+      }
+    }
+  }, 100);
+}
+
 window.sentComments = window.sentComments || {};
 
+// Variables de cache global
+let menuData = null;
+let imageCache = new Map();
+
+// Función para optimizar URLs de imagen con cache
+async function getOptimizedImageUrl(originalUrl, fallbackUrl = './images/default-dish.jpg.png') {
+  if (!originalUrl || !originalUrl.includes('firebasestorage')) {
+    return originalUrl || fallbackUrl;
+  }
+  
+  // Verificar cache
+  if (imageCache.has(originalUrl)) {
+    return imageCache.get(originalUrl);
+  }
+  
+  try {
+    const optimizedUrl = await optimizeImageUrl(originalUrl);
+    if (optimizedUrl) {
+      imageCache.set(originalUrl, optimizedUrl);
+      return optimizedUrl;
+    }
+  } catch (error) {
+    console.warn('Image optimization failed:', error);
+  }
+  
+  return originalUrl;
+}
+
+// --- Variables globales de estado ---
+let allCardsData = []; // Contiene todas las cartas y sus platos
+let currentRestaurant = null;
+let shoppingCart = {}; // Para el carrito de compras
+let currentUserFavorites = new Set(); // Para los likes del usuario, gestionado con Firestore
+let currentRestaurantId = null;
+let currentCardId = null;
+
+let isDown = false;
+let startX;
+let scrollLeft;
+
+// --- Referencias DOM globales ---
+let menuBanner;
+let restaurantNameElement;
+let restaurantDescriptionElement;
+let shareButton;
+let cardsNav;
+let dishesContainer;
+let orderButton;
+let toastNotification;
+let myRestaurantButton;
+let myAccountBtn;
+let logoutText;
+let favoritesCountDisplay;
+let favoritesCounter;
+let loginModalOverlay;
+let loginModalCloseBtn;
+let googleLoginBtn;
+
+// Variable para controlar inicialización de Firebase
+let firebaseInitialized = false;
+
 document.addEventListener("DOMContentLoaded", () => {
+  // Inicializar referencias DOM
+  initializeDOMReferences();
+  
+  // Mostrar contenido básico inmediatamente
+  showInitialContent();
+  
+  // Inicializar Firebase y luego la página
+  initializeApp();
+});
+
+function initializeDOMReferences() {
   // --- Referencias DOM existentes para el menú ---
-  const menuBanner = document.getElementById("menu-banner");
-  const restaurantNameElement = document.getElementById("restaurant-name");
-  const restaurantDescriptionElement = document.getElementById(
-    "restaurant-description"
-  );
-  const shareButton = document.getElementById("share-btn");
-  const cardsNav = document.getElementById("cards-nav");
-  const dishesContainer = document.getElementById("dishes-container");
-  const orderButton = document.querySelector(".order-button");
-  const toastNotification = document.getElementById("toast-notification"); // Referencia al toast
+  menuBanner = document.getElementById("menu-banner");
+  restaurantNameElement = document.getElementById("restaurant-name");
+  restaurantDescriptionElement = document.getElementById("restaurant-description");
+  shareButton = document.getElementById("share-btn");
+  cardsNav = document.getElementById("cards-nav");
+  dishesContainer = document.getElementById("dishes-container");
+  orderButton = document.querySelector(".order-button");
+  toastNotification = document.getElementById("toast-notification");
 
   // --- Referencias DOM NUEVAS para Login y Favoritos ---
-  const myRestaurantButton = document.getElementById("my-restaurant-btn");
-  const myAccountBtn = document.getElementById("my-account-btn");
-  const logoutText = document.getElementById("logout-text");
-  const favoritesCountDisplay = document.getElementById(
-    "favorites-count-display"
-  );
-  const favoritesCounter = document.getElementById("favorites-counter");
-  const loginModalOverlay = document.getElementById("login-modal-overlay");
-  const loginModalCloseBtn = document.getElementById("login-modal-close-btn");
-  const googleLoginBtn = document.getElementById("google-login-btn");
+  myRestaurantButton = document.getElementById("my-restaurant-btn");
+  myAccountBtn = document.getElementById("my-account-btn");
+  logoutText = document.getElementById("logout-text");
+  favoritesCountDisplay = document.getElementById("favorites-count-display");
+  favoritesCounter = document.getElementById("favorites-counter");
+  loginModalOverlay = document.getElementById("login-modal-overlay");
+  loginModalCloseBtn = document.getElementById("login-modal-close-btn");
+  googleLoginBtn = document.getElementById("google-login-btn");
+}
 
-  // --- Variables de estado ---
-  let allCardsData = []; // Contiene todas las cartas y sus platos
-  let currentRestaurant = null;
-  let shoppingCart = {}; // Para el carrito de compras
-  let currentUserFavorites = new Set(); // Para los likes del usuario, gestionado con Firestore
-  let currentRestaurantId = null;
+  // --- Funciones de optimización de carga ---
+  function showInitialContent() {
+    // Mostrar esqueleto de carga mientras se cargan los datos
+    const restaurantNameElement = document.getElementById("restaurant-name");
+    const cardsNav = document.getElementById("cards-nav");
+    const dishesContainer = document.getElementById("dishes-container");
+    
+    if (restaurantNameElement) {
+      restaurantNameElement.textContent = "Cargando restaurante...";
+    }
+    
+    if (cardsNav) {
+      cardsNav.innerHTML = '<div style="color: white; text-align: center; padding: 1rem;">⏳ Cargando menú...</div>';
+    }
+    
+    if (dishesContainer) {
+      dishesContainer.innerHTML = '<div style="text-align: center; padding: 2rem;">🍽️ Preparando platos...</div>';
+    }
+  }
 
-  let isDown = false;
-  let startX;
-  let scrollLeft;
+async function initializeApp() {
+  try {
+    // Inicializar Firebase primero si no está inicializado
+    await initializeFirebaseAsync();
+    
+    // Luego cargar datos del restaurante
+    await initializeMenuPageAsync();
+    
+    // Configurar eventos y funcionalidades
+    setupEventListeners();
+    
+  } catch (error) {
+    console.error("Error initializing app:", error);
+    handlePageError(`Error al inicializar la aplicación: ${error.message}`);
+  }
+}
 
-  let currentCardId = null;
+  async function initializeFirebaseAsync() {
+    // Firebase ya está inicializado arriba, solo verificar que esté listo
+    return new Promise((resolve) => {
+      const checkAuth = () => {
+        if (auth && db) {
+          resolve();
+        } else {
+          setTimeout(checkAuth, 100);
+        }
+      };
+      checkAuth();
+    });
+  }
+
+  async function initializeMenuPageAsync() {
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      currentRestaurantId = urlParams.get("restaurantId");
+      const cardIdFromUrl = urlParams.get("cardId");
+
+      if (!currentRestaurantId) {
+        handlePageError("ID de restaurante no encontrado en la URL.");
+        return;
+      }
+
+      // Cargar datos del restaurante y menú en paralelo para mayor velocidad
+      const [restaurantResponse, menuResponse] = await Promise.all([
+        fetch(`/api/restaurants/${currentRestaurantId}`),
+        fetch(`/api/restaurants/${currentRestaurantId}/menu`)
+      ]);
+
+      if (!restaurantResponse.ok) throw new Error("Error fetching restaurant details.");
+      if (!menuResponse.ok) throw new Error("Error fetching menu data.");
+
+      const [restaurantData, menuData] = await Promise.all([
+        restaurantResponse.json(),
+        menuResponse.json()
+      ]);
+
+      if (restaurantData.error) throw new Error(restaurantData.error);
+      if (menuData.error) throw new Error(menuData.error);
+
+      currentRestaurant = restaurantData;
+      allCardsData = menuData;
+
+      // Establecer currentCardId ANTES de llamar updateUI
+      if (cardIdFromUrl && allCardsData.find((card) => card.id === cardIdFromUrl)) {
+        currentCardId = cardIdFromUrl;
+      } else {
+        currentCardId = allCardsData.length > 0 ? allCardsData[0].id : null;
+      }
+
+      updateUI();
+    } catch (error) {
+      console.error("Error initializing menu page:", error);
+      handlePageError(`No se pudo cargar el menú: ${error.message}`);
+    }
+  }
+
+  // --- Funciones para el estado del restaurante ---
+  function updateRestaurantStatus() {
+    if (!currentRestaurant || !currentRestaurant.schedule) return;
+    
+    const statusBadge = document.querySelector('.status-badge');
+    const mobileDot = document.querySelector('.mobile-status-dot');
+    if (!statusBadge) return;
+    
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes(); // Tiempo actual en minutos
+    const today = now.getDay(); // 0 = domingo, 1 = lunes, etc.
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = dayNames[today];
+    
+    let daySchedule = currentRestaurant.schedule[currentDay];
+    
+    // Si no hay horario para hoy, usar lunes como fallback
+    if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+      daySchedule = currentRestaurant.schedule.monday;
+    }
+    
+    if (!daySchedule || !daySchedule.from || !daySchedule.to) {
+      // Si no hay horario definido, mostrar como cerrado
+      statusBadge.textContent = 'CERRADO';
+      statusBadge.style.backgroundColor = '#ef4444';
+      if (mobileDot) {
+        mobileDot.classList.add('closed');
+      }
+      return;
+    }
+    
+    // Convertir horarios a minutos
+    const openTime = convertTimeToMinutes(daySchedule.from);
+    const closeTime = convertTimeToMinutes(daySchedule.to);
+    
+    // Verificar si está dentro del horario
+    let isOpen = false;
+    
+    if (closeTime > openTime) {
+      // Horario normal (ej: 9:00 - 22:00)
+      isOpen = currentTime >= openTime && currentTime <= closeTime;
+    } else {
+      // Horario que cruza medianoche (ej: 20:00 - 02:00)
+      isOpen = currentTime >= openTime || currentTime <= closeTime;
+    }
+    
+    // Actualizar la etiqueta y el punto móvil
+    if (isOpen) {
+      statusBadge.textContent = 'ABIERTO';
+      statusBadge.style.backgroundColor = '#00b44e';
+      if (mobileDot) {
+        mobileDot.classList.remove('closed');
+      }
+    } else {
+      statusBadge.textContent = 'CERRADO';
+      statusBadge.style.backgroundColor = '#ef4444';
+      if (mobileDot) {
+        mobileDot.classList.add('closed');
+      }
+    }
+  }
+
+  // Función auxiliar para convertir tiempo HH:MM a minutos
+  function convertTimeToMinutes(timeString) {
+    if (!timeString) return 0;
+    const [hours, minutes] = timeString.split(':').map(Number);
+    return hours * 60 + minutes;
+  }
 
   // --- Funciones auxiliares ---
   function showToast(message, type = "info", duration = 3000) {
@@ -60,45 +312,155 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handlePageError(message) {
-    restaurantNameElement.textContent = "Error";
-    restaurantDescriptionElement.textContent = message;
-    cardsNav.innerHTML = "";
-    dishesContainer.innerHTML = "";
+    if (restaurantNameElement) restaurantNameElement.textContent = "Error";
+    if (restaurantDescriptionElement) restaurantDescriptionElement.textContent = message;
+    if (cardsNav) cardsNav.innerHTML = "";
+    if (dishesContainer) dishesContainer.innerHTML = "";
     showToast(message, "error");
   }
 
-  // --- Lógica del arrastre del cardsNav ---
-  if (cardsNav) {
-    cardsNav.addEventListener("mousedown", (e) => {
-      isDown = true;
-      cardsNav.classList.add("active-drag");
-      startX = e.pageX - cardsNav.offsetLeft;
-      scrollLeft = cardsNav.scrollLeft;
-      e.preventDefault();
+  function setupEventListeners() {
+    // --- Lógica del arrastre del cardsNav ---
+    if (cardsNav) {
+      cardsNav.addEventListener("mousedown", (e) => {
+        isDown = true;
+        cardsNav.classList.add("active-drag");
+        startX = e.pageX - cardsNav.offsetLeft;
+        scrollLeft = cardsNav.scrollLeft;
+        e.preventDefault();
+      });
+
+      cardsNav.addEventListener("mouseleave", () => {
+        isDown = false;
+        cardsNav.classList.remove("active-drag");
+      });
+
+      cardsNav.addEventListener("mouseup", () => {
+        isDown = false;
+        cardsNav.classList.remove("active-drag");
+      });
+
+      cardsNav.addEventListener("mousemove", (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - cardsNav.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        cardsNav.scrollLeft = scrollLeft - walk;
+      });
+    }
+
+    // --- Lógica del botón de ordenar (WhatsApp) ---
+    if (orderButton) {
+      orderButton.addEventListener("click", handleOrderClick);
+    }
+
+    // --- Login y autenticación ---
+    if (myAccountBtn) {
+      myAccountBtn.addEventListener("click", () => {
+        if (!auth.currentUser) {
+          loginModalOverlay.style.display = "flex"; // Muestra el modal de login
+        } else {
+          window.location.href = "favorites.html"; // Redirige a favoritos si ya está logueado
+        }
+      });
+    }
+
+    if (loginModalCloseBtn) {
+      loginModalCloseBtn.addEventListener("click", () => {
+        loginModalOverlay.style.display = "none"; // Cierra el modal
+      });
+    }
+
+    if (loginModalOverlay) {
+      loginModalOverlay.addEventListener("click", (event) => {
+        if (event.target === loginModalOverlay) {
+          loginModalOverlay.style.display = "none";
+        }
+      });
+    }
+
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener("click", async () => {
+        // Verificar que Firebase esté listo
+        if (!auth) {
+          console.error('Firebase not initialized yet');
+          return;
+        }
+        
+        const provider = new firebase.auth.GoogleAuthProvider();
+        try {
+          await auth.signInWithPopup(provider);
+        } catch (error) {
+          console.error("Error during Google login:", error);
+          showToast("Error during login. Please try again.", "error");
+        }
+      });
+    }
+
+    // Lógica para cerrar sesión
+    if (logoutText) {
+      logoutText.addEventListener("click", async () => {
+        try {
+          await auth.signOut();
+          await showLogoutModal({ duration: 2500 }); // 2.5 s
+        } catch (error) {
+          console.error("Error during logout:", error);
+          showToast("Error during logout. Please try again.", "error");
+        }
+      });
+    }
+
+    // Configurar observador de autenticación
+    auth.onAuthStateChanged(async (user) => {
+      if (user) {
+        // User is logged in
+        myAccountBtn.textContent = user.displayName || user.email;
+        logoutText.style.display = "inline";
+
+        // *** Lógica INTELIGENTE para upsert de comensales (QUEDA IGUAL) ***
+        const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
+        let userRole = null;
+        if (userRoleResponse.ok) {
+          const roleData = await userRoleResponse.json();
+          userRole = roleData.role;
+        }
+
+        const restaurantBtn = document.getElementById("my-restaurant");
+        if (userRole === "customer") {
+          restaurantBtn.style.display = "none";
+        } else {
+          restaurantBtn.style.display = "inline";
+        }
+
+        // Cargar favoritos del usuario
+        await loadUserFavorites(user.uid);
+        updateDishLikeButtons();
+
+        // Upsert del usuario con rol de comensal
+        await upsertUser(user, "customer");
+
+        loginModalOverlay.style.display = "none";
+      } else {
+        // User is logged out
+        myAccountBtn.textContent = "Mi Cuenta";
+        logoutText.style.display = "none";
+        currentUserFavorites.clear();
+        if (favoritesCounter) favoritesCounter.textContent = "0";
+        updateDishLikeButtons();
+      }
     });
 
-    cardsNav.addEventListener("mouseleave", () => {
-      isDown = false;
-      cardsNav.classList.remove("active-drag");
-    });
+    // Event listener para el botón de compartir
+    if (shareButton) {
+      shareButton.addEventListener("click", handleShareRestaurant);
+    }
 
-    cardsNav.addEventListener("mouseup", () => {
-      isDown = false;
-      cardsNav.classList.remove("active-drag");
+    // Event listener para pageshow (navegación del navegador)
+    window.addEventListener("pageshow", function (event) {
+      if (event.persisted) {
+        location.reload();
+      }
     });
-
-    cardsNav.addEventListener("mousemove", (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - cardsNav.offsetLeft;
-      const walk = (x - startX) * 1.5;
-      cardsNav.scrollLeft = scrollLeft - walk;
-    });
-  }
-
-  // --- Lógica del botón de ordenar (WhatsApp) ---
-  if (orderButton) {
-    orderButton.addEventListener("click", handleOrderClick);
   }
 
   function handleOrderClick() {
@@ -240,8 +602,77 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // --- Lógica del carrito de compras (cantidad de platos) ---
+  function setupQuantityControlsForDish(dishId) {
+    console.log("setupQuantityControlsForDish called for:", dishId);
+    const control = document.querySelector(`.quantity-control[data-dish-id="${dishId}"]`);
+    
+    if (!control) {
+      console.error("Control not found for dish:", dishId);
+      return;
+    }
+
+    // Solo inicializar listeners una vez
+    if (control.dataset.listenersInitialized) return;
+
+    const addBtn = control.querySelector(".add-btn");
+    const selector = control.querySelector(".quantity-selector");
+    const minusBtn = control.querySelector(".minus-btn");
+    const plusBtn = control.querySelector(".plus-btn");
+    const display = control.querySelector(".quantity-display");
+
+    console.log("Setting up individual control for dish:", dishId);
+
+    // Verificar que todos los elementos existen
+    if (!addBtn || !selector || !minusBtn || !plusBtn || !display) {
+      console.error("Missing elements in quantity control for dish:", dishId);
+      return;
+    }
+
+    // Establecer estado inicial del selector de cantidad
+    const currentQuantity = shoppingCart[dishId] || 0;
+    if (currentQuantity > 0) {
+      addBtn.style.display = "none";
+      selector.style.display = "flex";
+      display.textContent = currentQuantity;
+    } else {
+      addBtn.style.display = "flex";
+      selector.style.display = "none";
+      display.textContent = "0";
+    }
+
+    addBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log("Add button clicked for dish:", dishId);
+      updateCart(dishId, 1, control);
+    });
+
+    minusBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const newQuantity = (shoppingCart[dishId] || 0) - 1;
+      console.log("Minus button clicked for dish:", dishId, "new quantity:", newQuantity);
+      updateCart(dishId, newQuantity, control);
+    });
+
+    plusBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const newQuantity = (shoppingCart[dishId] || 0) + 1;
+      console.log("Plus button clicked for dish:", dishId, "new quantity:", newQuantity);
+      updateCart(dishId, newQuantity, control);
+    });
+    
+    control.dataset.listenersInitialized = true; // Marcar como inicializado
+    console.log("Individual control setup completed for dish:", dishId);
+  }
+
   function setupQuantityControls() {
-    document.querySelectorAll(".quantity-control").forEach((control) => {
+    console.log("setupQuantityControls called");
+    const controls = document.querySelectorAll(".quantity-control");
+    console.log("Found controls:", controls.length);
+    
+    controls.forEach((control) => {
       // Solo inicializar listeners una vez
       if (control.dataset.listenersInitialized) return;
 
@@ -251,6 +682,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const plusBtn = control.querySelector(".plus-btn");
       const display = control.querySelector(".quantity-display");
       const dishId = control.dataset.dishId;
+
+      console.log("Setting up control for dish:", dishId);
+
+      // Verificar que todos los elementos existen
+      if (!addBtn || !selector || !minusBtn || !plusBtn || !display) {
+        console.error("Missing elements in quantity control for dish:", dishId);
+        return;
+      }
 
       // Establecer estado inicial del selector de cantidad
       const currentQuantity = shoppingCart[dishId] || 0;
@@ -264,20 +703,29 @@ document.addEventListener("DOMContentLoaded", () => {
         display.textContent = "0";
       }
 
-      addBtn.onclick = () => {
+      addBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("Add button clicked for dish:", dishId);
         updateCart(dishId, 1, control);
-      };
+      });
 
-      minusBtn.onclick = () => {
+      minusBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const newQuantity = (shoppingCart[dishId] || 0) - 1;
+        console.log("Minus button clicked for dish:", dishId, "new quantity:", newQuantity);
         updateCart(dishId, newQuantity, control);
         //toggleCommentIcon(dishId, newQuantity);
-      };
+      });
 
-      plusBtn.onclick = () => {
+      plusBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const newQuantity = (shoppingCart[dishId] || 0) + 1;
+        console.log("Plus button clicked for dish:", dishId, "new quantity:", newQuantity);
         updateCart(dishId, newQuantity, control);
-      };
+      });
       control.dataset.listenersInitialized = true; // Marcar como inicializado
     });
   }
@@ -302,117 +750,38 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateCart(dishId, quantity, control) {
+    console.log("updateCart called:", dishId, quantity);
     if (quantity > 0) {
       shoppingCart[dishId] = quantity;
     } else {
       delete shoppingCart[dishId];
     }
+    console.log("Shopping cart updated:", shoppingCart);
     updateQuantityUI(control, quantity);
   }
 
   function updateQuantityUI(control, quantity) {
+    console.log("updateQuantityUI called:", quantity);
     const addBtn = control.querySelector(".add-btn");
     const selector = control.querySelector(".quantity-selector");
     const display = control.querySelector(".quantity-display");
+    
+    if (!addBtn || !selector || !display) {
+      console.error("Missing UI elements in updateQuantityUI");
+      return;
+    }
+    
     if (quantity > 0) {
       addBtn.style.display = "none";
       selector.style.display = "flex";
       display.textContent = quantity;
+      console.log("UI updated: showing selector with quantity", quantity);
     } else {
       addBtn.style.display = "flex";
       selector.style.display = "none";
+      console.log("UI updated: showing add button");
     }
   }
-
-  // --- LÓGICA DE LOGIN Y AUTENTICACIÓN (PARA COMENSALES Y DUEÑOS) ---
-  if (myAccountBtn) {
-    myAccountBtn.addEventListener("click", () => {
-      if (!auth.currentUser) {
-        loginModalOverlay.style.display = "flex"; // Muestra el modal de login
-      } else {
-        window.location.href = "favorites.html"; // Redirige a favoritos si ya está logueado
-      }
-    });
-  }
-
-  if (loginModalCloseBtn) {
-    loginModalCloseBtn.addEventListener("click", () => {
-      loginModalOverlay.style.display = "none"; // Cierra el modal
-    });
-  }
-
-  if (loginModalOverlay) {
-    loginModalOverlay.addEventListener("click", (event) => {
-      if (event.target === loginModalOverlay) {
-        loginModalOverlay.style.display = "none";
-      }
-    });
-  }
-
-  if (googleLoginBtn) {
-    googleLoginBtn.addEventListener("click", async () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      try {
-        await auth.signInWithPopup(provider);
-      } catch (error) {
-        console.error("Error during Google login:", error);
-        showToast("Error during login. Please try again.", "error");
-      }
-    });
-  }
-
-  auth.onAuthStateChanged(async (user) => {
-    if (user) {
-      // User is logged in
-      myAccountBtn.textContent = user.displayName || user.email;
-      logoutText.style.display = "inline";
-
-      // *** Lógica INTELIGENTE para upsert de comensales (QUEDA IGUAL) ***
-      const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
-      let userRole = null;
-      if (userRoleResponse.ok) {
-        const roleData = await userRoleResponse.json();
-        userRole = roleData.role;
-      }
-
-      const restaurantBtn = document.getElementById("my-restaurant");
-      if (userRole === "customer") {
-        restaurantBtn.style.display = "none";
-      } else {
-        restaurantBtn.style.display = "flex";
-      }
-
-      if (userRole !== "owner") {
-        await upsertUser(user, "customer"); // Esto lo guardará en 'invited'
-      } else {
-        console.log(
-          `User ${user.uid} is an owner. Skipping customer upsert in menu.js.`
-        );
-      }
-
-      await loadUserFavorites(user.uid);
-      favoritesCountDisplay.style.display = "flex";
-      if (favoritesCounter) {
-        favoritesCounter.textContent = currentUserFavorites.size;
-      }
-      loginModalOverlay.style.display = "none";
-
-      if (currentRestaurantId) {
-        updateDishLikeButtons();
-      }
-      updateDishLikeButtons();
-    } else {
-      myAccountBtn.textContent = "Soy Comensal";
-      logoutText.style.display = "none";
-      favoritesCountDisplay.style.display = "none";
-      currentUserFavorites.clear();
-
-      const restaurantBtn = document.getElementById("my-restaurant");
-      restaurantBtn.style.display = "flex";
-
-      updateDishLikeButtons();
-    }
-  });
 
   async function upsertUser(user, role) {
     try {
@@ -437,19 +806,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (error) {
       console.error("Error calling upsert user API:", error);
     }
-  }
-
-  // Lógica para cerrar sesión
-  if (logoutText) {
-    logoutText.addEventListener("click", async () => {
-      try {
-        await auth.signOut();
-        await showLogoutModal({ duration: 2500 }); // 2.5 s
-      } catch (error) {
-        console.error("Error during logout:", error);
-        showToast("Error during logout. Please try again.", "error");
-      }
-    });
   }
 
   async function loadUserFavorites(uid) {
@@ -569,6 +925,13 @@ document.addEventListener("DOMContentLoaded", () => {
         likesCountEl.innerText = `${result.likesCount} me gusta`;
       }
 
+      // ✅ Actualizar el total de corazones del restaurante
+      const restaurantRatingEl = document.getElementById("restaurant-rating");
+      if (restaurantRatingEl) {
+        const currentTotal = parseInt(restaurantRatingEl.textContent) || 0;
+        restaurantRatingEl.textContent = (currentTotal + 1).toString();
+      }
+
       // Actualizar el contador de favoritos del usuario
       if (favoritesCounter) {
         const currentCount = parseInt(favoritesCounter.textContent) || 0;
@@ -582,37 +945,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function setupMyRestaurantButton() {
     if (!myRestaurantButton) return;
+    
+    // Verificar que Firebase esté inicializado
+    if (!auth || !firebase.apps.length) {
+      console.error('Firebase not initialized when setting up restaurant button');
+      return;
+    }
+    
     myRestaurantButton.textContent = "Mi Restaurante";
     myRestaurantButton.disabled = false;
 
     myRestaurantButton.onclick = async () => {
-      myRestaurantButton.textContent = "Verificando...";
-      myRestaurantButton.disabled = true;
-
-      const user = auth.currentUser;
-      if (user) {
-        const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
-        if (!userRoleResponse.ok) {
-          showToast("Error verifying user role. Please try again.", "error");
-          myRestaurantButton.textContent = "Mi Restaurante";
-          myRestaurantButton.disabled = false;
+      try {
+        // Verificar que Firebase esté disponible
+        if (!auth || !firebase.apps.length) {
+          showToast("Error: Sistema no inicializado. Recarga la página.", "error");
           return;
         }
-        const userRoleData = await userRoleResponse.json();
-        const userRole = userRoleData.role;
 
-        if (userRole === "owner") {
-          window.location.href = "/dashboard.html";
+        myRestaurantButton.textContent = "Verificando...";
+        myRestaurantButton.disabled = true;
+
+        const user = auth.currentUser;
+        if (user) {
+          const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
+          if (!userRoleResponse.ok) {
+            showToast("Error verifying user role. Please try again.", "error");
+            myRestaurantButton.textContent = "Mi Restaurante";
+            myRestaurantButton.disabled = false;
+            return;
+          }
+          const userRoleData = await userRoleResponse.json();
+          const userRole = userRoleData.role;
+
+          if (userRole === "owner") {
+            window.location.href = "dashboard.html";
+          } else {
+            showToast(
+              "You do not have permission to access the restaurant dashboard.",
+              "warning"
+            );
+            myRestaurantButton.textContent = "Mi Restaurante";
+            myRestaurantButton.disabled = false;
+          }
         } else {
-          showToast(
-            "You do not have permission to access the restaurant dashboard.",
-            "warning"
-          );
-          myRestaurantButton.textContent = "Mi Restaurante";
-          myRestaurantButton.disabled = false;
+          window.location.href = "login.html";
         }
-      } else {
-        window.location.href = "/login.html";
+      } catch (error) {
+        console.error('Error in restaurant button:', error);
+        showToast("Error inesperado. Intenta de nuevo.", "error");
+        myRestaurantButton.textContent = "Mi Restaurante";
+        myRestaurantButton.disabled = false;
       }
     };
   }
@@ -632,77 +1015,112 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  window.addEventListener("pageshow", function (event) {
-    if (event.persisted) {
-      if (myRestaurantButton) {
-        myRestaurantButton.textContent = "Mi Restaurante";
-        myRestaurantButton.disabled = false;
-      }
-      if (auth.currentUser) {
-        loadUserFavorites(auth.currentUser.uid);
-      }
-    }
-  });
-
   async function initializeMenuPage() {
-    const urlParams = new URLSearchParams(window.location.search);
-    currentRestaurantId = urlParams.get("restaurantId");
-    const cardIdFromUrl = urlParams.get("cardId"); // Obtener cardId de la URL
-
-    if (!currentRestaurantId) {
-      return handlePageError("ID de restaurante no encontrado en la URL.");
-    }
-
-    try {
-      const restaurantResponse = await fetch(
-        `/api/restaurants/${currentRestaurantId}`
-      );
-      if (!restaurantResponse.ok)
-        throw new Error("Error fetching restaurant details.");
-      currentRestaurant = await restaurantResponse.json();
-      if (currentRestaurant.error) throw new Error(currentRestaurant.error);
-
-      const menuResponse = await fetch(
-        `/api/restaurants/${currentRestaurantId}/menu`
-      );
-      if (!menuResponse.ok) throw new Error("Error fetching menu data.");
-      allCardsData = await menuResponse.json();
-      if (allCardsData.error) throw new Error(allCardsData.error);
-
-      // Establecer currentCardId ANTES de llamar updateUI
-      if (
-        cardIdFromUrl &&
-        allCardsData.find((card) => card.id === cardIdFromUrl)
-      ) {
-        currentCardId = cardIdFromUrl;
-      } else {
-        currentCardId = allCardsData.length > 0 ? allCardsData[0].id : null;
-      }
-
-      updateUI();
-    } catch (error) {
-      console.error("Error initializing menu page:", error);
-      handlePageError(`Could not load restaurant menu: ${error.message}`);
-    }
+    // Esta función ahora es redundante, la lógica se movió a initializeMenuPageAsync
+    // que se llama al inicio para mejor rendimiento
+    console.log('Menu page already initialized asynchronously');
   }
 
   function updateUI() {
     if (!currentRestaurant) return;
 
-    menuBanner.style.backgroundImage = `url('${
-      currentRestaurant.photoUrl ||
-      "https://placehold.co/600x200/555/FFF?text=Restaurant"
-    }')`;
-    restaurantNameElement.textContent =
-      currentRestaurant.name.length > 40
-        ? currentRestaurant.name.substring(0, 40) + "..."
-        : currentRestaurant.name;
+    // No necesitamos más el background image ya que tenemos el nuevo diseño
+    restaurantNameElement.textContent = currentRestaurant.name || "Restaurante";
     restaurantDescriptionElement.textContent = currentRestaurant.description;
+
+    // Actualizar logo del restaurante
+    const logoImg = document.getElementById("restaurant-logo");
+    const logoPlaceholder = document.getElementById("restaurant-icon-placeholder");
+    
+    if (currentRestaurant.logoUrl && logoImg && logoPlaceholder) {
+      logoImg.src = currentRestaurant.logoUrl;
+      logoImg.style.display = "block";
+      logoPlaceholder.style.display = "none";
+    } else if (logoImg && logoPlaceholder) {
+      logoImg.style.display = "none";
+      logoPlaceholder.style.display = "block";
+    }
+    
+    // Actualizar la ubicación del restaurante
+    const locationElement = document.getElementById("restaurant-location");
+    if (locationElement) {
+      const locationUrl = currentRestaurant.location;
+      const locationText = currentRestaurant.district || "Ubicación no disponible";
+      
+      if (locationUrl && locationUrl.trim() !== "") {
+        // Si hay URL de ubicación, configurar como enlace
+        locationElement.href = locationUrl;
+        locationElement.textContent = locationText;
+        locationElement.style.display = "inline";
+        locationElement.style.pointerEvents = "auto";
+      } else {
+        // Si no hay URL, mostrar solo texto sin enlace
+        locationElement.href = "#";
+        locationElement.textContent = locationText;
+        locationElement.style.pointerEvents = "none";
+        locationElement.style.textDecoration = "none";
+        locationElement.style.cursor = "default";
+      }
+    }
+    
+    // Actualizar horario de cierre (usando el horario del día actual o lunes como default)
+    const hoursElement = document.getElementById("restaurant-hours");
+    if (hoursElement && currentRestaurant.schedule) {
+      const today = new Date().getDay(); // 0 = domingo, 1 = lunes, etc.
+      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+      const currentDay = dayNames[today];
+      
+      if (currentRestaurant.schedule[currentDay] && currentRestaurant.schedule[currentDay].to) {
+        // Mostrar solo la hora de cierre
+        hoursElement.textContent = currentRestaurant.schedule[currentDay].to;
+      } else if (currentRestaurant.schedule.monday && currentRestaurant.schedule.monday.to) {
+        // Usar lunes como fallback
+        hoursElement.textContent = currentRestaurant.schedule.monday.to;
+      } else {
+        hoursElement.textContent = "8:00 pm";
+      }
+    }
+    
+    // Actualizar calificación usando el total de corazones (con cache)
+    const ratingElement = document.getElementById("restaurant-rating");
+    if (ratingElement) {
+      // Usar cache para evitar llamadas repetitivas
+      const cacheKey = `rating-${currentRestaurant.id}`;
+      const cachedRating = sessionStorage.getItem(cacheKey);
+      
+      if (cachedRating) {
+        const ratingData = JSON.parse(cachedRating);
+        ratingElement.textContent = `${ratingData.totalLikes}`;
+      } else {
+        // Llamar al endpoint de rating del restaurante para obtener el total de likes
+        fetch(`/api/restaurants/${currentRestaurant.id}/rating`)
+          .then(response => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error('Rating endpoint not available');
+            }
+          })
+          .then(ratingData => {
+            // Guardar en cache por 5 minutos
+            sessionStorage.setItem(cacheKey, JSON.stringify(ratingData));
+            setTimeout(() => sessionStorage.removeItem(cacheKey), 5 * 60 * 1000);
+            
+            // Mostrar el total de corazones en lugar del rating tradicional
+            ratingElement.textContent = `${ratingData.totalLikes}`;
+          })
+          .catch(error => {
+            console.log('Using fallback likes count');
+            ratingElement.textContent = "0";
+          });
+      }
+    }
+
+    // Actualizar estado del restaurante
+    updateRestaurantStatus();
 
     if (shareButton) {
       shareButton.style.display = "flex";
-      shareButton.removeEventListener("click", handleShareRestaurant);
-      shareButton.addEventListener("click", handleShareRestaurant);
     }
 
     const pageUrl = window.location.href;
@@ -914,11 +1332,13 @@ document.addEventListener("DOMContentLoaded", () => {
       window.activeDishesMap[dish.id] = dish;
     });
 
-    activeDishes.forEach((dish) => {
+    activeDishes.forEach(async (dish) => {
       const dishItem = document.createElement("div");
       dishItem.className = "dish-item";
-      const imageUrl =
-        dish.photoUrl ||
+      
+      // Optimizar imagen con cache
+      const optimizedUrl = await getOptimizedImageUrl(dish.photoUrl);
+      const imageUrl = optimizedUrl ||
         `https://placehold.co/160x160/E2E8F0/4A5568?text=${dish.name.substring(
           0,
           3
@@ -928,7 +1348,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       dishItem.innerHTML = `
       <div class="dish-image-wrapper">
-          <img src="${imageUrl}" alt="${dish.name}">
+          <img src="${imageUrl}" alt="${dish.name}" loading="lazy" onerror="this.src='./images/default-dish.jpg.png'">
           <div class="dish-like-control">
               <button class="like-button dish-like-btn" data-dish-id="${
                 dish.id
@@ -957,11 +1377,17 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
       dishesContainer.appendChild(dishItem);
+      
+      // Configurar los controles inmediatamente después de agregar el elemento
+      setupQuantityControlsForDish(dish.id);
     });
 
-    setupQuantityControls();
-    setupLikeControls();
-    renderCommentIcons(); // <-- ✅ AÑADIR ESTA LÍNEA
+    // También llamar la función general por si acaso
+    setTimeout(() => {
+      setupQuantityControls();
+      setupLikeControls();
+      renderCommentIcons();
+    }, 100);
   }
   function setupLikeControls() {
     document
@@ -1017,12 +1443,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("submitCommentBtn").onclick = () => {
       const comment = document.getElementById("commentText").value.trim();
-      const user = firebase.auth().currentUser;
+      const user = auth ? auth.currentUser : null;
       const submitBtn = document.getElementById("submitCommentBtn");
 
       // Cambiar estado visual del botón
       submitBtn.textContent = "Enviando...";
       submitBtn.classList.add("sending");
+
+      // Validar que tenemos un restaurantId válido
+      if (!currentRestaurantId) {
+        console.error('❌ No hay restaurantId disponible');
+        showCustomToast("Error: No se pudo identificar el restaurante");
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        return;
+      }
+
+      // Validar que tenemos todos los datos necesarios
+      if (!comment || comment.length < 3) {
+        console.error('❌ Comentario demasiado corto');
+        showCustomToast("El comentario debe tener al menos 3 caracteres");
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        return;
+      }
 
       const commentContent = {
         invitedId: user.uid,
@@ -1031,23 +1475,38 @@ document.addEventListener("DOMContentLoaded", () => {
         restaurantId: currentRestaurantId,
       };
 
-      submitDishComment(commentContent);
+      console.log('📝 Preparando comentario con datos completos:', commentContent);
+      console.log('🏪 RestaurantId confirmado:', currentRestaurantId);
+      console.log('🍽️ DishId confirmado:', dishId);
+      console.log('👤 UserId confirmado:', user.uid);
 
-      // Marcar como enviado
-      window.sentComments[dishId] = true;
+      submitDishComment(commentContent)
+        .then((result) => {
+          console.log('✅ Comentario enviado exitosamente:', result);
+          // Marcar como enviado solo si fue exitoso
+          window.sentComments[dishId] = true;
 
-      // Eliminar el dishId del localStorage
-      const stored = JSON.parse(localStorage.getItem("commentedDishes")) || [];
-      const updated = stored.filter((id) => id !== dishId);
-      localStorage.setItem("commentedDishes", JSON.stringify(updated));
+          // Eliminar el dishId del localStorage
+          const stored = JSON.parse(localStorage.getItem("commentedDishes")) || [];
+          const updated = stored.filter((id) => id !== dishId);
+          localStorage.setItem("commentedDishes", JSON.stringify(updated));
 
-      setTimeout(() => {
-        submitBtn.textContent = "Enviar comentario";
-        submitBtn.classList.remove("sending");
-        document.getElementById("commentModalOverlay").style.display = "none";
-        showCustomToast("Comentario enviado con éxito");
-        toggleCommentIcon(dishId, 0);
-      }, 1000);
+          setTimeout(() => {
+            submitBtn.textContent = "Enviar comentario";
+            submitBtn.classList.remove("sending");
+            document.getElementById("commentModalOverlay").style.display = "none";
+            showCustomToast("Comentario enviado con éxito");
+            toggleCommentIcon(dishId, 0);
+          }, 1000);
+        })
+        .catch((error) => {
+          console.error('❌ Error al enviar comentario:', error);
+          setTimeout(() => {
+            submitBtn.textContent = "Enviar comentario";
+            submitBtn.classList.remove("sending");
+            showCustomToast("Error al enviar comentario. Intenta de nuevo.");
+          }, 1000);
+        });
     };
   }
 
@@ -1062,12 +1521,27 @@ document.addEventListener("DOMContentLoaded", () => {
       toast.classList.add("hidden");
     }, 3000);
   }
-  async function submitDishComment({ invitedId, dishId, content }) {
+  async function submitDishComment({ invitedId, dishId, content, restaurantId }) {
     try {
-      const user = firebase.auth().currentUser;
+      const user = auth ? auth.currentUser : null;
       if (!user) {
         throw new Error("Usuario no autenticado.");
       }
+
+      // Validaciones adicionales del lado del cliente
+      if (!restaurantId) {
+        throw new Error("RestaurantId es requerido para asociar el comentario correctamente.");
+      }
+
+      if (!dishId) {
+        throw new Error("DishId es requerido.");
+      }
+
+      if (!content || content.trim().length < 3) {
+        throw new Error("El comentario debe tener al menos 3 caracteres.");
+      }
+
+      console.log("📝 Enviando comentario con validaciones completas:", { invitedId, dishId, content, restaurantId });
 
       const response = await fetch("/api/comments", {
         method: "POST",
@@ -1076,16 +1550,21 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         body: JSON.stringify({
           dishId,
-          content,
+          content: content.trim(),
           invitedId,
+          restaurantId,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        console.error("❌ Error del servidor:", data);
         throw new Error(data.error || "Error al guardar el comentario.");
       }
+      
+      console.log("✅ Comentario enviado exitosamente:", data);
+      console.log("🏪 Confirmado para restaurante:", data.restaurantId);
       return data;
     } catch (err) {
       console.error("❌ Error al enviar comentario:", err.message);
@@ -1185,4 +1664,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   initializeMenuPage();
   setupMyRestaurantButton();
-});
+  
+  // Actualizar el estado del restaurante cada minuto
+  setInterval(updateRestaurantStatus, 60000);

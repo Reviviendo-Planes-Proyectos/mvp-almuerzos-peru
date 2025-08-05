@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mis Platos Favoritos - Almuerzos Perú</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="css/index.css" as="style" />
+    <link rel="preload" href="css/favorites.css" as="style" />
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" as="style" />
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
@@ -14,7 +20,7 @@
     <header class="main-header">
         <div class="container header-content">
             <a href="index.html">
-                <img style="width: 250px" src="images/logo.png" alt="Almuerzos Perú Logo" />
+                <img style="width: 250px" src="images/logo.png" alt="Almuerzos Perú Logo" loading="eager" />
             </a>
             <div style="display: flex; align-items: center; justify-content: center; flex-direction: row; ">
                 <div style="background-color: #ffffff; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; display: flex; align-items: center;">
@@ -37,14 +43,11 @@
         </div>
     </main>
 
+    <!-- Firebase scripts must load before our scripts -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="js/favorites.js"></script>
-
-
-
-
+    <script src="js/favorites.js" defer></script>
 
 </body>
 </html>

@@ -7,11 +7,49 @@ const firebaseConfig = {
   messagingSenderId: "92623435008",
   appId: "1:92623435008:web:8d4b4d58c0ccb9edb5afe5",
 };
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const googleProvider = new firebase.auth.GoogleAuthProvider();
-const db = firebase.firestore();
-const storage = firebase.storage();
+
+// Cache para optimizar rendimiento
+let authCache = new Map();
+
+// Variables globales de Firebase
+let auth, googleProvider, db, storage;
+
+// Inicializar Firebase cuando esté disponible
+function waitForFirebaseAndInitialize() {
+  if (typeof firebase !== 'undefined' && firebase.apps && firebase.auth && firebase.firestore && firebase.storage) {
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    auth = firebase.auth();
+    googleProvider = new firebase.auth.GoogleAuthProvider();
+    db = firebase.firestore();
+    storage = firebase.storage();
+    console.log('Firebase initialized successfully in login');
+    return true;
+  }
+  return false;
+}
+
+// Intentar inicializar Firebase inmediatamente
+if (!waitForFirebaseAndInitialize()) {
+  // Si no está disponible, esperar un poco
+  let attempts = 0;
+  const maxAttempts = 20;
+  const checkFirebase = setInterval(() => {
+    attempts++;
+    if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
+      clearInterval(checkFirebase);
+      if (attempts >= maxAttempts) {
+        console.error('Firebase failed to load after maximum attempts in login');
+      }
+    }
+  }, 100);
+}
+
+// Inicializar Firebase de forma lazy
+document.addEventListener("DOMContentLoaded", () => {
+  // Firebase ya está inicializado arriba
+});
 
 // --- 2. VARIABLES GLOBALES DE ESTADO ---
 let currentUser = null;
@@ -594,9 +632,35 @@ async function upsertUserAsOwner(user) {
   }
 }
 
+// FUNCIÓN NUEVA: Garantizar que el usuario también tenga rol de customer
+async function ensureUserAsCustomer(user) {
+  try {
+    const response = await fetch("/api/users/upsert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        role: "customer",
+      }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to upsert user as customer.");
+    }
+    console.log(`User ${user.uid} also ensured as customer in 'invited' collection.`);
+  } catch (error) {
+    console.error("Error ensuring user as customer:", error);
+    throw error;
+  }
+}
+
 async function determineUserRoleAndRedirect(user) {
   try {
+    // CAMBIO CRÍTICO: Asegurar AMBOS roles para owners
     await upsertUserAsOwner(user);
+    await ensureUserAsCustomer(user); // ← Esto garantiza que mantenga ambos roles
 
     const idToken = await user.getIdToken();
     const restaurantResponse = await fetch(
