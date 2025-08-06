@@ -205,7 +205,8 @@ async function loadDashboardData() {
     const locationElement = document.getElementById("restaurant-location");
     if (locationElement) {
       const locationUrl = currentRestaurant.location;
-      const locationText = currentRestaurant.district || "Ubicación no disponible";
+      const district = currentRestaurant.district || "Ubicación no disponible";
+      const locationText = district + "-Ver mapa";
       
       if (locationUrl && locationUrl.trim() !== "") {
         // Si hay URL de ubicación, configurar como enlace
@@ -850,6 +851,8 @@ function showCards() {
 }
 let currentlyOpenModal = null;
 function openModal(modalId) {
+  console.log('🔓 Abriendo modal:', modalId);
+  
   const modal = document.getElementById(modalId);
   if (modal) {
     modal.style.display = "flex";
@@ -858,8 +861,172 @@ function openModal(modalId) {
     // Limpiar estado de imagen del plato cuando se abra el modal "Nuevo plato"
     if (modalId === "newDishModal") {
       clearDishImageState();
+      
+      // ⚡ RECONFIGURAR EVENT LISTENERS para modal de nuevo plato
+      setTimeout(() => {
+        console.log('🔄 Reconfigurando listeners para NUEVO plato...');
+        setupModalImageListeners(false);
+      }, 100);
+    }
+    
+    // ⚡ RECONFIGURAR EVENT LISTENERS para modal de editar plato
+    if (modalId === "editDishModal") {
+      setTimeout(() => {
+        console.log('🔄 Reconfigurando listeners para EDITAR plato...');
+        setupModalImageListeners(true);
+      }, 100);
     }
   }
+}
+
+// 🆕 FUNCIÓN ESPECÍFICA PARA CONFIGURAR LISTENERS EN MODALES
+function setupModalImageListeners(isEditMode = false) {
+  console.log('⚡ Configurando listeners específicos del modal, modo edición:', isEditMode);
+  
+  if (isEditMode) {
+    // ===== MODAL EDITAR PLATO =====
+    const editCameraBtn = document.getElementById("edit-camera-btn");
+    const editGalleryBtn = document.getElementById("edit-gallery-btn");
+    const editGalleryInput = document.getElementById("edit-gallery-input");
+    
+    console.log('📋 Elementos EDITAR en modal:', {
+      editCameraBtn: !!editCameraBtn,
+      editGalleryBtn: !!editGalleryBtn,
+      editGalleryInput: !!editGalleryInput
+    });
+
+    // Limpiar listeners anteriores y crear nuevos
+    if (editCameraBtn) {
+      const newEditCameraBtn = editCameraBtn.cloneNode(true);
+      editCameraBtn.parentNode.replaceChild(newEditCameraBtn, editCameraBtn);
+      
+      // CLICK
+      newEditCameraBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🟢 MODAL CLICK: Cámara EDITAR presionada');
+        
+        try {
+          await openCameraCapture(true);
+        } catch (error) {
+          console.error('❌ Error modal cámara EDITAR:', error);
+          alert('Error al acceder a la cámara: ' + error.message);
+        }
+      });
+
+      // TOUCH
+      newEditCameraBtn.addEventListener("touchstart", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('📱 MODAL TOUCH: Cámara EDITAR tocada');
+        
+        try {
+          await openCameraCapture(true);
+        } catch (error) {
+          console.error('❌ Error modal cámara EDITAR (touch):', error);
+          alert('Error al acceder a la cámara: ' + error.message);
+        }
+      }, { passive: false });
+      
+      console.log('✅ Cámara EDITAR reconfigurada en modal');
+    }
+
+    if (editGalleryBtn && editGalleryInput) {
+      const newEditGalleryBtn = editGalleryBtn.cloneNode(true);
+      editGalleryBtn.parentNode.replaceChild(newEditGalleryBtn, editGalleryBtn);
+      
+      // CLICK
+      newEditGalleryBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔵 MODAL CLICK: Galería EDITAR presionada');
+        editGalleryInput.click();
+      });
+
+      // TOUCH
+      newEditGalleryBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('📱 MODAL TOUCH: Galería EDITAR tocada');
+        editGalleryInput.click();
+      }, { passive: false });
+      
+      console.log('✅ Galería EDITAR reconfigurada en modal');
+    }
+    
+  } else {
+    // ===== MODAL NUEVO PLATO =====
+    const cameraBtn = document.getElementById("camera-btn");
+    const galleryBtn = document.getElementById("gallery-btn");
+    const galleryInput = document.getElementById("gallery-input");
+    
+    console.log('📋 Elementos NUEVO en modal:', {
+      cameraBtn: !!cameraBtn,
+      galleryBtn: !!galleryBtn,
+      galleryInput: !!galleryInput
+    });
+
+    // Limpiar listeners anteriores y crear nuevos
+    if (cameraBtn) {
+      const newCameraBtn = cameraBtn.cloneNode(true);
+      cameraBtn.parentNode.replaceChild(newCameraBtn, cameraBtn);
+      
+      // CLICK
+      newCameraBtn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🟢 MODAL CLICK: Cámara NUEVO presionada');
+        
+        try {
+          await openCameraCapture(false);
+        } catch (error) {
+          console.error('❌ Error modal cámara NUEVO:', error);
+          alert('Error al acceder a la cámara: ' + error.message);
+        }
+      });
+
+      // TOUCH
+      newCameraBtn.addEventListener("touchstart", async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('📱 MODAL TOUCH: Cámara NUEVO tocada');
+        
+        try {
+          await openCameraCapture(false);
+        } catch (error) {
+          console.error('❌ Error modal cámara NUEVO (touch):', error);
+          alert('Error al acceder a la cámara: ' + error.message);
+        }
+      }, { passive: false });
+      
+      console.log('✅ Cámara NUEVO reconfigurada en modal');
+    }
+
+    if (galleryBtn && galleryInput) {
+      const newGalleryBtn = galleryBtn.cloneNode(true);
+      galleryBtn.parentNode.replaceChild(newGalleryBtn, galleryBtn);
+      
+      // CLICK
+      newGalleryBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔵 MODAL CLICK: Galería NUEVO presionada');
+        galleryInput.click();
+      });
+
+      // TOUCH
+      newGalleryBtn.addEventListener("touchstart", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('📱 MODAL TOUCH: Galería NUEVO tocada');
+        galleryInput.click();
+      }, { passive: false });
+      
+      console.log('✅ Galería NUEVO reconfigurada en modal');
+    }
+  }
+  
+  console.log('🎉 ¡Listeners del modal configurados exitosamente!');
 }
 function closeModal(event, forceModalId = null) {
   let modalToClose = null;
@@ -926,6 +1093,8 @@ function clearDishImageState() {
   }
 }
 function setupImageUploader() {
+  console.log('🔧 Configurando event listeners para imágenes...');
+  
   const imageInput = document.getElementById("dish-image-input");
   const cameraInput = document.getElementById("camera-input");
   const galleryInput = document.getElementById("gallery-input");
@@ -933,25 +1102,93 @@ function setupImageUploader() {
   const galleryBtn = document.getElementById("gallery-btn");
   const newDeleteBtn = document.getElementById("new-delete-photo-btn");
 
+  console.log('📋 Elementos encontrados:', {
+    imageInput: !!imageInput,
+    cameraInput: !!cameraInput,
+    galleryInput: !!galleryInput,
+    cameraBtn: !!cameraBtn,
+    galleryBtn: !!galleryBtn,
+    newDeleteBtn: !!newDeleteBtn
+  });
+
   // Configuración para modal de nuevo plato
-  imageInput.addEventListener("change", handleImageSelection);
-  cameraInput.addEventListener("change", handleImageSelection);
-  galleryInput.addEventListener("change", handleImageSelection);
+  if (imageInput) {
+    imageInput.addEventListener("change", handleImageSelection);
+  }
+  if (cameraInput) {
+    cameraInput.addEventListener("change", handleImageSelection);
+  }
+  if (galleryInput) {
+    galleryInput.addEventListener("change", handleImageSelection);
+  }
 
   // Configurar botón eliminar para modal de nuevo plato
   if (newDeleteBtn) {
     newDeleteBtn.addEventListener("click", handleDeleteNewPhoto);
   }
 
+  // ✅ BOTÓN CÁMARA - NUEVO PLATO
   if (cameraBtn) {
-    cameraBtn.addEventListener("click", () => {
-      openCameraCapture();
+    console.log('📸 Configurando botón cámara...');
+    
+    // Evento CLICK
+    cameraBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🟢 CLICK: Botón cámara presionado');
+      
+      try {
+        await openCameraCapture(false);
+      } catch (error) {
+        console.error('❌ Error al abrir cámara:', error);
+        alert('Error al acceder a la cámara: ' + error.message);
+      }
     });
+
+    // Evento TOUCH para móviles
+    cameraBtn.addEventListener("touchstart", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('📱 TOUCH: Botón cámara tocado');
+      
+      try {
+        await openCameraCapture(false);
+      } catch (error) {
+        console.error('❌ Error al abrir cámara (touch):', error);
+        alert('Error al acceder a la cámara: ' + error.message);
+      }
+    }, { passive: false });
+    
+    console.log('✅ Botón cámara configurado correctamente');
+  } else {
+    console.error('❌ Botón cámara NO encontrado!');
   }
 
-  if (galleryBtn) {
-    galleryBtn.addEventListener("click", () => {
+  // ✅ BOTÓN GALERÍA - NUEVO PLATO
+  if (galleryBtn && galleryInput) {
+    console.log('🖼️ Configurando botón galería...');
+    
+    // Evento CLICK
+    galleryBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🔵 CLICK: Botón galería presionado');
       galleryInput.click();
+    });
+
+    // Evento TOUCH para móviles
+    galleryBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('📱 TOUCH: Botón galería tocado');
+      galleryInput.click();
+    }, { passive: false });
+    
+    console.log('✅ Botón galería configurado correctamente');
+  } else {
+    console.error('❌ Botón galería o input NO encontrado!', {
+      galleryBtn: !!galleryBtn,
+      galleryInput: !!galleryInput
     });
   }
 
@@ -961,6 +1198,13 @@ function setupImageUploader() {
   const editCameraBtn = document.getElementById("edit-camera-btn");
   const editGalleryBtn = document.getElementById("edit-gallery-btn");
 
+  console.log('📋 Elementos EDITAR encontrados:', {
+    editCameraInput: !!editCameraInput,
+    editGalleryInput: !!editGalleryInput,
+    editCameraBtn: !!editCameraBtn,
+    editGalleryBtn: !!editGalleryBtn
+  });
+
   if (editCameraInput) {
     editCameraInput.addEventListener("change", handleEditImageSelection);
   }
@@ -969,17 +1213,72 @@ function setupImageUploader() {
     editGalleryInput.addEventListener("change", handleEditImageSelection);
   }
 
+  // ✅ BOTÓN CÁMARA - EDITAR PLATO
   if (editCameraBtn) {
-    editCameraBtn.addEventListener("click", () => {
-      openCameraCapture(true);
+    console.log('📸 Configurando botón cámara EDITAR...');
+    
+    // Evento CLICK
+    editCameraBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🟢 CLICK: Botón cámara EDITAR presionado');
+      
+      try {
+        await openCameraCapture(true);
+      } catch (error) {
+        console.error('❌ Error al abrir cámara EDITAR:', error);
+        alert('Error al acceder a la cámara: ' + error.message);
+      }
     });
+
+    // Evento TOUCH para móviles
+    editCameraBtn.addEventListener("touchstart", async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('📱 TOUCH: Botón cámara EDITAR tocado');
+      
+      try {
+        await openCameraCapture(true);
+      } catch (error) {
+        console.error('❌ Error al abrir cámara EDITAR (touch):', error);
+        alert('Error al acceder a la cámara: ' + error.message);
+      }
+    }, { passive: false });
+    
+    console.log('✅ Botón cámara EDITAR configurado correctamente');
+  } else {
+    console.error('❌ Botón cámara EDITAR NO encontrado!');
   }
 
-  if (editGalleryBtn) {
-    editGalleryBtn.addEventListener("click", () => {
+  // ✅ BOTÓN GALERÍA - EDITAR PLATO  
+  if (editGalleryBtn && editGalleryInput) {
+    console.log('🖼️ Configurando botón galería EDITAR...');
+    
+    // Evento CLICK
+    editGalleryBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('🔵 CLICK: Botón galería EDITAR presionado');
       editGalleryInput.click();
     });
+
+    // Evento TOUCH para móviles
+    editGalleryBtn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('📱 TOUCH: Botón galería EDITAR tocado');
+      editGalleryInput.click();
+    }, { passive: false });
+    
+    console.log('✅ Botón galería EDITAR configurado correctamente');
+  } else {
+    console.error('❌ Botón galería EDITAR o input NO encontrado!', {
+      editGalleryBtn: !!editGalleryBtn,
+      editGalleryInput: !!editGalleryInput
+    });
   }
+  
+  console.log('🎉 ¡Configuración de event listeners completada!');
 }
 // Función auxiliar para obtener dimensiones de la imagen
 function getImageDimensions(file) {
@@ -1020,46 +1319,68 @@ function validateFileType(file) {
 
 // Función para abrir la captura de cámara
 async function openCameraCapture(isEditMode = false) {
+  console.log('📸 Intentando abrir cámara, modo edición:', isEditMode);
+  
   try {
     // Verificar si el navegador soporta getUserMedia
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      console.error('❌ El navegador no soporta getUserMedia');
       alert(
-        "Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador."
+        "Tu navegador no soporta el acceso a la cámara. Intenta usar Chrome, Firefox o Safari más recientes."
       );
       return;
     }
 
-    // Solicitar acceso a la cámara
-    const stream = await navigator.mediaDevices.getUserMedia({
+    console.log('✅ Navegador soporta getUserMedia, solicitando permisos...');
+
+    // Configuración optimizada para móviles
+    const constraints = {
       video: {
-        facingMode: "environment", // Preferir cámara trasera en móviles
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        facingMode: { ideal: "environment" }, // Preferir cámara trasera
+        width: { ideal: 1280, max: 1920 },
+        height: { ideal: 720, max: 1080 }
       },
+      audio: false
+    };
+
+    console.log('📋 Configuración de cámara:', constraints);
+
+    // Solicitar acceso a la cámara
+    const stream = await navigator.mediaDevices.getUserMedia(constraints);
+    
+    console.log('✅ Acceso a cámara obtenido exitosamente');
+    console.log('📊 Stream info:', {
+      active: stream.active,
+      tracks: stream.getTracks().length,
+      videoTrack: stream.getVideoTracks()[0]?.label
     });
 
     // Crear el modal de cámara
     createCameraModal(stream, isEditMode);
+    
   } catch (error) {
-    console.error("Error al acceder a la cámara:", error);
+    console.error('❌ Error al acceder a la cámara:', error);
 
-    if (error.name === "NotAllowedError") {
-      alert(
-        "Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador."
-      );
-    } else if (error.name === "NotFoundError") {
-      alert(
-        "Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador."
-      );
-    } else if (error.name === "NotReadableError") {
-      alert(
-        "Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador."
-      );
+    // Mensajes de error más específicos y útiles
+    let userMessage = "Error al acceder a la cámara: ";
+    
+    if (error.name === "NotAllowedError" || error.name === "PermissionDeniedError") {
+      userMessage += "Permisos denegados. Ve a la configuración de tu navegador y permite el acceso a la cámara para este sitio.";
+    } else if (error.name === "NotFoundError" || error.name === "DevicesNotFoundError") {
+      userMessage += "No se encontró ninguna cámara en tu dispositivo. Verifica que tu cámara esté conectada y funcionando.";
+    } else if (error.name === "NotReadableError" || error.name === "TrackStartError") {
+      userMessage += "La cámara está siendo utilizada por otra aplicación. Cierra otras aplicaciones que puedan estar usando la cámara.";
+    } else if (error.name === "OverconstrainedError" || error.name === "ConstraintNotSatisfiedError") {
+      userMessage += "Tu cámara no cumple con los requisitos necesarios. Intenta con otro dispositivo.";
+    } else if (error.name === "NotSupportedError") {
+      userMessage += "Tu navegador no soporta esta funcionalidad. Intenta actualizar tu navegador.";
+    } else if (error.name === "TypeError") {
+      userMessage += "Error de configuración. Intenta recargar la página.";
     } else {
-      alert(
-        "Parece que no pudimos acceder a tu cámara. Revisa los permisos del navegador."
-      );
+      userMessage += error.message || "Error desconocido. Intenta de nuevo.";
     }
+    
+    alert(userMessage);
   }
 }
 
