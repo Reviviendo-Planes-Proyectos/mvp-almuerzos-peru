@@ -205,7 +205,8 @@ async function loadDashboardData() {
     const locationElement = document.getElementById("restaurant-location");
     if (locationElement) {
       const locationUrl = currentRestaurant.location;
-      const locationText = currentRestaurant.district || "Ubicación no disponible";
+      const district = currentRestaurant.district || "Ubicación no disponible";
+      const locationText = district + "-Ver mapa";
       
       if (locationUrl && locationUrl.trim() !== "") {
         // Si hay URL de ubicación, configurar como enlace
