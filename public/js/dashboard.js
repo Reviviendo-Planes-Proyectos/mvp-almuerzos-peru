@@ -936,6 +936,14 @@ function openModal(modalId) {
     modal.style.display = "flex";
     currentlyOpenModal = modal;
 
+    // ✅ RESETEAR SCROLL AL INICIO DEL MODAL
+    const modalContent = modal.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.scrollTop = 0;
+    }
+    // También resetear el scroll del backdrop por si acaso
+    modal.scrollTop = 0;
+
     // Limpiar estado de imagen del plato cuando se abra el modal "Nuevo plato"
     if (modalId === "newDishModal") {
       clearDishImageState();
@@ -2029,7 +2037,20 @@ function openEditRestaurantModal() {
     setupDeleteButtons();
   }, 100);
   
+  // Abrir el modal
   openModal("editRestaurantModal");
+  
+  // ✅ RESETEAR SCROLL AL INICIO específicamente para el modal de restaurante
+  setTimeout(() => {
+    const modal = document.getElementById("editRestaurantModal");
+    const modalContent = modal?.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.scrollTop = 0;
+    }
+    if (modal) {
+      modal.scrollTop = 0;
+    }
+  }, 50);
 }
 function syncScheduleWithMonday() {
   const mondayFromValue = document.getElementById("edit-monday-from").value;
@@ -2713,7 +2734,21 @@ function openEditDishModal(dish) {
   document.getElementById("open-delete-dish-alert-btn").onclick = () => {
     openModal("deleteDishAlert");
   };
+  
+  // Abrir el modal
   openModal("editDishModal");
+  
+  // ✅ RESETEAR SCROLL AL INICIO específicamente para el modal de editar plato
+  setTimeout(() => {
+    const modal = document.getElementById("editDishModal");
+    const modalContent = modal?.querySelector('.modal-content');
+    if (modalContent) {
+      modalContent.scrollTop = 0;
+    }
+    if (modal) {
+      modal.scrollTop = 0;
+    }
+  }, 50);
 }
 async function handleDeleteDish() {
   if (!editingDish)
@@ -3037,6 +3072,9 @@ function openCropperModal(
   const imageUrl = URL.createObjectURL(file);
   cropperImage.src = imageUrl;
 
+  // Reiniciar scroll al inicio
+  cropperModal.scrollTop = 0;
+
   // Mostrar el modal
   cropperModal.style.display = "flex";
 
@@ -3201,6 +3239,9 @@ function openRestaurantCropperModal(file, imageInput, preview) {
   const imageUrl = URL.createObjectURL(file);
   cropperImage.src = imageUrl;
 
+  // Reiniciar scroll al inicio
+  cropperModal.scrollTop = 0;
+
   // Mostrar el modal
   cropperModal.style.display = "flex";
 
@@ -3321,6 +3362,9 @@ function openLogoCropperModal(file, imageInput, preview) {
   // Crear URL para la imagen
   const imageUrl = URL.createObjectURL(file);
   cropperImage.src = imageUrl;
+
+  // Reiniciar scroll al inicio
+  cropperModal.scrollTop = 0;
 
   // Mostrar el modal
   cropperModal.style.display = "flex";
