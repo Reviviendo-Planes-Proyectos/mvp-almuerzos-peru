@@ -1062,6 +1062,27 @@ app.put(
         location,
         qr,
       } = req.body;
+      
+      // Log detallado para debug
+      console.log('📋 DATOS RECIBIDOS COMPLETOS:', req.body);
+      console.log('📋 Datos recibidos para actualizar restaurante:', {
+        restaurantId,
+        name,
+        description,
+        district,
+        whatsapp,
+        photoUrl: photoUrl ? 'Sí tiene imagen' : 'No tiene imagen',
+        logoUrl: logoUrl ? 'Sí tiene logo' : 'No tiene logo',
+        ruc,
+        yape,
+        phone,
+        hasDelivery,
+        hasLocalService,
+        schedule,
+        location,
+        qr
+      });
+      
       const restaurantDoc = await db
         .collection("restaurants")
         .doc(restaurantId)
@@ -1107,7 +1128,16 @@ app.put(
         },
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
+      
+      console.log('📋 Datos que se van a guardar en Firestore:', updatedData);
+      
       await restaurantRef.update(updatedData);
+      
+      console.log('✅ Restaurante actualizado exitosamente en Firestore');
+      
+      // Verificar los datos guardados
+      const updatedDoc = await restaurantRef.get();
+      console.log('📋 Datos verificados en Firestore después de actualización:', updatedDoc.data());
 
       if (photoUrl && oldPhotoUrl && photoUrl !== oldPhotoUrl) {
         try {
