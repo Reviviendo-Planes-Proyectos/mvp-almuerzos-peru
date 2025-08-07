@@ -170,8 +170,23 @@
         justify-content: center;
         align-items: center;
         height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #ffd100;
+        z-index: 9999;
       ">
-    <p style="font-weight: 700; font-size: 1.25rem">Cargando Dashboard...</p>
+    <div style="text-align: center;">
+      <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid #1f2937; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+      <p style="font-weight: 700; font-size: 1.25rem; color: #1f2937;">Cargando Dashboard...</p>
+    </div>
+    <style>
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
+    </style>
   </div>
   <div id="main-content">
     <section id="cards-section">

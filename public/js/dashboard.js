@@ -23,7 +23,6 @@ function waitForFirebaseAndInitialize() {
     auth = firebase.auth();
     db = firebase.firestore();
     storage = firebase.storage();
-    console.log('Firebase initialized successfully in dashboard');
     return true;
   }
   return false;
@@ -31,24 +30,71 @@ function waitForFirebaseAndInitialize() {
 
 // Intentar inicializar Firebase inmediatamente
 if (!waitForFirebaseAndInitialize()) {
-  // Si no está disponible, esperar un poco
+  // Si no está disponible, esperar menos tiempo con menos intentos
   let attempts = 0;
-  const maxAttempts = 20;
+  const maxAttempts = 10; // Reducido de 20 a 10
   const checkFirebase = setInterval(() => {
     attempts++;
     if (waitForFirebaseAndInitialize() || attempts >= maxAttempts) {
       clearInterval(checkFirebase);
       if (attempts >= maxAttempts) {
         console.error('Firebase failed to load after maximum attempts in dashboard');
+        showErrorState();
       }
     }
-  }, 100);
+  }, 50); // Reducido de 100ms a 50ms
 }
 
 // Inicializar Firebase de forma lazy
 document.addEventListener("DOMContentLoaded", () => {
-  showLoadingState();
+  // Inicializar inmediatamente si Firebase ya está disponible
+  if (waitForFirebaseAndInitialize()) {
+    initializeDashboard();
+  } else {
+    showLoadingState();
+    // Esperar con timeout para evitar esperas infinitas
+    setTimeout(() => {
+      if (waitForFirebaseAndInitialize()) {
+        initializeDashboard();
+      } else {
+        console.error('Firebase failed to load within timeout');
+        showErrorState();
+      }
+    }, 2000);
+  }
 });
+
+function initializeDashboard() {
+  // Ocultar loading y proceder con auth
+  const loadingOverlay = document.getElementById("loading-overlay");
+  if (loadingOverlay) loadingOverlay.style.display = "none";
+  
+  // Configurar auth listener inmediatamente
+  if (auth) {
+    auth.onAuthStateChanged((user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById("cards-section").style.display = "block";
+        // Cargar datos con timeout para evitar bloqueos
+        requestAnimationFrame(() => {
+          loadDashboardData();
+        });
+        
+        // Actualizar estado del restaurante cada minuto
+        setInterval(updateRestaurantStatus, 60000);
+      } else {
+        window.location.href = "/login.html";
+      }
+    });
+  }
+}
+
+function showErrorState() {
+  const loadingOverlay = document.getElementById("loading-overlay");
+  if (loadingOverlay) {
+    loadingOverlay.innerHTML = '<p style="text-align: center; color: red; font-weight: 700;">Error de conexión. Recarga la página.</p>';
+  }
+}
 
 let currentUser = null;
 let currentRestaurant = null;
@@ -66,18 +112,8 @@ let currentPreview = null;
 function showLoadingState() {
   const loadingOverlay = document.getElementById("loading-overlay");
   if (loadingOverlay) {
-    loadingOverlay.innerHTML = `
-      <div style="text-align: center;">
-        <div style="width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid #ffd100; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
-        <p style="font-weight: 700; font-size: 1.25rem; color: #1f2937;">Cargando Dashboard...</p>
-      </div>
-      <style>
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      </style>
-    `;
+    // Usar CSS existente en lugar de inyectar HTML
+    loadingOverlay.style.display = 'flex';
   }
 }
 let currentPlaceholder = null;
@@ -93,7 +129,10 @@ function checkAuthStatus() {
     currentUser = auth.currentUser;
     if (document.getElementById("cards-section").style.display !== "block") {
       document.getElementById("cards-section").style.display = "block";
-      loadDashboardData();
+      // Usar requestAnimationFrame para mejor rendimiento
+      requestAnimationFrame(() => {
+        loadDashboardData();
+      });
     }
   } else {
     window.location.replace("/login.html");
@@ -101,27 +140,11 @@ function checkAuthStatus() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Esperar a que Firebase esté listo antes de configurar auth
-  const waitForAuth = () => {
-    if (auth) {
-      auth.onAuthStateChanged((user) => {
-        if (user) {
-          currentUser = user;
-          document.getElementById("cards-section").style.display = "block";
-          loadDashboardData();
-          
-          // Actualizar el estado del restaurante cada minuto
-          setInterval(updateRestaurantStatus, 60000);
-        } else {
-          window.location.href = "/login.html";
-        }
-      });
-    } else {
-      setTimeout(waitForAuth, 100);
-    }
-  };
-  
-  waitForAuth();
+  // Configurar event listeners una sola vez
+  setupEventListeners();
+});
+
+function setupEventListeners() {
   document
     .getElementById("new-card-form")
     .addEventListener("submit", handleCreateCard);
@@ -131,9 +154,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("edit-dish-form")
     .addEventListener("submit", handleUpdateDish);
-  document
-    .getElementById("delete-card-button")
-    .addEventListener("click", () => openModal("deleteCardAlert"));
+  
+  // Solo configurar si el elemento existe
+  const deleteCardButton = document.getElementById("delete-card-button");
+  if (deleteCardButton) {
+    deleteCardButton.addEventListener("click", () => openModal("deleteCardAlert"));
+  }
+  
   document
     .getElementById("confirm-delete-card-btn")
     .addEventListener("click", handleDeleteCard);
@@ -143,146 +170,181 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("edit-restaurant-form")
     .addEventListener("submit", handleUpdateRestaurant);
-  setupEditRestaurantImageUploader();
-  setupImageUploader();
-});
+    
+  // Configurar uploaders de forma lazy
+  requestAnimationFrame(() => {
+    setupEditRestaurantImageUploader();
+    setupImageUploader();
+  });
+}
 
 async function loadDashboardData() {
   if (!currentUser) return;
+  
   const loadingOverlay = document.getElementById("loading-overlay");
   const mainContent = document.getElementById("main-content");
+  
+  // Mostrar contenido inmediatamente para mejor UX
+  if (loadingOverlay) loadingOverlay.style.display = "none";
+  if (mainContent) mainContent.style.display = "block";
+  
   try {
-    // *** CAMBIO CRÍTICO: Enviar el ID Token ***
+    // Cache del token para evitar múltiples llamadas
     const idToken = await currentUser.getIdToken();
 
-    const restaurantResponse = await fetch(
-      `/api/restaurants/user/${currentUser.uid}`,
-      {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-      }
-    );
+    // Cargar datos del restaurante con timeout
+    const restaurantPromise = Promise.race([
+      fetch(`/api/restaurants/user/${currentUser.uid}`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      }),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Timeout')), 10000)
+      )
+    ]);
+
+    const restaurantResponse = await restaurantPromise;
+    
     if (!restaurantResponse.ok) {
       // Manejar errores 403 (Forbidden) específicamente
       if (restaurantResponse.status === 403) {
-        console.error(
-          "Acceso denegado: El usuario no es un dueño o su token no coincide."
-        );
-        alert(
-          "No tienes los permisos necesarios para acceder al dashboard. Serás redirigido."
-        );
-        window.location.replace("/index.html"); // Redirige a la página principal
-        return; // Importante para detener la ejecución
+        console.error("Acceso denegado: El usuario no es un dueño o su token no coincide.");
+        alert("No tienes los permisos necesarios para acceder al dashboard. Serás redirigido.");
+        window.location.replace("/index.html");
+        return;
       }
       if (restaurantResponse.status === 404) {
-        // Si es 404, significa que es dueño pero no tiene restaurante, redirige a registrar
         window.location.href = "/login.html?action=register";
         return;
       }
-      throw new Error(
-        `Error ${restaurantResponse.status}: ${restaurantResponse.statusText}`
-      );
+      throw new Error(`Error ${restaurantResponse.status}: ${restaurantResponse.statusText}`);
     }
+    
     currentRestaurant = await restaurantResponse.json();
-    const banner = document.getElementById("restaurant-banner");
-    document.getElementById("restaurant-name").textContent =
-      currentRestaurant.name;
     
-    // Actualizar el logo del restaurante
-    const logoImg = document.getElementById("restaurant-logo");
-    const logoPlaceholder = document.getElementById("restaurant-icon-placeholder");
-    if (currentRestaurant.logoUrl && logoImg && logoPlaceholder) {
-      logoImg.src = currentRestaurant.logoUrl;
-      logoImg.style.display = "block";
-      logoPlaceholder.style.display = "none";
-    } else if (logoImg && logoPlaceholder) {
-      logoImg.style.display = "none";
-      logoPlaceholder.style.display = "block";
-    }
+    // Actualizar UI de forma asíncrona y no bloqueante
+    requestAnimationFrame(() => {
+      updateRestaurantUI();
+    });
     
-    // Actualizar la ubicación del restaurante
-    const locationElement = document.getElementById("restaurant-location");
-    if (locationElement) {
-      const locationUrl = currentRestaurant.location;
-      const district = currentRestaurant.district || "Ubicación no disponible";
-      const locationText = district + "-Ver mapa";
-      
-      if (locationUrl && locationUrl.trim() !== "") {
-        // Si hay URL de ubicación, configurar como enlace
-        locationElement.href = locationUrl;
-        locationElement.textContent = locationText;
-        locationElement.style.display = "inline";
-        locationElement.style.pointerEvents = "auto";
-      } else {
-        // Si no hay URL, mostrar solo texto sin enlace
-        locationElement.href = "#";
-        locationElement.textContent = locationText;
-        locationElement.style.pointerEvents = "none";
-        locationElement.style.textDecoration = "none";
-        locationElement.style.cursor = "default";
-      }
-    }
+    // Cargar rating y cartas en paralelo
+    Promise.all([
+      loadRestaurantRating(idToken),
+      loadRestaurantCards()
+    ]).catch(error => {
+      console.error("Error en carga paralela:", error);
+    });
     
-    // Actualizar horario de cierre (usando el horario del día actual o lunes como default)
-    const hoursElement = document.getElementById("restaurant-hours");
-    if (hoursElement && currentRestaurant.schedule) {
-      const today = new Date().getDay(); // 0 = domingo, 1 = lunes, etc.
-      const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-      const currentDay = dayNames[today];
-      
-      if (currentRestaurant.schedule[currentDay] && currentRestaurant.schedule[currentDay].to) {
-        // Mostrar solo la hora de cierre
-        hoursElement.textContent = currentRestaurant.schedule[currentDay].to;
-      } else if (currentRestaurant.schedule.monday && currentRestaurant.schedule.monday.to) {
-        // Usar lunes como fallback
-        hoursElement.textContent = currentRestaurant.schedule.monday.to;
-      } else {
-        hoursElement.textContent = "8:00 pm";
-      }
-    }
-
-    // Actualizar estado del restaurante (ABIERTO/CERRADO) basado en el horario actual
-    updateRestaurantStatus();
-    
-    // Actualizar calificación y cantidad de reseñas usando el nuevo endpoint
-    const ratingElement = document.getElementById("restaurant-rating");
-    if (ratingElement) {
-      try {
-        const idToken = await currentUser.getIdToken();
-        const ratingResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/rating`, {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
-        
-        if (ratingResponse.ok) {
-          const ratingData = await ratingResponse.json();
-          
-          // Mostrar el número total de likes (corazones) que tiene el restaurante
-          ratingElement.textContent = `${ratingData.totalLikes}`;
-        } else {
-          console.error("Error fetching restaurant rating:", ratingResponse.status, ratingResponse.statusText);
-          // Fallback: mostrar valores por defecto
-          ratingElement.textContent = "0";
-        }
-      } catch (error) {
-        console.error("Error fetching restaurant rating:", error);
-        // Fallback: mostrar valores por defecto
-        ratingElement.textContent = "0";
-      }
-    }
-    
-    
-    await loadRestaurantCards(); // Llama a la siguiente función de carga
-    if (loadingOverlay) loadingOverlay.style.display = "none";
-    if (mainContent) mainContent.style.display = "block";
   } catch (error) {
     console.error("Error cargando el dashboard:", error);
-    if (loadingOverlay) {
-      loadingOverlay.innerHTML =
-        '<p style="text-align: center; color: red; font-weight: 700;">Error de conexión o permisos.<br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos de dueño.</p>';
+    showErrorMessage();
+  }
+}
+
+function updateRestaurantUI() {
+  // Actualizar información básica del restaurante
+  const restaurantName = document.getElementById("restaurant-name");
+  if (restaurantName) {
+    restaurantName.textContent = currentRestaurant.name;
+  }
+  
+  // Actualizar logo de forma lazy
+  updateRestaurantLogo();
+  
+  // Actualizar ubicación
+  updateRestaurantLocation();
+  
+  // Actualizar horario
+  updateRestaurantHours();
+  
+  // Actualizar estado
+  updateRestaurantStatus();
+}
+
+function updateRestaurantLogo() {
+  const logoImg = document.getElementById("restaurant-logo");
+  const logoPlaceholder = document.getElementById("restaurant-icon-placeholder");
+  
+  if (currentRestaurant.logoUrl && logoImg && logoPlaceholder) {
+    logoImg.onload = () => {
+      logoImg.style.display = "block";
+      logoPlaceholder.style.display = "none";
+    };
+    logoImg.onerror = () => {
+      logoImg.style.display = "none";
+      logoPlaceholder.style.display = "block";
+    };
+    logoImg.src = currentRestaurant.logoUrl;
+  } else if (logoImg && logoPlaceholder) {
+    logoImg.style.display = "none";
+    logoPlaceholder.style.display = "block";
+  }
+}
+
+function updateRestaurantLocation() {
+  const locationElement = document.getElementById("restaurant-location");
+  if (locationElement) {
+    const locationUrl = currentRestaurant.location;
+    const district = currentRestaurant.district || "Ubicación no disponible";
+    const locationText = district + "-Ver mapa";
+    
+    if (locationUrl && locationUrl.trim() !== "") {
+      locationElement.href = locationUrl;
+      locationElement.textContent = locationText;
+      locationElement.style.display = "inline";
+      locationElement.style.pointerEvents = "auto";
+    } else {
+      locationElement.href = "#";
+      locationElement.textContent = locationText;
+      locationElement.style.pointerEvents = "none";
+      locationElement.style.textDecoration = "none";
+      locationElement.style.cursor = "default";
     }
+  }
+}
+
+function updateRestaurantHours() {
+  const hoursElement = document.getElementById("restaurant-hours");
+  if (hoursElement && currentRestaurant.schedule) {
+    const today = new Date().getDay();
+    const dayNames = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const currentDay = dayNames[today];
+    
+    if (currentRestaurant.schedule[currentDay] && currentRestaurant.schedule[currentDay].to) {
+      hoursElement.textContent = currentRestaurant.schedule[currentDay].to;
+    } else if (currentRestaurant.schedule.monday && currentRestaurant.schedule.monday.to) {
+      hoursElement.textContent = currentRestaurant.schedule.monday.to;
+    } else {
+      hoursElement.textContent = "8:00 pm";
+    }
+  }
+}
+
+async function loadRestaurantRating(idToken) {
+  const ratingElement = document.getElementById("restaurant-rating");
+  if (!ratingElement || !currentRestaurant) return;
+  
+  try {
+    const ratingResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/rating`, {
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    
+    if (ratingResponse.ok) {
+      const ratingData = await ratingResponse.json();
+      ratingElement.textContent = `${ratingData.totalLikes}`;
+    } else {
+      ratingElement.textContent = "0";
+    }
+  } catch (error) {
+    console.error("Error fetching restaurant rating:", error);
+    ratingElement.textContent = "0";
+  }
+}
+
+function showErrorMessage() {
+  const loadingOverlay = document.getElementById("loading-overlay");
+  if (loadingOverlay) {
+    loadingOverlay.innerHTML = '<p style="text-align: center; color: red; font-weight: 700;">Error de conexión o permisos.<br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos de dueño.</p>';
+    loadingOverlay.style.display = "flex";
   }
 }
 
@@ -349,9 +411,11 @@ async function loadRestaurantCards() {
   if (!currentRestaurant) return;
   const cardsListDiv = document.getElementById("cards-list");
   const loadingMessage = document.getElementById("loading-cards-message");
+  
   try {
-    // *** CAMBIO CRÍTICO: Enviar el ID Token ***
-    const idToken = await currentUser.getIdToken();
+    // Usar token cacheado si está disponible
+    const idToken = await currentUser.getIdToken(false); // false = usar cache si está disponible
+    
     const cardsResponse = await fetch(
       `/api/restaurants/${currentRestaurant.id}/cards`,
       {
@@ -360,50 +424,58 @@ async function loadRestaurantCards() {
         },
       }
     );
+    
     if (!cardsResponse.ok) {
       if (cardsResponse.status === 403) {
         showToast("Permisos insuficientes para cargar cartas.", "error");
       }
-      throw new Error(
-        `Error ${cardsResponse.status}: ${cardsResponse.statusText}`
-      );
+      throw new Error(`Error ${cardsResponse.status}: ${cardsResponse.statusText}`);
     }
+    
     const cards = await cardsResponse.json();
+    
     if (loadingMessage) loadingMessage.style.display = "none";
-    cardsListDiv.innerHTML = "";
+    
+    // Usar DocumentFragment para mejor rendimiento
+    const fragment = document.createDocumentFragment();
+    
     if (cards.length === 0) {
-      cardsListDiv.innerHTML =
-        '<p style="text-align: center;">Aún no tienes ninguna carta. ¡Crea una!</p>';
+      const emptyMessage = document.createElement("p");
+      emptyMessage.style.textAlign = "center";
+      emptyMessage.textContent = "Aún no tienes ninguna carta. ¡Crea una!";
+      fragment.appendChild(emptyMessage);
     } else {
       cards.forEach((card) => {
         const cardElement = document.createElement("div");
         cardElement.className = "list-item";
         cardElement.innerHTML = `
-                        <div class="item-details" onclick="showDishes('${
-                          card.id
-                        }', '${card.name}')">
-                            <h3  style="margin-right: 20px;">${card.name}</h3>
-                            <p>Ver platos</p>
-                        </div>
-                        <label class="toggle-switch">
-                            <input type="checkbox" data-id="${
-                              card.id
-                            }" class="card-toggle" ${
-          card.isActive ? "checked" : ""
-        }>
-                            <span class="slider"></span>
-                        </label>
-                    `;
-        cardsListDiv.appendChild(cardElement);
+          <div class="item-details" onclick="showDishes('${card.id}', '${card.name}')">
+              <h3 style="margin-right: 20px;">${card.name}</h3>
+              <p>Ver platos</p>
+          </div>
+          <label class="toggle-switch">
+              <input type="checkbox" data-id="${card.id}" class="card-toggle" ${card.isActive ? "checked" : ""}>
+              <span class="slider"></span>
+          </label>
+        `;
+        fragment.appendChild(cardElement);
       });
+    }
+    
+    // Una sola operación DOM
+    cardsListDiv.innerHTML = "";
+    cardsListDiv.appendChild(fragment);
+    
+    // Configurar event listeners después del render
+    requestAnimationFrame(() => {
       document.querySelectorAll(".card-toggle").forEach((toggle) => {
         toggle.addEventListener("change", handleToggleCard);
       });
-    }
+    });
+    
   } catch (error) {
     console.error("Error cargando las cartas:", error);
-    cardsListDiv.innerHTML =
-      '<p style="text-align: center; color: red;"><strong>Error al cargar las cartas.</strong><br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos.</p>';
+    cardsListDiv.innerHTML = '<p style="text-align: center; color: red;"><strong>Error al cargar las cartas.</strong><br>Asegúrate de que el servidor (server.js) esté corriendo y tu cuenta tenga permisos.</p>';
   }
 }
 
@@ -413,13 +485,14 @@ async function loadDishes(cardId) {
   dishesListDiv.innerHTML = "<p>Cargando platos...</p>";
 
   try {
-    // *** CAMBIO CRÍTICO: Enviar el ID Token ***
-    const idToken = await currentUser.getIdToken();
+    // Usar token cacheado para mejor rendimiento
+    const idToken = await currentUser.getIdToken(false);
     const response = await fetch(`/api/cards/${cardId}/dishes`, {
       headers: {
         Authorization: `Bearer ${idToken}`,
       },
     });
+    
     if (!response.ok) {
       if (response.status === 403) {
         showToast("Permisos insuficientes para cargar platos.", "error");
@@ -428,65 +501,70 @@ async function loadDishes(cardId) {
     }
 
     const dishes = await response.json();
-    dishesListDiv.innerHTML = "";
+    
+    // Usar DocumentFragment para mejor rendimiento
+    const fragment = document.createDocumentFragment();
 
     if (dishes.length === 0) {
-      dishesListDiv.innerHTML =
-        '<p style="text-align: center;">No hay platos en esta carta. ¡Añade uno!</p>';
+      const emptyMessage = document.createElement("p");
+      emptyMessage.style.textAlign = "center";
+      emptyMessage.textContent = "No hay platos en esta carta. ¡Añade uno!";
+      fragment.appendChild(emptyMessage);
     } else {
       dishes.forEach((dish) => {
         const dishElement = document.createElement("div");
         dishElement.className = "list-item dish-list-item";
 
-        const imageUrl =
-          dish.photoUrl ||
-          `https://placehold.co/120x120/E2E8F0/4A5568?text=${encodeURIComponent(
-            dish.name.substring(0, 4)
-          )}`;
+        const imageUrl = dish.photoUrl || 
+          `https://placehold.co/120x120/E2E8F0/4A5568?text=${encodeURIComponent(dish.name.substring(0, 4))}`;
 
         dishElement.innerHTML = `
-
-    <div class="item-details" style="cursor: pointer; flex: 1;">
-        <img src="${imageUrl}" alt="Foto de ${
-          dish.name
-        }" style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;">
-
-        <div>
-            <h3 title="${dish.name}">${dish.name}</h3>
-            <p>S/. ${dish.price.toFixed(2)}</p>
-            <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
-        </div>
-    </div>
-    <div class="item-actions">
-        <label class="toggle-switch">
-            <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${
-              dish.isActive ? "checked" : ""
-            }>
-            <span class="slider"></span>
-        </label>
-    </div>
-`;
+          <div class="item-details" style="cursor: pointer; flex: 1;">
+              <img src="${imageUrl}" alt="Foto de ${dish.name}" 
+                   style="width: 60px; height: 60px; border-radius: 0.5rem; object-fit: cover; margin-right: 1rem;"
+                   loading="lazy">
+              <div>
+                  <h3 title="${dish.name}">${dish.name}</h3>
+                  <p>S/. ${dish.price.toFixed(2)}</p>
+                  <p style="font-size: 0.85rem; color: #666;">Likes: ${dish.likesCount || 0}</p> 
+              </div>
+          </div>
+          <div class="item-actions">
+              <label class="toggle-switch">
+                  <input type="checkbox" data-id="${dish.id}" class="dish-toggle" ${dish.isActive ? "checked" : ""}>
+                  <span class="slider"></span>
+              </label>
+          </div>
+        `;
         
-        // Hacer clickeable toda la carta excepto el toggle
-        const itemDetails = dishElement.querySelector(".item-details");
-        itemDetails.addEventListener("click", () => openEditDishModal(dish));
-        
-        // Prevenir que el click en el toggle active la edición
-        const toggleSwitch = dishElement.querySelector(".toggle-switch");
-        toggleSwitch.addEventListener("click", (e) => {
-          e.stopPropagation();
-        });
-        dishesListDiv.appendChild(dishElement);
-      });
-
-      document.querySelectorAll(".dish-toggle").forEach((toggle) => {
-        toggle.addEventListener("change", handleToggleDish);
+        fragment.appendChild(dishElement);
       });
     }
+
+    // Una sola operación DOM
+    dishesListDiv.innerHTML = "";
+    dishesListDiv.appendChild(fragment);
+    
+    // Configurar event listeners después del render
+    requestAnimationFrame(() => {
+      // Configurar clicks en items
+      dishesListDiv.querySelectorAll(".item-details").forEach((itemDetails, index) => {
+        itemDetails.addEventListener("click", () => openEditDishModal(dishes[index]));
+      });
+      
+      // Configurar toggles
+      dishesListDiv.querySelectorAll(".dish-toggle").forEach((toggle) => {
+        toggle.addEventListener("change", handleToggleDish);
+        // Prevenir que el click en toggle active la edición
+        toggle.closest(".toggle-switch").addEventListener("click", (e) => {
+          e.stopPropagation();
+        });
+      });
+    });
+
   } catch (error) {
     console.error("Error cargando los platos:", error);
-    dishesListDiv.innerHTML =
-      '<p style="text-align: center; color: red;">Error al cargar los platos.</p>';
+    dishesListDiv.innerHTML = '<p style="text-align: center; color: red;">Error al cargar los platos.</p>';
   }
 }
 
@@ -1093,192 +1171,87 @@ function clearDishImageState() {
   }
 }
 function setupImageUploader() {
-  console.log('🔧 Configurando event listeners para imágenes...');
-  
-  const imageInput = document.getElementById("dish-image-input");
-  const cameraInput = document.getElementById("camera-input");
-  const galleryInput = document.getElementById("gallery-input");
-  const cameraBtn = document.getElementById("camera-btn");
-  const galleryBtn = document.getElementById("gallery-btn");
-  const newDeleteBtn = document.getElementById("new-delete-photo-btn");
+  // Usar querySelector para mejor rendimiento
+  const elements = {
+    imageInput: document.getElementById("dish-image-input"),
+    cameraInput: document.getElementById("camera-input"),
+    galleryInput: document.getElementById("gallery-input"),
+    cameraBtn: document.getElementById("camera-btn"),
+    galleryBtn: document.getElementById("gallery-btn"),
+    newDeleteBtn: document.getElementById("new-delete-photo-btn"),
+    editCameraInput: document.getElementById("edit-camera-input"),
+    editGalleryInput: document.getElementById("edit-gallery-input"),
+    editCameraBtn: document.getElementById("edit-camera-btn"),
+    editGalleryBtn: document.getElementById("edit-gallery-btn")
+  };
 
-  console.log('📋 Elementos encontrados:', {
-    imageInput: !!imageInput,
-    cameraInput: !!cameraInput,
-    galleryInput: !!galleryInput,
-    cameraBtn: !!cameraBtn,
-    galleryBtn: !!galleryBtn,
-    newDeleteBtn: !!newDeleteBtn
-  });
-
-  // Configuración para modal de nuevo plato
-  if (imageInput) {
-    imageInput.addEventListener("change", handleImageSelection);
+  // Configuración optimizada para modal de nuevo plato
+  if (elements.imageInput) {
+    elements.imageInput.addEventListener("change", handleImageSelection);
   }
-  if (cameraInput) {
-    cameraInput.addEventListener("change", handleImageSelection);
+  if (elements.cameraInput) {
+    elements.cameraInput.addEventListener("change", handleImageSelection);
   }
-  if (galleryInput) {
-    galleryInput.addEventListener("change", handleImageSelection);
+  if (elements.galleryInput) {
+    elements.galleryInput.addEventListener("change", handleImageSelection);
   }
 
   // Configurar botón eliminar para modal de nuevo plato
-  if (newDeleteBtn) {
-    newDeleteBtn.addEventListener("click", handleDeleteNewPhoto);
+  if (elements.newDeleteBtn) {
+    elements.newDeleteBtn.addEventListener("click", handleDeleteNewPhoto);
   }
 
-  // ✅ BOTÓN CÁMARA - NUEVO PLATO
-  if (cameraBtn) {
-    console.log('📸 Configurando botón cámara...');
-    
-    // Evento CLICK
-    cameraBtn.addEventListener("click", async (e) => {
+  // Optimizar event listeners para botones
+  if (elements.cameraBtn) {
+    elements.cameraBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('🟢 CLICK: Botón cámara presionado');
-      
       try {
         await openCameraCapture(false);
       } catch (error) {
-        console.error('❌ Error al abrir cámara:', error);
+        console.error('Error al abrir cámara:', error);
         alert('Error al acceder a la cámara: ' + error.message);
       }
     });
-
-    // Evento TOUCH para móviles
-    cameraBtn.addEventListener("touchstart", async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('📱 TOUCH: Botón cámara tocado');
-      
-      try {
-        await openCameraCapture(false);
-      } catch (error) {
-        console.error('❌ Error al abrir cámara (touch):', error);
-        alert('Error al acceder a la cámara: ' + error.message);
-      }
-    }, { passive: false });
-    
-    console.log('✅ Botón cámara configurado correctamente');
-  } else {
-    console.error('❌ Botón cámara NO encontrado!');
   }
 
-  // ✅ BOTÓN GALERÍA - NUEVO PLATO
-  if (galleryBtn && galleryInput) {
-    console.log('🖼️ Configurando botón galería...');
-    
-    // Evento CLICK
-    galleryBtn.addEventListener("click", (e) => {
+  if (elements.galleryBtn && elements.galleryInput) {
+    elements.galleryBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('🔵 CLICK: Botón galería presionado');
-      galleryInput.click();
-    });
-
-    // Evento TOUCH para móviles
-    galleryBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('📱 TOUCH: Botón galería tocado');
-      galleryInput.click();
-    }, { passive: false });
-    
-    console.log('✅ Botón galería configurado correctamente');
-  } else {
-    console.error('❌ Botón galería o input NO encontrado!', {
-      galleryBtn: !!galleryBtn,
-      galleryInput: !!galleryInput
+      elements.galleryInput.click();
     });
   }
 
   // Configuración para modal de editar plato
-  const editCameraInput = document.getElementById("edit-camera-input");
-  const editGalleryInput = document.getElementById("edit-gallery-input");
-  const editCameraBtn = document.getElementById("edit-camera-btn");
-  const editGalleryBtn = document.getElementById("edit-gallery-btn");
-
-  console.log('📋 Elementos EDITAR encontrados:', {
-    editCameraInput: !!editCameraInput,
-    editGalleryInput: !!editGalleryInput,
-    editCameraBtn: !!editCameraBtn,
-    editGalleryBtn: !!editGalleryBtn
-  });
-
-  if (editCameraInput) {
-    editCameraInput.addEventListener("change", handleEditImageSelection);
+  if (elements.editCameraInput) {
+    elements.editCameraInput.addEventListener("change", handleEditImageSelection);
   }
 
-  if (editGalleryInput) {
-    editGalleryInput.addEventListener("change", handleEditImageSelection);
+  if (elements.editGalleryInput) {
+    elements.editGalleryInput.addEventListener("change", handleEditImageSelection);
   }
 
-  // ✅ BOTÓN CÁMARA - EDITAR PLATO
-  if (editCameraBtn) {
-    console.log('📸 Configurando botón cámara EDITAR...');
-    
-    // Evento CLICK
-    editCameraBtn.addEventListener("click", async (e) => {
+  if (elements.editCameraBtn) {
+    elements.editCameraBtn.addEventListener("click", async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('🟢 CLICK: Botón cámara EDITAR presionado');
-      
       try {
         await openCameraCapture(true);
       } catch (error) {
-        console.error('❌ Error al abrir cámara EDITAR:', error);
+        console.error('Error al abrir cámara EDITAR:', error);
         alert('Error al acceder a la cámara: ' + error.message);
       }
     });
-
-    // Evento TOUCH para móviles
-    editCameraBtn.addEventListener("touchstart", async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('📱 TOUCH: Botón cámara EDITAR tocado');
-      
-      try {
-        await openCameraCapture(true);
-      } catch (error) {
-        console.error('❌ Error al abrir cámara EDITAR (touch):', error);
-        alert('Error al acceder a la cámara: ' + error.message);
-      }
-    }, { passive: false });
-    
-    console.log('✅ Botón cámara EDITAR configurado correctamente');
-  } else {
-    console.error('❌ Botón cámara EDITAR NO encontrado!');
   }
 
-  // ✅ BOTÓN GALERÍA - EDITAR PLATO  
-  if (editGalleryBtn && editGalleryInput) {
-    console.log('🖼️ Configurando botón galería EDITAR...');
-    
-    // Evento CLICK
-    editGalleryBtn.addEventListener("click", (e) => {
+  if (elements.editGalleryBtn && elements.editGalleryInput) {
+    elements.editGalleryBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      console.log('🔵 CLICK: Botón galería EDITAR presionado');
-      editGalleryInput.click();
-    });
-
-    // Evento TOUCH para móviles
-    editGalleryBtn.addEventListener("touchstart", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('📱 TOUCH: Botón galería EDITAR tocado');
-      editGalleryInput.click();
-    }, { passive: false });
-    
-    console.log('✅ Botón galería EDITAR configurado correctamente');
-  } else {
-    console.error('❌ Botón galería EDITAR o input NO encontrado!', {
-      editGalleryBtn: !!editGalleryBtn,
-      editGalleryInput: !!editGalleryInput
+      elements.editGalleryInput.click();
     });
   }
-  
-  console.log('🎉 ¡Configuración de event listeners completada!');
 }
 // Función auxiliar para obtener dimensiones de la imagen
 function getImageDimensions(file) {
