@@ -41,12 +41,6 @@
       <a href="index.html" class="logo">
         <img style="width: 200px" src="images/logo.png" alt="Almuerzos Perú" loading="eager" />
       </a>
-      <div id="my-restaurant">
-        <button id="my-restaurant-btn" class="header-button">
-          Mi Restaurante
-        </button>
-      </div>
-
       <div
         style="background-color: #ffffff; display: none; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; align-items: center;">
         <img style="width: 25px;" src="images/login.svg" alt="Login Icon">
@@ -107,9 +101,15 @@
               <span class="detail-icon">❤️</span>
               <span id="restaurant-total-likes">0</span>
             </div>
+            <div id="restaurant-delivery-detail" class="restaurant-detail" style="display: none;">
+              <span class="detail-icon">🚚</span>
+            </div>
+            <div id="restaurant-local-detail" class="restaurant-detail" style="display: none;">
+              <span class="detail-icon">🍽️</span>
+            </div>
             <div class="restaurant-detail">
               <span class="detail-icon">📍</span>
-              <span id="restaurant-location"></span>
+              <a id="restaurant-location" href="#" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline; cursor: pointer;"></a>
             </div>
             <div class="restaurant-detail">
               <span class="detail-icon" id="restaurant-delivery-icon">🚚</span>

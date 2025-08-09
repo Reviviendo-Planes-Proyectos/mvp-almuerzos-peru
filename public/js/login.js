@@ -632,9 +632,35 @@ async function upsertUserAsOwner(user) {
   }
 }
 
+// FUNCIÓN NUEVA: Garantizar que el usuario también tenga rol de customer
+async function ensureUserAsCustomer(user) {
+  try {
+    const response = await fetch("/api/users/upsert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        uid: user.uid,
+        displayName: user.displayName,
+        email: user.email,
+        role: "customer",
+      }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Failed to upsert user as customer.");
+    }
+    console.log(`User ${user.uid} also ensured as customer in 'invited' collection.`);
+  } catch (error) {
+    console.error("Error ensuring user as customer:", error);
+    throw error;
+  }
+}
+
 async function determineUserRoleAndRedirect(user) {
   try {
+    // CAMBIO CRÍTICO: Asegurar AMBOS roles para owners
     await upsertUserAsOwner(user);
+    await ensureUserAsCustomer(user); // ← Esto garantiza que mantenga ambos roles
 
     const idToken = await user.getIdToken();
     const restaurantResponse = await fetch(

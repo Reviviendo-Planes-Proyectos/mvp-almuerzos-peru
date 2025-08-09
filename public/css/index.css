@@ -24,6 +24,10 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeSpeed;
+  /* Asegurar altura completa */
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 }
 
 .container {
@@ -107,6 +111,7 @@ body {
 }
 .main-content {
   padding: 1rem 0;
+  min-height: calc(100vh - 200px); /* Ajustar según el header y hero section */
 }
 .zone-selector {
   margin-bottom: 1rem;

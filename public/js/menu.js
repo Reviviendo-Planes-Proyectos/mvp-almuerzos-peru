@@ -46,6 +46,30 @@ window.sentComments = window.sentComments || {};
 let menuData = null;
 let imageCache = new Map();
 
+// Función para registrar eventos de analytics
+async function trackAnalyticsEvent(eventType, restaurantId, cardId = null, metadata = {}) {
+  try {
+    const response = await fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        eventType,
+        restaurantId,
+        cardId,
+        metadata
+      })
+    });
+    
+    if (response.ok) {
+      console.log(`📊 Analytics tracked: ${eventType}`);
+    }
+  } catch (error) {
+    console.error('Error tracking analytics:', error);
+  }
+}
+
 // Función para optimizar URLs de imagen con cache
 async function getOptimizedImageUrl(originalUrl, fallbackUrl = './images/default-dish.jpg.png') {
   if (!originalUrl || !originalUrl.includes('firebasestorage')) {
@@ -546,6 +570,12 @@ async function initializeApp() {
         JSON.stringify(Array.from(commentedDishesSet))
       );
 
+      // Registrar evento de analytics
+      trackAnalyticsEvent('order_button_click', currentRestaurantId, currentCardId, {
+        dishCount: Object.keys(shoppingCart).filter(dishId => shoppingCart[dishId] > 0).length,
+        totalItems: Object.values(shoppingCart).reduce((sum, qty) => sum + qty, 0)
+      });
+
       // Abrir WhatsApp al final
       const encoded = encodeURIComponent(message);
       const link = `https://api.whatsapp.com/send?phone=${currentRestaurant.whatsapp}&text=${encoded}`;
@@ -775,12 +805,15 @@ async function initializeApp() {
 
   function updateCart(dishId, quantity, control) {
     console.log("updateCart called:", dishId, quantity);
+    const previousQuantity = shoppingCart[dishId] || 0;
+    
     if (quantity > 0) {
       shoppingCart[dishId] = quantity;
     } else {
       delete shoppingCart[dishId];
     }
     console.log("Shopping cart updated:", shoppingCart);
+    
     updateQuantityUI(control, quantity);
   }
 
@@ -888,7 +921,7 @@ async function initializeApp() {
       .doc(dishId);
 
     try {
-      // Verificar si ya existe un like en las últimas 24 horas
+      // Verificar si ya existe un like en las últimas 12 horas
       const likeDoc = await likeDocRef.get();
 
       if (likeDoc.exists) {
@@ -902,10 +935,10 @@ async function initializeApp() {
           const hoursElapsed = timeDifference / (1000 * 60 * 60);
           //const secondsElapsed = timeDifference / 1000;
 
-          if (hoursElapsed < 24) {
+          if (hoursElapsed < 12) {
             //if (secondsElapsed < 30) {
             showToast(
-              "Solo puedes dar un like por día. Inténtalo nuevamente mañana.",
+              "Ya diste like. Inténtalo mañana",
               "warning"
             );
             return;
@@ -931,17 +964,26 @@ async function initializeApp() {
 
       const result = await response.json();
 
-      // ✅ Guardar el nuevo like en dailyLikes para control de tiempo
-      await likeDocRef.set({
-        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      // Registrar evento de analytics para like de plato
+      await trackAnalyticsEvent('dish_like', currentRestaurantId, currentCardId, {
+        dishId: dishId,
+        likesCount: result.likesCount
       });
 
-      // ✅ Cambiar icono en el botón pero mantenerlo habilitado para futuras validaciones
+      // ✅ Cambiar icono en el botón inmediatamente para feedback visual rápido
       button.innerHTML = "❤️";
       button.disabled = false;
       button.classList.add("liked");
 
-      showToast("¡Gracias por tu like!", "success");
+      // ✅ Mostrar toast de confirmación inmediatamente tras la respuesta exitosa
+      showToast("¡Gracias por tu like!", "success", 1500);
+
+      // ✅ Guardar el nuevo like en dailyLikes para control de tiempo (en background)
+      likeDocRef.set({
+        timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      }).catch(error => {
+        console.error("Error guardando en dailyLikes:", error);
+      });
 
       // ✅ Actualizar contador de likes en pantalla
       const likesCountEl = document.getElementById(`likes-count-${dishId}`);
@@ -1082,7 +1124,43 @@ async function initializeApp() {
     // Actualizar la ubicación del restaurante
     const locationElement = document.getElementById("restaurant-location");
     if (locationElement) {
-      locationElement.textContent = currentRestaurant.district || "Ubicación no disponible";
+      const locationUrl = currentRestaurant.location;
+      const district = currentRestaurant.district || "Ubicación no disponible";
+      const locationText = district + "-Ver mapa";
+      
+      if (locationUrl && locationUrl.trim() !== "") {
+        // Si hay URL de ubicación, configurar como enlace
+        locationElement.href = locationUrl;
+        locationElement.textContent = locationText;
+        locationElement.style.display = "inline";
+        locationElement.style.pointerEvents = "auto";
+      } else {
+        // Si no hay URL, mostrar solo texto sin enlace
+        locationElement.href = "#";
+        locationElement.textContent = locationText;
+        locationElement.style.pointerEvents = "none";
+        locationElement.style.textDecoration = "none";
+        locationElement.style.cursor = "default";
+      }
+    }
+    
+    // Actualizar los servicios del restaurante
+    const deliveryDetailElement = document.getElementById("restaurant-delivery-detail");
+    const localDetailElement = document.getElementById("restaurant-local-detail");
+    if (deliveryDetailElement) {
+      if (currentRestaurant.hasDelivery) {
+        deliveryDetailElement.style.display = "flex";
+      } else {
+        deliveryDetailElement.style.display = "none";
+      }
+    }
+    
+    if (localDetailElement) {
+      if (currentRestaurant.hasLocalService) {
+        localDetailElement.style.display = "flex";
+      } else {
+        localDetailElement.style.display = "none";
+      }
     }
     
     // Actualizar horario de cierre (usando el horario del día actual o lunes como default)
@@ -1241,6 +1319,12 @@ async function initializeApp() {
       );
       return;
     }
+
+    // Registrar evento de analytics para compartir restaurante
+    await trackAnalyticsEvent('restaurant_share', currentRestaurantId, null, {
+      restaurantName: currentRestaurant.name,
+      shareMethod: 'web_share_api'
+    });
 
     const message = generateWhatsAppMessageSharing(currentRestaurant);
     const encodedMessage = encodeURIComponent(message);
@@ -1471,6 +1555,24 @@ async function initializeApp() {
       submitBtn.textContent = "Enviando...";
       submitBtn.classList.add("sending");
 
+      // Validar que tenemos un restaurantId válido
+      if (!currentRestaurantId) {
+        console.error('❌ No hay restaurantId disponible');
+        showCustomToast("Error: No se pudo identificar el restaurante");
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        return;
+      }
+
+      // Validar que tenemos todos los datos necesarios
+      if (!comment || comment.length < 3) {
+        console.error('❌ Comentario demasiado corto');
+        showCustomToast("El comentario debe tener al menos 3 caracteres");
+        submitBtn.textContent = "Enviar comentario";
+        submitBtn.classList.remove("sending");
+        return;
+      }
+
       const commentContent = {
         invitedId: user.uid,
         dishId: dishId,
@@ -1478,23 +1580,38 @@ async function initializeApp() {
         restaurantId: currentRestaurantId,
       };
 
-      submitDishComment(commentContent);
+      console.log('📝 Preparando comentario con datos completos:', commentContent);
+      console.log('🏪 RestaurantId confirmado:', currentRestaurantId);
+      console.log('🍽️ DishId confirmado:', dishId);
+      console.log('👤 UserId confirmado:', user.uid);
 
-      // Marcar como enviado
-      window.sentComments[dishId] = true;
+      submitDishComment(commentContent)
+        .then((result) => {
+          console.log('✅ Comentario enviado exitosamente:', result);
+          // Marcar como enviado solo si fue exitoso
+          window.sentComments[dishId] = true;
 
-      // Eliminar el dishId del localStorage
-      const stored = JSON.parse(localStorage.getItem("commentedDishes")) || [];
-      const updated = stored.filter((id) => id !== dishId);
-      localStorage.setItem("commentedDishes", JSON.stringify(updated));
+          // Eliminar el dishId del localStorage
+          const stored = JSON.parse(localStorage.getItem("commentedDishes")) || [];
+          const updated = stored.filter((id) => id !== dishId);
+          localStorage.setItem("commentedDishes", JSON.stringify(updated));
 
-      setTimeout(() => {
-        submitBtn.textContent = "Enviar comentario";
-        submitBtn.classList.remove("sending");
-        document.getElementById("commentModalOverlay").style.display = "none";
-        showCustomToast("Comentario enviado con éxito");
-        toggleCommentIcon(dishId, 0);
-      }, 1000);
+          setTimeout(() => {
+            submitBtn.textContent = "Enviar comentario";
+            submitBtn.classList.remove("sending");
+            document.getElementById("commentModalOverlay").style.display = "none";
+            showCustomToast("Comentario enviado con éxito");
+            toggleCommentIcon(dishId, 0);
+          }, 1000);
+        })
+        .catch((error) => {
+          console.error('❌ Error al enviar comentario:', error);
+          setTimeout(() => {
+            submitBtn.textContent = "Enviar comentario";
+            submitBtn.classList.remove("sending");
+            showCustomToast("Error al enviar comentario. Intenta de nuevo.");
+          }, 1000);
+        });
     };
   }
 
@@ -1509,12 +1626,27 @@ async function initializeApp() {
       toast.classList.add("hidden");
     }, 3000);
   }
-  async function submitDishComment({ invitedId, dishId, content }) {
+  async function submitDishComment({ invitedId, dishId, content, restaurantId }) {
     try {
       const user = auth ? auth.currentUser : null;
       if (!user) {
         throw new Error("Usuario no autenticado.");
       }
+
+      // Validaciones adicionales del lado del cliente
+      if (!restaurantId) {
+        throw new Error("RestaurantId es requerido para asociar el comentario correctamente.");
+      }
+
+      if (!dishId) {
+        throw new Error("DishId es requerido.");
+      }
+
+      if (!content || content.trim().length < 3) {
+        throw new Error("El comentario debe tener al menos 3 caracteres.");
+      }
+
+      console.log("📝 Enviando comentario con validaciones completas:", { invitedId, dishId, content, restaurantId });
 
       const response = await fetch("/api/comments", {
         method: "POST",
@@ -1523,16 +1655,21 @@ async function initializeApp() {
         },
         body: JSON.stringify({
           dishId,
-          content,
+          content: content.trim(),
           invitedId,
+          restaurantId,
         }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        console.error("❌ Error del servidor:", data);
         throw new Error(data.error || "Error al guardar el comentario.");
       }
+      
+      console.log("✅ Comentario enviado exitosamente:", data);
+      console.log("🏪 Confirmado para restaurante:", data.restaurantId);
       return data;
     } catch (err) {
       console.error("❌ Error al enviar comentario:", err.message);
