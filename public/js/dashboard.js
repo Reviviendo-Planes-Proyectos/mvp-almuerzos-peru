@@ -14,6 +14,30 @@ let restaurantDataCache = null;
 // Variables globales de Firebase
 let auth, db, storage;
 
+// Función para registrar eventos de analytics
+async function trackAnalyticsEvent(eventType, restaurantId, cardId = null, metadata = {}) {
+  try {
+    const response = await fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        eventType,
+        restaurantId,
+        cardId,
+        metadata
+      })
+    });
+    
+    if (response.ok) {
+      console.log(`📊 Analytics tracked: ${eventType}`);
+    }
+  } catch (error) {
+    console.error('Error tracking analytics:', error);
+  }
+}
+
 // Inicializar Firebase cuando esté disponible
 function waitForFirebaseAndInitialize() {
   if (typeof firebase !== 'undefined' && firebase.apps && firebase.auth && firebase.firestore && firebase.storage) {
@@ -233,7 +257,6 @@ async function loadDashboardData() {
     ]).catch(error => {
       console.error("Error en carga paralela:", error);
     });
-    
   } catch (error) {
     console.error("Error cargando el dashboard:", error);
     showErrorMessage();
@@ -588,7 +611,6 @@ async function handleUpdateCardName() {
     saveButton.disabled = true;
     saveButton.textContent = "Guardando...";
   }
-  
   try {
     const idToken = await currentUser.getIdToken();
     const response = await fetch(`/api/cards/${currentCardId}`, {
@@ -600,10 +622,9 @@ async function handleUpdateCardName() {
       body: JSON.stringify({ name: newName }),
     });
     
-    if (!response.ok) throw new Error("Error del servidor al actualizar.");
+  if (!response.ok) throw new Error("Error del servidor al actualizar.");
     
-    originalCardName = newName;
-    
+  originalCardName = newName;
     // Actualizar la lista de cartas para reflejar el cambio inmediatamente
     await loadRestaurantCards();
     
@@ -863,9 +884,7 @@ function showDishes(cardId, cardName) {
     
     // Guardar automáticamente cuando el usuario salga del campo
     cardNameInput.addEventListener('blur', async function() {
-      console.log('Blur event triggered'); // Debug
       const newName = this.value.trim();
-      console.log('New name:', newName, 'Original name:', originalCardName); // Debug
       if (newName !== originalCardName && newName !== "") {
         try {
           await handleUpdateCardName();
@@ -3501,6 +3520,14 @@ async function shareCardOnWhatsApp() {
       currentRestaurant,
       currentCardId
     );
+    
+    // Registrar evento de analytics para compartir carta por WhatsApp
+    await trackAnalyticsEvent('share_card_whatsapp', currentRestaurant.id, currentCardId, {
+      restaurantName: currentRestaurant.name,
+      cardName: currentCardId,
+      shareMethod: 'whatsapp_web'
+    });
+    
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(
       message
     )}`;
@@ -3696,6 +3723,78 @@ function showLogoutModal({ duration = 2400 } = {}) {
     });
   }
 
+
+// Función para actualizar el contador total de likes
+async function updateTotalLikesCounter() {
+  if (!currentRestaurant) return;
+  
+  const totalLikesElement = document.getElementById('restaurant-total-likes');
+  if (!totalLikesElement) return;
+  
+  try {
+    const idToken = await currentUser.getIdToken();
+    const cardsResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/cards`, {
+      headers: { 'Authorization': `Bearer ${idToken}` }
+    });
+    
+    if (!cardsResponse.ok) {
+      totalLikesElement.textContent = '0';
+      return;
+    }
+    
+    const cards = await cardsResponse.json();
+    let totalLikes = 0;
+    
+    for (const card of cards) {
+      if (!card.isActive) continue;
+      
+      const dishesResponse = await fetch(`/api/cards/${card.id}/dishes`, {
+        headers: { 'Authorization': `Bearer ${idToken}` }
+      });
+      
+      if (dishesResponse.ok) {
+        const dishes = await dishesResponse.json();
+        dishes.forEach(dish => {
+          if (dish.isActive) {
+            totalLikes += dish.likesCount || 0;
+          }
+        });
+      }
+    }
+    
+    totalLikesElement.textContent = totalLikes.toString();
+  } catch (error) {
+    console.error('Error updating total likes counter:', error);
+    totalLikesElement.textContent = '0';
+  }
+}
+
+// Función para actualizar la información de delivery/local
+function updateDeliveryInfo() {
+  if (!currentRestaurant) return;
+  
+  const deliveryIcon = document.getElementById('restaurant-delivery-icon');
+  const deliveryText = document.getElementById('restaurant-delivery-text');
+  
+  if (!deliveryIcon || !deliveryText) return;
+  
+  const hasDelivery = currentRestaurant.hasDelivery;
+  const hasLocalService = currentRestaurant.hasLocalService;
+  
+  if (hasDelivery && hasLocalService) {
+    deliveryIcon.textContent = '🚚';
+    deliveryText.textContent = 'Delivery y atención local';
+  } else if (hasDelivery) {
+    deliveryIcon.textContent = '🚚';
+    deliveryText.textContent = 'Solo delivery';
+  } else if (hasLocalService) {
+    deliveryIcon.textContent = '🏪';
+    deliveryText.textContent = 'Solo atención en local';
+  } else {
+    deliveryIcon.textContent = '❌';
+    deliveryText.textContent = 'Sin atención disponible';
+  }
+}
 
 /* // Poner el nombre real del restaurante en el sidebar
 window.addEventListener("DOMContentLoaded", () => {

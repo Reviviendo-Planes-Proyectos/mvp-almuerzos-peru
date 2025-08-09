@@ -2056,6 +2056,199 @@ app.post("/api/fix-comments", async (req, res) => {
   }
 });
 
+// ===== ANALYTICS ENDPOINTS =====
+
+// Endpoint para registrar eventos de analytics
+app.post("/api/analytics/track", async (req, res) => {
+  try {
+    const { eventType, restaurantId, cardId, metadata = {} } = req.body;
+
+    // Validar que el eventType sea válido
+    const validEventTypes = [
+      'share_card_whatsapp',
+      'share_restaurant_whatsapp', 
+      'share_qr_whatsapp',
+      'order_button_click',
+      'restaurant_share',
+      'dish_like',
+      'dish_add_to_cart',
+      'dish_remove_from_cart'
+    ];
+
+    if (!validEventTypes.includes(eventType)) {
+      return res.status(400).json({ 
+        error: "Tipo de evento inválido",
+        validTypes: validEventTypes 
+      });
+    }
+
+    // Validar que restaurantId esté presente
+    if (!restaurantId) {
+      return res.status(400).json({ error: "restaurantId es requerido" });
+    }
+
+    // Crear el documento de analytics
+    const analyticsData = {
+      eventType,
+      restaurantId,
+      cardId: cardId || null,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+      metadata
+    };
+
+    // Guardar en la colección analytics
+    const docRef = await db.collection("analytics").add(analyticsData);
+
+    console.log(`📊 Analytics tracked: ${eventType} for restaurant ${restaurantId}`);
+    
+    res.status(201).json({ 
+      success: true, 
+      id: docRef.id,
+      message: "Evento registrado exitosamente" 
+    });
+
+  } catch (error) {
+    console.error("❌ Error tracking analytics:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// Endpoint para obtener estadísticas de un restaurante (requiere autenticación)
+app.get("/api/analytics/restaurant/:restaurantId", authenticateAndAuthorize, async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const { startDate, endDate, eventType } = req.query;
+
+    // Verificar que el usuario sea dueño del restaurante
+    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
+    if (!restaurantDoc.exists) {
+      return res.status(404).json({ error: "Restaurante no encontrado" });
+    }
+
+    const restaurantData = restaurantDoc.data();
+    if (restaurantData.userId !== req.user.uid) {
+      return res.status(403).json({ error: "No tienes permisos para ver estas estadísticas" });
+    }
+
+    // Construir la consulta
+    let query = db.collection("analytics").where("restaurantId", "==", restaurantId);
+
+    // Filtros opcionales
+    if (eventType) {
+      query = query.where("eventType", "==", eventType);
+    }
+
+    if (startDate) {
+      query = query.where("date", ">=", startDate);
+    }
+
+    if (endDate) {
+      query = query.where("date", "<=", endDate);
+    }
+
+    // Ordenar por timestamp descendente
+    query = query.orderBy("timestamp", "desc");
+
+    const snapshot = await query.get();
+    const events = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data(),
+      timestamp: doc.data().timestamp?.toDate?.() || doc.data().timestamp
+    }));
+
+    // Calcular estadísticas resumidas
+    const stats = {
+      total: events.length,
+      byEventType: {},
+      byDate: {},
+      byCard: {}
+    };
+
+    events.forEach(event => {
+      // Por tipo de evento
+      stats.byEventType[event.eventType] = (stats.byEventType[event.eventType] || 0) + 1;
+      
+      // Por fecha
+      stats.byDate[event.date] = (stats.byDate[event.date] || 0) + 1;
+      
+      // Por carta (si aplica)
+      if (event.cardId) {
+        stats.byCard[event.cardId] = (stats.byCard[event.cardId] || 0) + 1;
+      }
+    });
+
+    res.json({
+      restaurantId,
+      stats,
+      events: events.slice(0, 100) // Limitar a los últimos 100 eventos
+    });
+
+  } catch (error) {
+    console.error("❌ Error getting analytics:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// Endpoint para obtener estadísticas globales (solo para administradores)
+app.get("/api/analytics/global", authenticateAndAuthorize, async (req, res) => {
+  try {
+    // Verificar que el usuario sea administrador (opcional - puedes ajustar esto)
+    const userDoc = await db.collection("users").doc(req.user.uid).get();
+    const userData = userDoc.data();
+    
+    if (userData.role !== "admin" && userData.role !== "owner") {
+      return res.status(403).json({ error: "No tienes permisos para ver estadísticas globales" });
+    }
+
+    const { startDate, endDate, eventType } = req.query;
+
+    // Construir la consulta
+    let query = db.collection("analytics");
+
+    if (eventType) {
+      query = query.where("eventType", "==", eventType);
+    }
+
+    if (startDate) {
+      query = query.where("date", ">=", startDate);
+    }
+
+    if (endDate) {
+      query = query.where("date", "<=", endDate);
+    }
+
+    const snapshot = await query.get();
+    const events = snapshot.docs.map(doc => doc.data());
+
+    // Calcular estadísticas globales
+    const globalStats = {
+      total: events.length,
+      byEventType: {},
+      byRestaurant: {},
+      byDate: {}
+    };
+
+    events.forEach(event => {
+      // Por tipo de evento
+      globalStats.byEventType[event.eventType] = (globalStats.byEventType[event.eventType] || 0) + 1;
+      
+      // Por restaurante
+      globalStats.byRestaurant[event.restaurantId] = (globalStats.byRestaurant[event.restaurantId] || 0) + 1;
+      
+      // Por fecha
+      globalStats.byDate[event.date] = (globalStats.byDate[event.date] || 0) + 1;
+    });
+
+    res.json(globalStats);
+
+  } catch (error) {
+    console.error("❌ Error getting global analytics:", error);
+    res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// ===== FIN ANALYTICS ENDPOINTS =====
 
 
 

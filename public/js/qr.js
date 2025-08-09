@@ -89,6 +89,30 @@ let qrCache = new Map();
 // Variables globales de Firebase
 let auth;
 
+// Función para registrar eventos de analytics
+async function trackAnalyticsEvent(eventType, restaurantId, cardId = null, metadata = {}) {
+  try {
+    const response = await fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        eventType,
+        restaurantId,
+        cardId,
+        metadata
+      })
+    });
+    
+    if (response.ok) {
+      console.log(`📊 Analytics tracked: ${eventType}`);
+    }
+  } catch (error) {
+    console.error('Error tracking analytics:', error);
+  }
+}
+
 // Inicializar Firebase cuando esté disponible
 function waitForFirebaseAndInitialize() {
   if (typeof firebase !== 'undefined' && firebase.apps) {
@@ -128,7 +152,8 @@ document.addEventListener("DOMContentLoaded", () => {
 let CURRENT_QR_SRC = null; 
 let CURRENT_QR_LINK = ""; 
 let CURRENT_RESTAURANT_NAME = ""; 
-let CURRENT_WHATSAPP = ""; 
+let CURRENT_WHATSAPP = "";
+let CURRENT_RESTAURANT_ID = null; 
 
 async function loadQRForOwner() {
  
@@ -169,6 +194,7 @@ async function loadQRForOwner() {
 
   const restaurant = await resp.json(); 
   CURRENT_RESTAURANT_NAME = restaurant.name || "Tu Restaurante";
+  CURRENT_RESTAURANT_ID = restaurant.id;
 
 
   const sideName = document.getElementById("sidebar-restaurant");
@@ -237,7 +263,16 @@ function buildWaText() {
 function shareWhatsApp() {
   const text = encodeURIComponent(buildWaText());
   const url = `https://wa.me/?text=${text}`;
-  window.open(url, "_blank", "noopener"); 
+  window.open(url, "_blank", "noopener");
+  
+  // Registrar evento de analytics
+  if (CURRENT_RESTAURANT_ID) {
+    trackAnalyticsEvent('share_qr_whatsapp', CURRENT_RESTAURANT_ID, null, {
+      restaurantName: CURRENT_RESTAURANT_NAME,
+      shareMethod: 'whatsapp',
+      qrLink: CURRENT_QR_LINK
+    });
+  }
 }
 
 
