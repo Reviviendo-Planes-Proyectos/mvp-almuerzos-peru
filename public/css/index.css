@@ -515,6 +515,23 @@ body {
   transform: rotate(180deg);
 }
 
+/* Botón de localización integrado */
+.location-btn {
+  background: none;
+  border: none;
+  padding: 12px 10px;
+  color: #3b82f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.location-btn:hover {
+  color: #1d4ed8;
+}
+
 /* Dropdown personalizado */
 .custom-dropdown {
   position: absolute;

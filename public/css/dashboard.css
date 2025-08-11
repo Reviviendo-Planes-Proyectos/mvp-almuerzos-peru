@@ -111,6 +111,9 @@ img:hover {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: #fff;
+  color: var(--brand-dark);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
 }
 .logo {
   display: flex;
@@ -120,6 +123,13 @@ img:hover {
   font-weight: 800;
   text-decoration: none;
   color: var(--brand-dark);
+}
+
+.logo span:first-child {
+  color: var(--brand-dark);
+}
+.logo span:last-child {
+  color: #ff8c00;
 }
 .logout-button {
   font-weight: 700;

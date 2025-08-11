@@ -208,12 +208,13 @@
         <header
           class="main-header"
           style="
-            background: linear-gradient(135deg, #ff8c00, #ffa500);
+            background: #fff;
             padding: 1rem;
-            color: white;
+            color: #1f2937;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
           "
         >
           <div style="display: flex; align-items: center; gap: 1rem">
@@ -223,12 +224,50 @@
               style="
                 background: none;
                 border: none;
-                color: white;
-                font-size: 1.5rem;
+                color: #1f2937;
+                font-size: 1.8rem;
                 cursor: pointer;
+                display: flex;
+                align-items: center;
+                padding: 0 0.25rem;
               "
+              aria-label="Abrir menú"
             >
-              ☰
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 28 28"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="4" cy="7" r="1.2" fill="#1f2937" />
+                <rect
+                  x="7"
+                  y="6.2"
+                  width="15"
+                  height="1.6"
+                  rx="0.8"
+                  fill="#1f2937"
+                />
+                <circle cx="4" cy="14" r="1.2" fill="#1f2937" />
+                <rect
+                  x="7"
+                  y="13.2"
+                  width="15"
+                  height="1.6"
+                  rx="0.8"
+                  fill="#1f2937"
+                />
+                <circle cx="4" cy="21" r="1.2" fill="#1f2937" />
+                <rect
+                  x="7"
+                  y="20.2"
+                  width="15"
+                  height="1.6"
+                  rx="0.8"
+                  fill="#1f2937"
+                />
+              </svg>
             </button>
             <div>
               <a
@@ -241,12 +280,14 @@
                     font-size: 1.5rem;
                     font-weight: 800;
                     cursor: pointer;
-                    transition: opacity 0.2s;
+                    letter-spacing: -1px;
+                    background: none;
                   "
                   onmouseover="this.style.opacity='0.8'"
                   onmouseout="this.style.opacity='1'"
                 >
-                  Almuerzos Perú
+                  <span style="color: #1f2937">Almuerzos</span
+                  ><span style="color: #ff8c00">Perú</span>
                 </h1>
               </a>
               <p style="margin: 0; font-size: 0.9rem; opacity: 0.9">

@@ -936,4 +936,12 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
       console.error("Error initializing district search:", error);
     }
   }
+
+  // Event listener para el botón de localización
+  const locationBtn = document.getElementById('location-btn');
+  if (locationBtn) {
+    locationBtn.addEventListener('click', () => {
+      window.location.href = 'mapa.html';
+    });
+  }
 });
