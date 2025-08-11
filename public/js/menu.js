@@ -46,6 +46,30 @@ window.sentComments = window.sentComments || {};
 let menuData = null;
 let imageCache = new Map();
 
+// Función para registrar eventos de analytics
+async function trackAnalyticsEvent(eventType, restaurantId, cardId = null, metadata = {}) {
+  try {
+    const response = await fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        eventType,
+        restaurantId,
+        cardId,
+        metadata
+      })
+    });
+    
+    if (response.ok) {
+      console.log(`📊 Analytics tracked: ${eventType}`);
+    }
+  } catch (error) {
+    console.error('Error tracking analytics:', error);
+  }
+}
+
 // Función para optimizar URLs de imagen con cache
 async function getOptimizedImageUrl(originalUrl, fallbackUrl = './images/default-dish.jpg.png') {
   if (!originalUrl || !originalUrl.includes('firebasestorage')) {
@@ -230,6 +254,30 @@ async function initializeApp() {
       console.error("Error initializing menu page:", error);
       handlePageError(`No se pudo cargar el menú: ${error.message}`);
     }
+  }
+
+  // --- Función para actualizar contador de corazones dinámico ---
+  function updateTotalLikesCounter() {
+    const totalLikesElement = document.getElementById("restaurant-total-likes");
+    if (!totalLikesElement || !allCardsData) {
+      return;
+    }
+
+    let totalLikes = 0;
+
+    // Sumar los likes de todos los platillos activos de todas las cartas
+    allCardsData.forEach(card => {
+      if (card.dishes && Array.isArray(card.dishes)) {
+        card.dishes.forEach(dish => {
+          // Solo contar platillos activos (habilitados)
+          if (dish.isActive) {
+            totalLikes += dish.likesCount || 0;
+          }
+        });
+      }
+    });
+
+    totalLikesElement.textContent = totalLikes;
   }
 
   // --- Funciones para el estado del restaurante ---
@@ -522,6 +570,12 @@ async function initializeApp() {
         JSON.stringify(Array.from(commentedDishesSet))
       );
 
+      // Registrar evento de analytics
+      trackAnalyticsEvent('order_button_click', currentRestaurantId, currentCardId, {
+        dishCount: Object.keys(shoppingCart).filter(dishId => shoppingCart[dishId] > 0).length,
+        totalItems: Object.values(shoppingCart).reduce((sum, qty) => sum + qty, 0)
+      });
+
       // Abrir WhatsApp al final
       const encoded = encodeURIComponent(message);
       const link = `https://api.whatsapp.com/send?phone=${currentRestaurant.whatsapp}&text=${encoded}`;
@@ -751,12 +805,15 @@ async function initializeApp() {
 
   function updateCart(dishId, quantity, control) {
     console.log("updateCart called:", dishId, quantity);
+    const previousQuantity = shoppingCart[dishId] || 0;
+    
     if (quantity > 0) {
       shoppingCart[dishId] = quantity;
     } else {
       delete shoppingCart[dishId];
     }
     console.log("Shopping cart updated:", shoppingCart);
+    
     updateQuantityUI(control, quantity);
   }
 
@@ -907,6 +964,12 @@ async function initializeApp() {
 
       const result = await response.json();
 
+      // Registrar evento de analytics para like de plato
+      await trackAnalyticsEvent('dish_like', currentRestaurantId, currentCardId, {
+        dishId: dishId,
+        likesCount: result.likesCount
+      });
+
       // ✅ Cambiar icono en el botón inmediatamente para feedback visual rápido
       button.innerHTML = "❤️";
       button.disabled = false;
@@ -928,11 +991,22 @@ async function initializeApp() {
         likesCountEl.innerText = `${result.likesCount} me gusta`;
       }
 
+      // ✅ Actualizar el likesCount en allCardsData para mantener sincronización
+      allCardsData.forEach(card => {
+        if (card.dishes && Array.isArray(card.dishes)) {
+          card.dishes.forEach(dish => {
+            if (dish.id === dishId) {
+              dish.likesCount = result.likesCount;
+            }
+          });
+        }
+      });
+      
       // ✅ Actualizar el total de corazones del restaurante
-      const restaurantRatingEl = document.getElementById("restaurant-rating");
-      if (restaurantRatingEl) {
-        const currentTotal = parseInt(restaurantRatingEl.textContent) || 0;
-        restaurantRatingEl.textContent = (currentTotal + 1).toString();
+      const restaurantTotalLikesEl = document.getElementById("restaurant-total-likes");
+      if (restaurantTotalLikesEl) {
+        const currentTotal = parseInt(restaurantTotalLikesEl.textContent) || 0;
+        restaurantTotalLikesEl.textContent = (currentTotal + 1).toString();
       }
 
       // Actualizar el contador de favoritos del usuario
@@ -940,6 +1014,9 @@ async function initializeApp() {
         const currentCount = parseInt(favoritesCounter.textContent) || 0;
         favoritesCounter.textContent = currentCount + 1;
       }
+
+      // Actualizar el contador de corazones dinámico del restaurante
+      updateTotalLikesCounter();
     } catch (error) {
       console.error("Error al dar like:", error);
       showToast("Hubo un error al registrar tu like.", "error");
@@ -1104,39 +1181,35 @@ async function initializeApp() {
       }
     }
     
-    // Actualizar calificación usando el total de corazones (con cache)
-    const ratingElement = document.getElementById("restaurant-rating");
-    if (ratingElement) {
-      // Usar cache para evitar llamadas repetitivas
-      const cacheKey = `rating-${currentRestaurant.id}`;
-      const cachedRating = sessionStorage.getItem(cacheKey);
+    // Actualizar contador de corazones dinámico
+    const totalLikesElement = document.getElementById("restaurant-total-likes");
+    if (totalLikesElement) {
+      updateTotalLikesCounter();
+    }
+
+    // Actualizar tipo de atención (delivery/local)
+    const deliveryIconElement = document.getElementById("restaurant-delivery-icon");
+    const deliveryTextElement = document.getElementById("restaurant-delivery-text");
+    if (deliveryIconElement && deliveryTextElement) {
+      let deliveryText = "";
+      let deliveryIcon = "";
       
-      if (cachedRating) {
-        const ratingData = JSON.parse(cachedRating);
-        ratingElement.textContent = `${ratingData.totalLikes}`;
+      if (currentRestaurant.hasDelivery && currentRestaurant.hasLocalService) {
+        deliveryText = "Delivery y atención local";
+        deliveryIcon = "🚚🏪";
+      } else if (currentRestaurant.hasDelivery) {
+        deliveryText = "Solo delivery";
+        deliveryIcon = "🚚";
+      } else if (currentRestaurant.hasLocalService) {
+        deliveryText = "Solo atención en local";
+        deliveryIcon = "🏪";
       } else {
-        // Llamar al endpoint de rating del restaurante para obtener el total de likes
-        fetch(`/api/restaurants/${currentRestaurant.id}/rating`)
-          .then(response => {
-            if (response.ok) {
-              return response.json();
-            } else {
-              throw new Error('Rating endpoint not available');
-            }
-          })
-          .then(ratingData => {
-            // Guardar en cache por 5 minutos
-            sessionStorage.setItem(cacheKey, JSON.stringify(ratingData));
-            setTimeout(() => sessionStorage.removeItem(cacheKey), 5 * 60 * 1000);
-            
-            // Mostrar el total de corazones en lugar del rating tradicional
-            ratingElement.textContent = `${ratingData.totalLikes}`;
-          })
-          .catch(error => {
-            console.log('Using fallback likes count');
-            ratingElement.textContent = "0";
-          });
+        deliveryText = "Sin atención disponible";
+        deliveryIcon = "❌";
       }
+      
+      deliveryIconElement.textContent = deliveryIcon;
+      deliveryTextElement.textContent = deliveryText;
     }
 
     // Actualizar estado del restaurante
@@ -1176,6 +1249,9 @@ async function initializeApp() {
       if (currentCardId) {
         displayDishesForCard(currentCardId);
       }
+
+      // Actualizar el contador de corazones dinámico
+      updateTotalLikesCounter();
     } else {
       cardsNav.innerHTML = '<p style="color: white;">No cards available.</p>';
       dishesContainer.innerHTML =
@@ -1243,6 +1319,12 @@ async function initializeApp() {
       );
       return;
     }
+
+    // Registrar evento de analytics para compartir restaurante
+    await trackAnalyticsEvent('restaurant_share', currentRestaurantId, null, {
+      restaurantName: currentRestaurant.name,
+      shareMethod: 'web_share_api'
+    });
 
     const message = generateWhatsAppMessageSharing(currentRestaurant);
     const encodedMessage = encodeURIComponent(message);

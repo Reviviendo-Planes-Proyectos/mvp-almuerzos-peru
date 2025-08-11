@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Restaurantes - Almuerzos Perú</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="css/index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand-yellow: #ffd100;
+            --brand-green: #00b44e;
+            --brand-green-dark: #009a42;
+            --brand-dark: #1f2937;
+            --gray-light: #f9fafb;
+            --gray-text: #4b5563;
+            --white: #ffffff;
+            --border-color: #e5e7eb;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, var(--brand-yellow) 0%, #FFE55C 100%);
+            color: var(--brand-dark);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .map-container {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #map {
+            flex: 1;
+            width: 100%;
+            border-radius: 0 0 16px 16px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .map-header {
+            background: linear-gradient(135deg, var(--brand-yellow) 0%, #FFE55C 100%);
+            padding: 20px 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .back-btn {
+            background: linear-gradient(135deg, var(--brand-dark) 0%, #374151 100%);
+            color: var(--white);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+            font-family: 'Nunito', sans-serif;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(31, 41, 55, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .back-btn:hover {
+            background: linear-gradient(135deg, #111827 0%, var(--brand-dark) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(31, 41, 55, 0.4);
+        }
+        
+        .map-title {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--brand-dark);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+
+        
+        /* Estilos personalizados para los popups de Leaflet */
+        .leaflet-popup-content-wrapper {
+            background: linear-gradient(135deg, var(--white) 0%, var(--gray-light) 100%) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+            border: 2px solid rgba(255, 209, 0, 0.2) !important;
+        }
+        
+        .leaflet-popup-content {
+            margin: 16px !important;
+            font-family: 'Nunito', sans-serif !important;
+        }
+        
+        .leaflet-popup-tip {
+            background: var(--white) !important;
+            border: 2px solid rgba(255, 209, 0, 0.2) !important;
+            border-top: none !important;
+            border-right: none !important;
+        }
+        
+        .popup-restaurant-name {
+            color: var(--brand-dark) !important;
+            font-weight: 800 !important;
+            font-size: 18px !important;
+            margin: 0 0 8px 0 !important;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+        }
+        
+        .popup-restaurant-district {
+            color: var(--gray-text) !important;
+            font-weight: 600 !important;
+            font-size: 14px !important;
+            margin: 0 0 8px 0 !important;
+        }
+        
+        .popup-restaurant-description {
+            color: var(--gray-text) !important;
+            font-size: 13px !important;
+            margin: 0 0 12px 0 !important;
+            line-height: 1.4 !important;
+        }
+        
+        .popup-buttons {
+            display: flex !important;
+            gap: 8px !important;
+            margin-top: 12px !important;
+        }
+        
+        .popup-btn {
+            padding: 8px 12px !important;
+            border-radius: 8px !important;
+            text-decoration: none !important;
+            font-size: 12px !important;
+            font-weight: 700 !important;
+            font-family: 'Nunito', sans-serif !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            border: none !important;
+            cursor: pointer !important;
+            text-align: center !important;
+        }
+        
+        .popup-btn-menu {
+            background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-green-dark) 100%) !important;
+            color: var(--white) !important;
+            box-shadow: 0 2px 6px rgba(0, 180, 78, 0.3) !important;
+        }
+        
+        .popup-btn-menu:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4) !important;
+        }
+        
+        .popup-btn-maps {
+            background: linear-gradient(135deg, var(--brand-yellow) 0%, #FFE55C 100%) !important;
+            color: var(--brand-dark) !important;
+            box-shadow: 0 2px 6px rgba(255, 209, 0, 0.3) !important;
+        }
+        
+        .popup-btn-maps:hover {
+            transform: translateY(-1px) !important;
+            box-shadow: 0 4px 12px rgba(255, 209, 0, 0.4) !important;
+        }
+        
+        /* Marcador de usuario personalizado */
+        .user-location-marker {
+            background: radial-gradient(circle, var(--brand-green) 0%, var(--brand-green-dark) 100%) !important;
+            border: 3px solid var(--white) !important;
+            border-radius: 50% !important;
+            box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4) !important;
+            animation: pulse 2s infinite !important;
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4), 0 0 0 0 rgba(0, 180, 78, 0.7);
+            }
+            70% {
+                box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4), 0 0 0 10px rgba(0, 180, 78, 0);
+            }
+            100% {
+                box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4), 0 0 0 0 rgba(0, 180, 78, 0);
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 640px) {
+            .map-header {
+                padding: 16px 20px;
+            }
+            
+            .map-title {
+                font-size: 20px;
+            }
+            
+            .back-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="map-container">
+        <div class="map-header">
+            <a href="index.html" class="back-btn">
+                ← Volver
+            </a>
+            <div class="map-title">Mapa de Restaurantes</div>
+            <div></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Inicializar el mapa centrado en Lima, Perú
+        const map = L.map('map').setView([-12.0464, -77.0428], 13);
+
+        // Añadir capa de OpenStreetMap con estilo Shortbread
+        L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a>, &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Función para extraer coordenadas de un link de Google Maps
+        function extractCoordinatesFromGoogleMapsUrl(url) {
+            if (!url) return null;
+            
+            // Patrones para diferentes formatos de URLs de Google Maps
+            const patterns = [
+                /@(-?\d+\.\d+),(-?\d+\.\d+)/,  // @lat,lng
+                /q=(-?\d+\.\d+),(-?\d+\.\d+)/,  // q=lat,lng
+                /ll=(-?\d+\.\d+),(-?\d+\.\d+)/, // ll=lat,lng
+                /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/ // !3dlat!4dlng
+            ];
+            
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    return {
+                        lat: parseFloat(match[1]),
+                        lng: parseFloat(match[2])
+                    };
+                }
+            }
+            
+            return null;
+        }
+
+        // Función para añadir marcadores de restaurantes
+        function addRestaurantMarker(lat, lng, restaurant) {
+            // Crear icono amarillo personalizado
+            const yellowIcon = L.divIcon({
+                className: 'custom-marker',
+                html: '<div style="width: 25px; height: 25px; background-color: #FFD100; border: 2px solid #ffffff; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: 0 2px 8px rgba(0,0,0,0.3);"><div style="width: 8px; height: 8px; background-color: #ffffff; border-radius: 50%; position: absolute; top: 6px; left: 6px; transform: rotate(45deg);"></div></div>',
+                iconSize: [25, 25],
+                iconAnchor: [12, 24]
+            });
+            
+            const marker = L.marker([lat, lng], { icon: yellowIcon }).addTo(map);
+            
+            const popupContent = `
+                <div>
+                    <h3 class="popup-restaurant-name">${restaurant.name}</h3>
+                    <p class="popup-restaurant-district">${restaurant.district}</p>
+                    ${restaurant.description ? `<p class="popup-restaurant-description">${restaurant.description}</p>` : ''}
+                    <div class="popup-buttons">
+                        <a href="/menu.html?restaurantId=${restaurant.id}" 
+                           class="popup-btn popup-btn-menu">Ver Menú</a>
+                        ${restaurant.location ? `<a href="${restaurant.location}" 
+                           class="popup-btn popup-btn-maps"
+                           target="_blank">Google Maps</a>` : ''}
+                    </div>
+                </div>
+            `;
+            
+            marker.bindPopup(popupContent);
+            return marker;
+        }
+
+        // Función para cargar restaurantes desde la base de datos
+        async function loadRestaurantsFromDatabase() {
+            try {
+                const response = await fetch('/api/restaurants-paginated?limit=100');
+                const data = await response.json();
+                
+                if (data.restaurants && data.restaurants.length > 0) {
+                    let validRestaurants = 0;
+                    
+                    data.restaurants.forEach(restaurant => {
+                        if (restaurant.location) {
+                            const coordinates = extractCoordinatesFromGoogleMapsUrl(restaurant.location);
+                            
+                            if (coordinates) {
+                                addRestaurantMarker(coordinates.lat, coordinates.lng, restaurant);
+                                validRestaurants++;
+                            }
+                        }
+                    });
+                    
+                    console.log(`Se cargaron ${validRestaurants} restaurantes con ubicación válida`);
+                    
+                } else {
+                    console.log('No se encontraron restaurantes');
+                }
+            } catch (error) {
+                console.error('Error cargando restaurantes:', error);
+                // Fallback a restaurantes de ejemplo si hay error
+                loadExampleRestaurants();
+            }
+        }
+
+        // Función fallback con restaurantes de ejemplo
+        function loadExampleRestaurants() {
+            const exampleRestaurants = [
+                { 
+                    id: 'example1',
+                    name: "Restaurante Central", 
+                    district: "Miraflores",
+                    description: "Cocina peruana contemporánea",
+                    location: "https://maps.google.com"
+                },
+                { 
+                    id: 'example2',
+                    name: "Maido", 
+                    district: "San Isidro",
+                    description: "Cocina nikkei",
+                    location: "https://maps.google.com"
+                }
+            ];
+            
+            const exampleCoordinates = [
+                { lat: -12.0464, lng: -77.0428 },
+                { lat: -12.1000, lng: -77.0500 }
+            ];
+            
+            exampleRestaurants.forEach((restaurant, index) => {
+                if (exampleCoordinates[index]) {
+                    addRestaurantMarker(
+                        exampleCoordinates[index].lat, 
+                        exampleCoordinates[index].lng, 
+                        restaurant
+                    );
+                }
+            });
+        }
+
+        // Función para obtener ubicación del usuario
+        function getUserLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const userLat = position.coords.latitude;
+                        const userLng = position.coords.longitude;
+                        
+                        // Centrar el mapa en la ubicación del usuario
+                        map.setView([userLat, userLng], 15);
+                        
+                        // Añadir marcador de ubicación del usuario
+                        const userIcon = L.divIcon({
+                            className: 'user-location-marker',
+                            html: '<div style="width: 16px; height: 16px; background: radial-gradient(circle, var(--brand-green) 0%, var(--brand-green-dark) 100%); border-radius: 50%; border: 3px solid white; box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4);"></div>',
+                            iconSize: [22, 22],
+                            iconAnchor: [11, 11]
+                        });
+                        
+                        L.marker([userLat, userLng], { icon: userIcon })
+                            .addTo(map)
+                            .bindPopup('<div style="font-family: Nunito, sans-serif; font-weight: 700; color: var(--brand-dark);">📍 Tu ubicación</div>');
+                    },
+                    (error) => {
+                        console.error('Error obteniendo ubicación:', error);
+                    }
+                );
+            }
+        }
+
+        // Cargar restaurantes al inicializar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            loadRestaurantsFromDatabase();
+            getUserLocation();
+        });
+    </script>
+</body>
+</html>
