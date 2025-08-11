@@ -2059,26 +2059,48 @@ app.post("/api/fix-comments", async (req, res) => {
 // ===== ANALYTICS ENDPOINTS =====
 
 // Endpoint para registrar eventos de analytics
+// Endpoint para tracking de analytics con documento único por tipo
 app.post("/api/analytics/track", async (req, res) => {
   try {
     const { eventType, restaurantId, cardId, metadata = {} } = req.body;
 
-    // Validar que el eventType sea válido
+    // Mapear eventos en inglés a español y sus subcolecciones
+    const eventTypeMapping = {
+      'restaurant_share': {
+        spanish: 'compartir_restaurante',
+        subcollection: 'compartir_normal'
+      },
+      'share_restaurant_whatsapp': {
+        spanish: 'compartir_restaurante',
+        subcollection: 'compartir_normal'
+      },
+      'share_card_whatsapp': {
+        spanish: 'compartir_carta_whatsapp',
+        subcollection: 'compartir_whatsapp'
+      },
+      'order_button_click': {
+        spanish: 'hacer_pedido',
+        subcollection: 'hacer_pedido'
+      }
+    };
+
+    // Solo permitir los 3 tipos de eventos específicos
     const validEventTypes = [
-      'share_card_whatsapp',
-      'share_restaurant_whatsapp', 
-      'share_qr_whatsapp',
-      'order_button_click',
       'restaurant_share',
-      'dish_like',
-      'dish_add_to_cart',
-      'dish_remove_from_cart'
+      'share_restaurant_whatsapp',
+      'share_card_whatsapp',
+      'order_button_click'
     ];
 
     if (!validEventTypes.includes(eventType)) {
       return res.status(400).json({ 
-        error: "Tipo de evento inválido",
-        validTypes: validEventTypes 
+        error: "Tipo de evento inválido. Solo se permiten eventos de los 3 botones específicos",
+        eventosPermitidos: [
+          "restaurant_share (Compartir Restaurante)",
+          "share_restaurant_whatsapp (Compartir Restaurante)",
+          "share_card_whatsapp (Compartir Carta por WhatsApp)",
+          "order_button_click (Hacer Pedido)"
+        ]
       });
     }
 
@@ -2087,29 +2109,50 @@ app.post("/api/analytics/track", async (req, res) => {
       return res.status(400).json({ error: "restaurantId es requerido" });
     }
 
-    // Crear el documento de analytics
+    // Obtener configuración del evento
+    const eventConfig = eventTypeMapping[eventType];
+    const eventoEnEspanol = eventConfig.spanish;
+    const subcollectionName = eventConfig.subcollection;
+
+    // Referencia al documento único por tipo de evento
+    const docRef = db.collection('analytics')
+      .doc(restaurantId)
+      .collection(subcollectionName)
+      .doc('contador'); // Documento único llamado 'contador'
+
+    // Obtener el documento actual o crear uno nuevo
+    const doc = await docRef.get();
+    
+    let contadorClics = 1;
+    if (doc.exists) {
+      // Si existe, incrementar el contador
+      contadorClics = (doc.data().contadorClics || 0) + 1;
+    }
+
+    // Datos a actualizar/crear
     const analyticsData = {
-      eventType,
-      restaurantId,
-      cardId: cardId || null,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-      metadata
+      eventType: eventoEnEspanol,
+      ultimoTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+      contadorClics: contadorClics,
+      descripcionContador: `${contadorClics} ${contadorClics === 1 ? 'clic' : 'clics'} en ${eventoEnEspanol.replace('_', ' ')}`
     };
 
-    // Guardar en la colección analytics
-    const docRef = await db.collection("analytics").add(analyticsData);
+    // Actualizar o crear el documento único
+    await docRef.set(analyticsData, { merge: true });
 
-    console.log(`📊 Analytics tracked: ${eventType} for restaurant ${restaurantId}`);
+    console.log(`📊 Contador actualizado: ${eventoEnEspanol} = ${contadorClics} clics para restaurante ${restaurantId}`);
     
     res.status(201).json({ 
-      success: true, 
-      id: docRef.id,
-      message: "Evento registrado exitosamente" 
+      exito: true,
+      success: true, // Mantener para compatibilidad
+      eventoRegistrado: eventoEnEspanol,
+      subcoleccion: subcollectionName,
+      contadorActual: contadorClics,
+      mensaje: "Contador actualizado exitosamente" 
     });
 
   } catch (error) {
-    console.error("❌ Error tracking analytics:", error);
+    console.error("❌ Error registrando evento de analytics:", error);
     res.status(500).json({ error: "Error interno del servidor" });
   }
 });
@@ -2187,6 +2230,231 @@ app.get("/api/analytics/restaurant/:restaurantId", authenticateAndAuthorize, asy
   } catch (error) {
     console.error("❌ Error getting analytics:", error);
     res.status(500).json({ error: "Error interno del servidor" });
+  }
+});
+
+// Endpoint para obtener contadores específicos de analytics por categorías (3 botones específicos)
+app.get("/api/analytics/contadores/:restaurantId", authenticateAndAuthorize, async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const { fechaInicio, fechaFin } = req.query;
+
+    // Verificar que el usuario sea dueño del restaurante
+    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
+    if (!restaurantDoc.exists) {
+      return res.status(404).json({ error: "Restaurante no encontrado" });
+    }
+
+    const restaurantData = restaurantDoc.data();
+    if (restaurantData.userId !== req.user.uid) {
+      return res.status(403).json({ error: "No tienes permisos para ver estas estadísticas" });
+    }
+
+    // Construir la consulta base
+    let query = db.collection("analytics").where("restaurantId", "==", restaurantId);
+
+    // Filtros opcionales por fecha
+    if (fechaInicio) {
+      query = query.where("date", ">=", fechaInicio);
+    }
+
+    if (fechaFin) {
+      query = query.where("date", "<=", fechaFin);
+    }
+
+    const snapshot = await query.get();
+    const eventos = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Contadores específicos para los 3 botones únicamente
+    const contadores = {
+      boton_compartir_restaurante: 0,
+      boton_compartir_carta_whatsapp: 0,
+      boton_hacer_pedido: 0
+    };
+
+    // Contar solo los eventos específicos de los 3 botones (usando campos en español)
+    eventos.forEach(evento => {
+      // Priorizar campos en español, usar inglés como fallback
+      const tipoEvento = evento.eventoTipo || evento.tipoEvento || evento.eventType;
+      
+      switch (tipoEvento) {
+        case 'compartir_restaurante':
+        case 'restaurant_share':
+        case 'share_restaurant_whatsapp':
+          contadores.boton_compartir_restaurante++;
+          break;
+        case 'compartir_carta_whatsapp':
+        case 'share_card_whatsapp':
+          contadores.boton_compartir_carta_whatsapp++;
+          break;
+        case 'hacer_pedido':
+        case 'order_button_click':
+          contadores.boton_hacer_pedido++;
+          break;
+        // Ignorar cualquier otro tipo de evento
+      }
+    });
+
+    console.log(`📊 Contadores calculados para restaurante ${restaurantId}:`, {
+      compartir_restaurante: contadores.boton_compartir_restaurante,
+      compartir_carta_whatsapp: contadores.boton_compartir_carta_whatsapp,
+      hacer_pedido: contadores.boton_hacer_pedido
+    });
+
+    // Respuesta limpia y segmentada para los 3 botones específicos
+    res.json({
+      restauranteId: restaurantId,
+      periodo: {
+        fechaInicio: fechaInicio || null,
+        fechaFin: fechaFin || null
+      },
+      botones: {
+        compartir_restaurante: {
+          nombre: "Compartir Restaurante",
+          clics: contadores.boton_compartir_restaurante,
+          descripcion: "Clics en el botón de compartir restaurante"
+        },
+        compartir_carta_whatsapp: {
+          nombre: "Compartir Carta por WhatsApp",
+          clics: contadores.boton_compartir_carta_whatsapp,
+          descripcion: "Clics en el botón de compartir carta por WhatsApp"
+        },
+        hacer_pedido: {
+          nombre: "Hacer Pedido",
+          clics: contadores.boton_hacer_pedido,
+          descripcion: "Clics en el botón de hacer pedido"
+        }
+      },
+      resumen: {
+        totalClicsContabilizados: contadores.boton_compartir_restaurante + contadores.boton_compartir_carta_whatsapp + contadores.boton_hacer_pedido,
+        ultimaActualizacion: new Date().toLocaleString('es-ES', {
+          timeZone: 'America/Lima',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      },
+      estado: "exitoso",
+      mensaje: "Contadores de botones obtenidos correctamente"
+    });
+
+  } catch (error) {
+    console.error("❌ Error obteniendo contadores de botones:", error);
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      mensaje: "No se pudieron obtener los contadores de botones" 
+    });
+  }
+});
+
+// Endpoint para obtener resumen simplificado de 3 botones con contadores
+app.get("/api/analytics/resumen/:restaurantId", authenticateAndAuthorize, async (req, res) => {
+  try {
+    const { restaurantId } = req.params;
+    const { fechaInicio, fechaFin } = req.query;
+
+    // Verificar que el usuario sea dueño del restaurante
+    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
+    if (!restaurantDoc.exists) {
+      return res.status(404).json({ error: "Restaurante no encontrado" });
+    }
+
+    const restaurantData = restaurantDoc.data();
+    if (restaurantData.userId !== req.user.uid) {
+      return res.status(403).json({ error: "No tienes permisos para ver estas estadísticas" });
+    }
+
+    // Construir la consulta base
+    let query = db.collection("analytics").where("restaurantId", "==", restaurantId);
+
+    // Filtros opcionales por fecha
+    if (fechaInicio) {
+      query = query.where("date", ">=", fechaInicio);
+    }
+
+    if (fechaFin) {
+      query = query.where("date", "<=", fechaFin);
+    }
+
+    const snapshot = await query.get();
+    const eventos = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Contadores para los 3 botones
+    let compartirRestaurante = 0;
+    let compartirCartaWhatsapp = 0;
+    let hacerPedido = 0;
+
+    // Contar eventos
+    eventos.forEach(evento => {
+      const tipoEvento = evento.eventoTipo || evento.tipoEvento || evento.eventType;
+      
+      switch (tipoEvento) {
+        case 'compartir_restaurante':
+        case 'restaurant_share':
+        case 'share_restaurant_whatsapp':
+          compartirRestaurante++;
+          break;
+        case 'compartir_carta_whatsapp':
+        case 'share_card_whatsapp':
+          compartirCartaWhatsapp++;
+          break;
+        case 'hacer_pedido':
+        case 'order_button_click':
+          hacerPedido++;
+          break;
+      }
+    });
+
+    // Respuesta con exactamente 3 registros
+    const resumen = [
+      {
+        id: 1,
+        boton: "Compartir Restaurante",
+        clics: compartirRestaurante,
+        descripcion: "Botón para compartir el restaurante"
+      },
+      {
+        id: 2,
+        boton: "Compartir Carta por WhatsApp",
+        clics: compartirCartaWhatsapp,
+        descripcion: "Botón para compartir carta por WhatsApp"
+      },
+      {
+        id: 3,
+        boton: "Hacer Pedido",
+        clics: hacerPedido,
+        descripcion: "Botón para realizar pedidos"
+      }
+    ];
+
+    res.json({
+      restauranteId: restaurantId,
+      totalRegistros: 3,
+      periodo: {
+        fechaInicio: fechaInicio || null,
+        fechaFin: fechaFin || null
+      },
+      resumen: resumen,
+      totalClicsGeneral: compartirRestaurante + compartirCartaWhatsapp + hacerPedido,
+      ultimaActualizacion: new Date().toLocaleString('es-ES', {
+        timeZone: 'America/Lima'
+      })
+    });
+
+  } catch (error) {
+    console.error("❌ Error obteniendo resumen de botones:", error);
+    res.status(500).json({ 
+      error: "Error interno del servidor",
+      mensaje: "No se pudo obtener el resumen de botones" 
+    });
   }
 });
 
