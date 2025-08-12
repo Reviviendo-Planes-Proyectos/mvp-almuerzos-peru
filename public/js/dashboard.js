@@ -1139,6 +1139,12 @@ function closeModal(event, forceModalId = null) {
     modalToClose = document.getElementById(forceModalId);
   } else if (event && event.target.classList.contains("modal-backdrop")) {
     modalToClose = event.target;
+    
+    // 🚫 PREVENIR cierre automático del modal de editar restaurante al hacer clic fuera
+    if (modalToClose.id === "editRestaurantModal") {
+      console.log('🛡️ Previniendo cierre automático del modal de editar restaurante');
+      return; // No cerrar el modal
+    }
   } else if (event && event.target.classList.contains("modal-close-btn")) {
     modalToClose = event.target.closest(".modal-backdrop");
   }

@@ -120,24 +120,25 @@
 }
 
 .cont-com {
-    background: linear-gradient(135deg, white 0%, #f9fafb 100%);
-    border: 2px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 12px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 180px;
-    height: 56px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    cursor: pointer;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--brand-dark, #1f2937);
-    position: relative;
-    overflow: hidden;
+  background: linear-gradient(135deg, white 0%, #f9fafb 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  height: 56px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--brand-dark, #1f2937);
+  position: relative;
+  z-index: 10;
+  /* overflow: hidden; */
 }
 
 .cont-com::before {
@@ -296,17 +297,113 @@
         max-width: 280px;
     }
 }
+
+/* Estilos para el dropdown de usuario */
+.user-dropdown-container {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 10px;
+  z-index: 20;
+}
+
+.user-dropdown-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #555;
+  transition: background-color 0.2s ease;
+}
+
+.user-dropdown-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
+  border: 1px solid #e5e7eb;
+  min-width: 180px;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.2s ease;
+}
+
+.user-dropdown.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.user-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 500;
+  color: var(--brand-dark);
+  font-size: 14px;
+}
+
+.user-dropdown-item:hover {
+  background-color: #f8f9fa;
+}
+
+.user-dropdown-item:first-child {
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.user-dropdown-item:last-child {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  color: #dc2626;
+}
+
+.user-dropdown-item:last-child:hover {
+  background-color: #fef2f2;
+}
+
+.user-dropdown-item svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+}
     </style>
   </head>
   <body>
     <header class="main-header">
       <div class="container header-content">
-        <a href="index.html">
-          <img
-            style="width: 250px"
-            src="images/logo.png"
-            alt="Almuerzos Perú Logo"
-          />
+        <a href="index.html" style="text-decoration: none; color: inherit">
+          <span style="display: flex; align-items: center; gap: 0.5rem; margin: 1.5rem;">
+            <img
+              src="images/Logo-Almuerzo-Perú.png"
+              alt="Logo Almuerzos Perú"
+              style="height: 22px; width: auto; margin-right: 0.1rem; vertical-align: middle;"
+            />
+            <h1
+              style="margin: 0; font-size: 1.5rem; font-weight: 800; cursor: pointer; letter-spacing: -1px; background: none;"
+              onmouseover="this.style.opacity='0.8'"
+              onmouseout="this.style.opacity='1'"
+            >
+              <span style="color: #1f2937">Almuerzos</span><span style="color: #ff8c00">Perú</span>
+            </h1>
+          </span>
         </a>
 
         <div class="cont-gen">
@@ -334,19 +431,26 @@
               </svg>
               <span id="favorites-counter">0</span>
             </span>
-            <span
-              id="logout-text"
-              style="
-                display: none;
-                margin-left: 10px;
-                cursor: pointer;
-                color: #555;
-                font-size: 0.9em;
-              "
-              >(Cerrar Sesión)</span
-            >
+            <!-- Dropdown de usuario -->
+            <div id="user-dropdown-container" class="user-dropdown-container" style="display: none;">
+              <button id="user-dropdown-toggle" class="user-dropdown-toggle">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M6 9L12 15L18 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+              <div id="user-dropdown" class="user-dropdown">
+                <div class="user-dropdown-item" id="user-logout">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <polyline points="16,17 21,12 16,7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                  Cerrar Sesión
+                </div>
+              </div>
+            </div>
           </div>
-
+           
           <div class="cont-but" id="my-restaurant">
             <img
               style="width: 25px"
@@ -358,12 +462,15 @@
           </button> 
           </div>
         </div>
-    </header>
 
+       
+    </header>
+      
     <div class="hero-section">
       <h2>Encuentra tu menú diario</h2>
       <p>¡sin perder tiempo! 🏠</p>
     </div>
+
 
      <main class="main-content container">
       <div class="district-search-container">
@@ -375,7 +482,7 @@
           </div>
           <input type="text" id="district-search" placeholder="Buscar por distrito, restaurante o platillo" autocomplete="off" />
           <button class="location-btn" id="location-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M21 10C21 17 12 23 12 23S3 17 3 10C3 5.02944 7.02944 1 12 1C16.9706 1 21 5.02944 21 10Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <circle cx="12" cy="10" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>

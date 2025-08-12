@@ -12,119 +12,14 @@
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
       as="style"
     />
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
       rel="stylesheet"
     />
-
     <link rel="stylesheet" href="css/dashboard.css" />
-    <style>
-      /* Estilos para el switch */
-      .switch {
-        position: relative;
-        display: inline-block;
-        width: 48px;
-        height: 24px;
-      }
-
-      .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-      .slider {
-        position: absolute;
-        cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #ccc;
-        transition: 0.4s;
-      }
-
-      .slider:before {
-        position: absolute;
-        content: "";
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        bottom: 3px;
-        background-color: white;
-        transition: 0.4s;
-      }
-
-      input:checked + .slider {
-        background-color: #00b44e;
-      }
-
-      input:focus + .slider {
-        box-shadow: 0 0 1px #00b44e;
-      }
-
-      input:checked + .slider:before {
-        transform: translateX(24px);
-      }
-
-      .slider.round {
-        border-radius: 34px;
-      }
-
-      .slider.round:before {
-        border-radius: 50%;
-      }
-
-      /* Estilos adicionales para el estado activo del switch */
-      .switch.active .slider {
-        background-color: #2196f3;
-      }
-
-      .switch input:checked + .slider:before {
-        transform: translateX(24px);
-      }
-
-      /* Animación suave para el cambio de estado */
-      .switch .slider:before {
-        transition: transform 0.3s ease-in-out;
-      }
-
-      /* Estilos para el botón de sincronizar horarios */
-      .sync-button {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background-color: #f8f9fa;
-        border: 1px solid #dee2e6;
-        border-radius: 0.5rem;
-        color: #495057;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: all 0.2s ease-in-out;
-      }
-
-      .sync-button:hover {
-        background-color: #e9ecef;
-        border-color: #ced4da;
-        color: #212529;
-      }
-
-      .sync-button svg {
-        transition: transform 0.3s ease;
-      }
-
-      .sync-button:hover svg {
-        transform: rotate(180deg);
-      }
-
-      .sync-button:active {
-        transform: scale(0.98);
-      }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Cropper.js CSS -->
     <link
       rel="stylesheet"
@@ -208,7 +103,7 @@
         <header
           class="main-header"
           style="
-            background: #fff;
+            background: #ffa600;
             padding: 1rem;
             color: #1f2937;
             display: flex;
@@ -217,7 +112,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
           "
         >
-          <div style="display: flex; align-items: center; gap: 1rem">
+          <div style="display: flex; align-items: center; gap: 1rem; margin-right: 2rem">
             <button
               class="menu-btn"
               onclick="toggleSidebar()"
@@ -274,25 +169,34 @@
                 href="index.html"
                 style="text-decoration: none; color: inherit"
               >
-                <h1
-                  style="
-                    margin: 0;
-                    font-size: 1.5rem;
-                    font-weight: 800;
-                    cursor: pointer;
-                    letter-spacing: -1px;
-                    background: none;
-                  "
-                  onmouseover="this.style.opacity='0.8'"
-                  onmouseout="this.style.opacity='1'"
-                >
-                  <span style="color: #1f2937">Almuerzos</span
-                  ><span style="color: #ff8c00">Perú</span>
-                </h1>
+                <span style="display: flex; align-items: center; gap: 0.5rem">
+                  <img
+                    src="images/Logo-Almuerzo-Perú.png"
+                    alt="Logo Almuerzos Perú"
+                    style="
+                      height: 22px;
+                      width: auto;
+                      margin-right: 0.1rem;
+                      vertical-align: middle;
+                    "
+                  />
+                  <h1
+                    style="
+                      margin: 0;
+                      font-size: 1.5rem;
+                      font-weight: 800;
+                      cursor: pointer;
+                      letter-spacing: -1px;
+                      background: none;
+                    "
+                    onmouseover="this.style.opacity='0.8'"
+                    onmouseout="this.style.opacity='1'"
+                  >
+                    <span style="color: #1f2937">Almuerzos</span
+                    ><span style="color: #ffffff">Perú</span>
+                  </h1>
+                </span>
               </a>
-              <p style="margin: 0; font-size: 0.9rem; opacity: 0.9">
-                MIS CARTAS
-              </p>
             </div>
           </div>
           <button
@@ -363,17 +267,14 @@
                     <span id="restaurant-rating"></span>
                   </div>
                   <div class="restaurant-detail">
-                    <span class="detail-icon">📍</span>
+                    <span class="detail-icon"><i class="fa-solid fa-location-dot"></i></span>
                     <a
                       id="restaurant-location"
+                      class="mapa-badge"
                       href="#"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style="
-                        color: inherit;
-                        text-decoration: underline;
-                        cursor: pointer;
-                      "
+                      style="color: inherit; cursor: pointer"
                     ></a>
                   </div>
                   <div class="restaurant-detail">
