@@ -964,11 +964,11 @@ async function initializeApp() {
 
       const result = await response.json();
 
-      // Registrar evento de analytics para like de plato
-      await trackAnalyticsEvent('dish_like', currentRestaurantId, currentCardId, {
-        dishId: dishId,
-        likesCount: result.likesCount
-      });
+      // Evento de like de plato no se trackea en analytics (solo se trackean los 3 botones específicos)
+      // await trackAnalyticsEvent('dish_like', currentRestaurantId, currentCardId, {
+      //   dishId: dishId,
+      //   likesCount: result.likesCount
+      // });
 
       // ✅ Cambiar icono en el botón inmediatamente para feedback visual rápido
       button.innerHTML = "❤️";
