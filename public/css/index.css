@@ -45,6 +45,22 @@ body {
   display: flex;
   justify-content: space-between;
 }
+/* Asegurar que en escritorio todos los elementos estén en línea horizontal */
+@media (min-width: 481px) {
+  .restaurant-info {
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .schedule-likes-info {
+    display: flex;
+    flex-direction: row !important;
+    align-items: center;
+    gap: 0.6rem;
+  }
+}
+
 @media (max-width: 640px) {
   .zone-selector {
     flex-direction: column;
@@ -208,14 +224,15 @@ body {
 }
 
 .restaurant-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 15px 35px rgba(218, 165, 32, 0.4);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
   background: linear-gradient(135deg, var(--brand-yellow, #ffd100) 0%, #ffdd33 100%);
   border-color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
 }
 
 .restaurant-card:active {
-  transform: translateY(-3px) scale(1.01);
+  transform: translateY(-1px);
 }
 .restaurant-card img {
   width: 140px;
@@ -310,7 +327,7 @@ body {
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .schedule-info {
@@ -364,11 +381,28 @@ body {
 }
 
 .schedule-icon, .delivery-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   opacity: 0.8;
   display: inline-flex;
   align-items: center;
+  transition: transform 0.2s ease;
+}
+
+.restaurant-card:hover .schedule-icon,
+.restaurant-card:hover .delivery-icon {
+  transform: scale(1.1);
+}
+
+.delivery-icon {
+  opacity: 0.8;
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.delivery-icon + .delivery-icon {
+  margin-left: 0;
 }
 
 .schedule-text, .delivery-text {
@@ -479,6 +513,23 @@ body {
 
 .dropdown-arrow.rotated {
   transform: rotate(180deg);
+}
+
+/* Botón de localización integrado */
+.location-btn {
+  background: none;
+  border: none;
+  padding: 12px 10px;
+  color: #3b82f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.location-btn:hover {
+  color: #1d4ed8;
 }
 
 /* Dropdown personalizado */
@@ -704,6 +755,9 @@ body {
   }
   
   .schedule-info {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
     font-size: 0.7rem !important;
     color: rgba(255, 255, 255, 0.9) !important;
     font-weight: 500 !important;
@@ -711,6 +765,15 @@ body {
   
   .restaurant-card:hover .schedule-info {
     color: var(--brand-dark, #1f2937) !important;
+  }
+  
+  .restaurant-likes {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.7rem;
+    color: #d32f2f;
+    font-weight: 400;
   }
   
   .delivery-info {
@@ -727,7 +790,23 @@ body {
     width: 10px !important;
     height: 10px !important;
   }
+  
+  .delivery-icon {
+    font-size: 0.7rem;
+  }
+  
+  .delivery-icon + .delivery-icon {
+    margin-left: 0.5rem;
+  }
 }
+
+.delivery-info {
+  font-size: 0.7rem;
+  color: #00d084;
+  font-weight: 400;
+}
+  
+
 
 @media (max-width: 480px) {
   .restaurant-card {
@@ -790,9 +869,18 @@ body {
   }
   
   .restaurant-info {
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    gap: 0.3rem;
+    flex-direction: column;
+    align-items: flex-start;
     margin: 0;
+  }
+  
+  .schedule-likes-info {
+    display: flex;
+    flex-direction: row;
+    gap: 0.6rem;
+    align-items: center;
+    justify-content: flex-start;
   }
   
   .schedule-info {
