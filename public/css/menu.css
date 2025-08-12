@@ -68,7 +68,7 @@ body {
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 0 1.5rem 1.5rem 1.5rem;
+  padding: 0 1.5rem 100px 1.5rem;
   /* Optimización de contenedor principal */
   contain: layout style paint;
 }
@@ -510,7 +510,6 @@ body {
   gap: 0.25rem;
 }
 .order-button {
-  width: 100%;
   background-color: var(--brand-green);
   color: var(--white);
   border: none;
@@ -519,12 +518,21 @@ body {
   font-weight: 800;
   border-radius: 0.75rem;
   cursor: pointer;
-  margin-top: 1.5rem;
   transition: background-color 0.3s;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  
+  /* Estilos para posición fija */
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 400px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .whatsapp-icon {
