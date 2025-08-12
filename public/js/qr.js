@@ -267,7 +267,7 @@ function shareWhatsApp() {
   
   // Registrar evento de analytics
   if (CURRENT_RESTAURANT_ID) {
-    trackAnalyticsEvent('share_qr_whatsapp', CURRENT_RESTAURANT_ID, null, {
+    trackAnalyticsEvent('share_restaurant_whatsapp', CURRENT_RESTAURANT_ID, null, {
       restaurantName: CURRENT_RESTAURANT_NAME,
       shareMethod: 'whatsapp',
       qrLink: CURRENT_QR_LINK
