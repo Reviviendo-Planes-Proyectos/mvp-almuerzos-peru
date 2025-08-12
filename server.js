@@ -2114,11 +2114,9 @@ app.post("/api/analytics/track", async (req, res) => {
     const eventoEnEspanol = eventConfig.spanish;
     const subcollectionName = eventConfig.subcollection;
 
-    // Referencia al documento único por tipo de evento
+    // Referencia directa al documento por tipo de evento
     const docRef = db.collection('analytics')
-      .doc(restaurantId)
-      .collection(subcollectionName)
-      .doc('contador'); // Documento único llamado 'contador'
+      .doc(subcollectionName); // Contador directo por tipo de evento
 
     // Obtener el documento actual o crear uno nuevo
     const doc = await docRef.get();
@@ -2134,13 +2132,14 @@ app.post("/api/analytics/track", async (req, res) => {
       eventType: eventoEnEspanol,
       ultimoTimestamp: admin.firestore.FieldValue.serverTimestamp(),
       contadorClics: contadorClics,
-      descripcionContador: `${contadorClics} ${contadorClics === 1 ? 'clic' : 'clics'} en ${eventoEnEspanol.replace('_', ' ')}`
+      descripcionContador: `${contadorClics} ${contadorClics === 1 ? 'clic' : 'clics'} en ${eventoEnEspanol.replace('_', ' ')}`,
+      ultimoRestauranteId: restaurantId // Mantener registro del último restaurante
     };
 
     // Actualizar o crear el documento único
     await docRef.set(analyticsData, { merge: true });
 
-    console.log(`📊 Contador actualizado: ${eventoEnEspanol} = ${contadorClics} clics para restaurante ${restaurantId}`);
+    console.log(`📊 Contador actualizado: ${eventoEnEspanol} = ${contadorClics} clics`);
     
     res.status(201).json({ 
       exito: true,
