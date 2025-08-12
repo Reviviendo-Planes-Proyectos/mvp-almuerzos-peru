@@ -39,7 +39,7 @@ body {
 }
 .main-header {
   background-color: var(--brand-yellow);
-  padding: 0.5rem 0;
+  padding: 0.5rem 0 2.5rem 0;
 }
 .header-content {
   display: flex;
@@ -536,17 +536,18 @@ body {
 .custom-dropdown {
   position: absolute;
   top: 100%;
-  left: 0;
   right: 0;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.18);
   border: 1px solid #e5e7eb;
-  z-index: 1000;
+  min-width: 180px;
+  z-index: 2000;
   opacity: 0;
   visibility: hidden;
-  transform: translateY(-5px);
+  transform: translateY(-10px);
   transition: all 0.2s ease;
+  z-index: 1;
   margin-top: 4px;
 }
 
@@ -1263,7 +1264,7 @@ body {
 }
 @media (max-width: 480px) {
   .cont-gen {
-    gap: 5px; /* Reducir el espacio entre botones */
+    gap: 40px; /* Más espacio para evitar que el dropdown sea tapado */
   }
   
   .cont-com, .cont-but {
