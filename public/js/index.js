@@ -61,7 +61,12 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
   const availableRestaurantsCount = document.querySelector(".available-restaurants-count");
 
   const myAccountBtn = document.getElementById("my-account-btn");
-  const logoutText = document.getElementById("logout-text");
+  const userDropdownContainer = document.getElementById("user-dropdown-container");
+  const userDropdownToggle = document.getElementById("user-dropdown-toggle");
+  const userDropdown = document.getElementById("user-dropdown");
+  const userProfileBtn = document.getElementById("user-profile");
+  const userSettingsBtn = document.getElementById("user-settings");
+  const userLogoutBtn = document.getElementById("user-logout");
   const loginModalOverlay = document.getElementById("login-modal-overlay");
   const loginModalCloseBtn = document.getElementById("login-modal-close-btn");
   const googleLoginBtn = document.getElementById("google-login-btn");
@@ -160,8 +165,24 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
     }
   }
 
-  if (logoutText) {
-    logoutText.addEventListener("click", async () => {
+  // Event listeners para el dropdown de usuario
+  if (userDropdownToggle) {
+    userDropdownToggle.addEventListener("click", (e) => {
+      e.stopPropagation();
+      userDropdown.classList.toggle("show");
+    });
+  }
+
+  // Cerrar dropdown al hacer click fuera
+  document.addEventListener("click", (e) => {
+    if (userDropdown && !userDropdownContainer.contains(e.target)) {
+      userDropdown.classList.remove("show");
+    }
+  });
+
+  // Event listener para logout
+  if (userLogoutBtn) {
+    userLogoutBtn.addEventListener("click", async () => {
       try {
         await auth.signOut();
         localStorage.removeItem("commentedDishes");
@@ -170,6 +191,22 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
         console.error("Error during logout:", error);
         showToast("Error during logout. Please try again.", "error");
       }
+    });
+  }
+
+  // Event listener para perfil (placeholder)
+  if (userProfileBtn) {
+    userProfileBtn.addEventListener("click", () => {
+      // TODO: Implementar navegación a perfil
+      console.log("Navegando a Mi Perfil");
+    });
+  }
+
+  // Event listener para configuración (placeholder)
+  if (userSettingsBtn) {
+    userSettingsBtn.addEventListener("click", () => {
+      // TODO: Implementar navegación a configuración
+      console.log("Navegando a Configuración");
     });
   }
 
@@ -256,7 +293,9 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
   async function handleAuthStateChange(user) {
     if (user) {
       myAccountBtn.textContent = user.displayName || user.email;
-      logoutText.style.display = "inline";
+      if (userDropdownContainer) {
+        userDropdownContainer.style.display = "inline-flex";
+      }
 
       // *** Lógica INTELIGENTE para upsert de comensales (QUEDA IGUAL) ***
       const userRoleResponse = await fetch(`/api/users/${user.uid}/role`);
@@ -291,7 +330,9 @@ const dropdownArrow = document.querySelector(".dropdown-arrow");
       loadRestaurants(true);
     } else {
       myAccountBtn.textContent = "Soy Comensal";
-      logoutText.style.display = "none";
+      if (userDropdownContainer) {
+        userDropdownContainer.style.display = "none";
+      }
       favoritesCountDisplay.style.display = "none";
       currentUserFavorites.clear();
 
