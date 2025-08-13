@@ -1649,7 +1649,6 @@ app.delete(
 app.post("/api/dishes/:dishId/like", async (req, res) => {
   const { dishId } = req.params;
   const { action } = req.body; // 'like' o 'unlike'
-
   const authHeader = req.headers.authorization;
   let currentUserUid = null;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -1702,21 +1701,21 @@ app.post("/api/dishes/:dishId/like", async (req, res) => {
       let newLikes = currentLikes;
 
       if (action === "like") {
-        if (userFavoriteDoc.exists) {
-          return res
-            .status(200)
-            .json({ likesCount: currentLikes, message: "Already liked." });
-        }
+        // if (userFavoriteDoc.exists) {
+        //   return res
+        //     .status(200)
+        //     .json({ likesCount: currentLikes, message: "Already liked." });
+        // }
         newLikes = currentLikes + 1;
         transaction.set(userFavoriteRef, {
           likedAt: admin.firestore.FieldValue.serverTimestamp(),
         });
       } else if (action === "unlike") {
-        if (!userFavoriteDoc.exists) {
-          return res
-            .status(200)
-            .json({ likesCount: currentLikes, message: "Not liked yet." });
-        }
+        // if (!userFavoriteDoc.exists) {
+        //   return res
+        //     .status(200)
+        //     .json({ likesCount: currentLikes, message: "Not liked yet." });
+        // }
         newLikes = Math.max(0, currentLikes - 1);
         transaction.delete(userFavoriteRef);
       }

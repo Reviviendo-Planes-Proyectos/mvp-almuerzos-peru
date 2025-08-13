@@ -784,7 +784,7 @@ async function initializeApp() {
     });
   }
   function toggleCommentIcon(dishId, quantity) {
-    if (quantity !== 0) return; // Solo actuamos si la cantidad es exactamente 0
+    if (quantity !== 0) return;
 
     const commentContainer = document.querySelector(
       `.comment-button-container[data-dish-id="${dishId}"]`
@@ -796,8 +796,6 @@ async function initializeApp() {
 
     if (existingIcon) {
       existingIcon.remove();
-
-      // 🔒 Marcar que ya se envió comentario para evitar volver a mostrarlo
       window.sentComments = window.sentComments || {};
       window.sentComments[dishId] = true;
     }
@@ -903,27 +901,27 @@ async function initializeApp() {
   }
 
   async function handleDishLikeClick(event) {
-    const button = event.currentTarget;
-    const dishId = button.dataset.dishId;
-    const user = auth.currentUser;
+  const button = event.currentTarget;
+  const dishId = button.dataset.dishId;
+  const user = auth.currentUser;
 
-    if (!user) {
-      showToast("Debes iniciar sesión para dar like.", "warning");
-      return;
-    }
+  if (!user) {
+    showToast("Debes iniciar sesión para dar like.", "warning");
+    return;
+  }
 
-    // Permitir que el usuario intente dar like para mostrar mensaje de restricción
+  const likeDocRef = db
+    .collection("invited")
+    .doc(user.uid)
+    .collection("dailyLikes")
+    .doc(dishId);
 
-    const likeDocRef = db
-      .collection("invited")
-      .doc(user.uid)
-      .collection("dailyLikes")
-      .doc(dishId);
+  try {
+    const isLiked = button.classList.contains("liked");
+    const action = isLiked ? "unlike" : "like";
 
-    try {
-      // Verificar si ya existe un like en las últimas 12 horas
+    if (!isLiked) {
       const likeDoc = await likeDocRef.get();
-
       if (likeDoc.exists) {
         const likeData = likeDoc.data();
         const likeTimestamp = likeData.timestamp;
@@ -931,97 +929,107 @@ async function initializeApp() {
         if (likeTimestamp) {
           const now = new Date();
           const likeTime = likeTimestamp.toDate();
-          const timeDifference = now - likeTime;
-          const hoursElapsed = timeDifference / (1000 * 60 * 60);
-          //const secondsElapsed = timeDifference / 1000;
+          const secondsElapsed = (now - likeTime) / 1000;
 
-          if (hoursElapsed < 12) {
-            //if (secondsElapsed < 30) {
+          //86400
+          if (secondsElapsed < 86400) {
+            const remainingTime = Math.ceil(1000 - secondsElapsed);
             showToast(
-              "Ya diste like. Inténtalo mañana",
+              `Ya diste like. Inténtalo en ${remainingTime} segundos`,
               "warning"
             );
             return;
           }
         }
       }
+    }
 
-      const idToken = await user.getIdToken();
+    const idToken = await user.getIdToken();
 
-      const response = await fetch(`/api/dishes/${dishId}/like`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${idToken}`,
-        },
-        body: JSON.stringify({ action: "like" }),
-      });
+    const response = await fetch(`/api/dishes/${dishId}/like`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify({ action }),
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error al dar like al plato.");
-      }
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Error al procesar el like/unlike.");
+    }
 
-      const result = await response.json();
+    const result = await response.json();
 
-      // Evento de like de plato no se trackea en analytics (solo se trackean los 3 botones específicos)
-      // await trackAnalyticsEvent('dish_like', currentRestaurantId, currentCardId, {
-      //   dishId: dishId,
-      //   likesCount: result.likesCount
-      // });
+    const likesCountEl = document.getElementById(`likes-count-${dishId}`);
+    const restaurantTotalLikesEl = document.getElementById("restaurant-total-likes");
 
-      // ✅ Cambiar icono en el botón inmediatamente para feedback visual rápido
+    if (action === "like") {
       button.innerHTML = "❤️";
-      button.disabled = false;
       button.classList.add("liked");
-
-      // ✅ Mostrar toast de confirmación inmediatamente tras la respuesta exitosa
       showToast("¡Gracias por tu like!", "success", 1500);
 
-      // ✅ Guardar el nuevo like en dailyLikes para control de tiempo (en background)
       likeDocRef.set({
         timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-      }).catch(error => {
-        console.error("Error guardando en dailyLikes:", error);
-      });
+      }).catch(error => console.error("Error guardando en dailyLikes:", error));
 
-      // ✅ Actualizar contador de likes en pantalla
-      const likesCountEl = document.getElementById(`likes-count-${dishId}`);
-      if (likesCountEl) {
-        likesCountEl.innerText = `${result.likesCount} me gusta`;
+      setTimeout(() => {
+        if (button && button.isConnected) {
+        button.innerHTML = "🤍";
+        button.classList.remove("liked");
       }
+  }, 86400000);
 
-      // ✅ Actualizar el likesCount en allCardsData para mantener sincronización
-      allCardsData.forEach(card => {
-        if (card.dishes && Array.isArray(card.dishes)) {
-          card.dishes.forEach(dish => {
-            if (dish.id === dishId) {
-              dish.likesCount = result.likesCount;
-            }
-          });
-        }
-      });
-      
-      // ✅ Actualizar el total de corazones del restaurante
-      const restaurantTotalLikesEl = document.getElementById("restaurant-total-likes");
+      if (likesCountEl) likesCountEl.innerText = `${result.likesCount} me gusta`;
+
       if (restaurantTotalLikesEl) {
         const currentTotal = parseInt(restaurantTotalLikesEl.textContent) || 0;
         restaurantTotalLikesEl.textContent = (currentTotal + 1).toString();
       }
-
-      // Actualizar el contador de favoritos del usuario
       if (favoritesCounter) {
         const currentCount = parseInt(favoritesCounter.textContent) || 0;
-        favoritesCounter.textContent = currentCount + 1;
+        favoritesCounter.textContent = (currentCount + 1).toString();
       }
 
-      // Actualizar el contador de corazones dinámico del restaurante
-      updateTotalLikesCounter();
-    } catch (error) {
-      console.error("Error al dar like:", error);
-      showToast("Hubo un error al registrar tu like.", "error");
+    } else {
+      button.innerHTML = "🤍";
+      button.classList.remove("liked");
+      showToast("Like eliminado.", "error", 1500);
+
+      // Eliminar registro de dailyLikes en Firestore
+      likeDocRef.delete().catch(error => console.error("Error eliminando de dailyLikes:", error));
+
+      if (likesCountEl) likesCountEl.innerText = `${result.likesCount} me gusta`;
+
+      if (restaurantTotalLikesEl) {
+        const currentTotal = parseInt(restaurantTotalLikesEl.textContent) || 0;
+        restaurantTotalLikesEl.textContent = Math.max(currentTotal - 1, 0).toString();
+      }
+
+      if (favoritesCounter) {
+        const currentCount = parseInt(favoritesCounter.textContent) || 0;
+        favoritesCounter.textContent = Math.max(currentCount - 1, 0).toString();
+      }
     }
+
+    allCardsData.forEach(card => {
+      if (card.dishes && Array.isArray(card.dishes)) {
+        card.dishes.forEach(dish => {
+          if (dish.id === dishId) {
+            dish.likesCount = result.likesCount;
+          }
+        });
+      }
+    });
+
+    updateTotalLikesCounter();
+
+  } catch (error) {
+    console.error("Error en toggle like:", error);
+    showToast("Hubo un error al procesar tu acción.", "error");
   }
+}
 
   function setupMyRestaurantButton() {
     if (!myRestaurantButton) return;
@@ -1495,20 +1503,20 @@ async function initializeApp() {
     }, 100);
   }
   function setupLikeControls() {
-    document
-      .querySelectorAll(".dish-like-control .like-button")
-      .forEach(async (button) => {
-        if (button.dataset.listenersInitialized) return;
+  document
+    .querySelectorAll(".dish-like-control .like-button")
+    .forEach(async (button) => {
+      if (button.dataset.listenersInitialized) return;
 
-        const dishId = button.dataset.dishId;
-        const user = auth.currentUser;
+      const dishId = button.dataset.dishId;
+      const user = auth.currentUser;
 
-        if (!user) {
-          button.innerHTML = "🤍";
-          return;
-        }
+      if (!user) {
+        button.innerHTML = "🤍";
+        return;
+      }
 
-        // Verificar si el usuario ya dio like a este plato (en favorites)
+      try {
         const favoriteDoc = await db
           .collection("invited")
           .doc(user.uid)
@@ -1516,20 +1524,66 @@ async function initializeApp() {
           .doc(dishId)
           .get();
 
+        const likeDocRef = db
+          .collection("invited")
+          .doc(user.uid)
+          .collection("dailyLikes")
+          .doc(dishId);
+
+        const likeDoc = await likeDocRef.get();
+
+        let showAsLiked = false;
+
         if (favoriteDoc.exists) {
+          if (likeDoc.exists) {
+            const likeData = likeDoc.data();
+            const likeTimestamp = likeData.timestamp;
+
+            if (likeTimestamp) {
+              const now = new Date();
+              const likeTime = likeTimestamp.toDate();
+              const timeDifference = now - likeTime;
+              const secondsElapsed = timeDifference / 1000;
+
+              // ✅ Solo mostrar corazón rojo segun el  tiemo
+              //86400
+              if (secondsElapsed < 86400) {
+                showAsLiked = true;
+                
+                setTimeout(() => {
+                  if (button && button.isConnected) {
+                    button.innerHTML = "🤍";
+                    button.classList.remove("liked");
+                  }
+                }, 86400000);
+              }
+            }
+          }
+        }
+
+        if (showAsLiked) {
           button.innerHTML = "❤️";
-          button.disabled = false;
           button.classList.add("liked");
         } else {
           button.innerHTML = "🤍";
-          button.disabled = false;
+          button.classList.remove("liked");
         }
 
-        // Asignar listener
+        button.disabled = false;
+
         button.addEventListener("click", handleDishLikeClick);
         button.dataset.listenersInitialized = true;
-      });
-  }
+
+      } catch (error) {
+        button.innerHTML = "🤍";
+        button.classList.remove("liked");
+        button.disabled = false;
+        
+        button.addEventListener("click", handleDishLikeClick);
+        button.dataset.listenersInitialized = true;
+      }
+    });
+}
   function openCommentModal(dishId) {
     const dish = window.activeDishesMap?.[dishId];
     if (!dish) return;
