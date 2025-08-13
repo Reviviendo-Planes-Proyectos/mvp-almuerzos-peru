@@ -1,64 +1,54 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mi perfil - Almuerzos Perú</title>
 
-    <!-- Preload critical resources -->
-    <link rel="preload" href="css/dashboard.css" as="style" />
-    <link
-      rel="preload"
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
-      as="style"
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/dashboard.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- Cropper.js CSS -->
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"
-    />
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mi perfil - Almuerzos Perú</title>
 
-  <body>
-    <div class="overlay" onclick="closeSidebar()"></div>
+  <!-- Preload critical resources -->
+  <link rel="preload" href="css/dashboard.css" as="style" />
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap"
+    as="style" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/dashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Cropper.js CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css" />
+</head>
 
-    <!-- Sidebar izquierdo -->
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <h2>Menú Principal</h2>
-        <p id="sidebar-restaurant">Restaurante</p>
-      </div>
-      <div class="sidebar-menu">
-        <a href="dashboard.html" class="menu-item active">
-          <span class="menu-item-icon">🏠</span>
-          MIS CARTAS
-        </a>
-        <a href="qr.html" class="menu-item">
-          <span class="menu-item-icon">📱</span>
-          MI QR
-        </a>
-        <a href="comentarios.html" class="menu-item">
-          <span class="menu-item-icon">💬</span>
-          COMENTARIOS
-        </a>
-      </div>
+<body>
+  <div class="overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar izquierdo -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Menú Principal</h2>
+      <p id="sidebar-restaurant">Restaurante</p>
     </div>
-
-    <div id="toast-notification" class="toast">
-      <span id="toast-message"></span>
+    <div class="sidebar-menu">
+      <a href="dashboard.html" class="menu-item active">
+        <span class="menu-item-icon">🏠</span>
+        MIS CARTAS
+      </a>
+      <a href="qr.html" class="menu-item">
+        <span class="menu-item-icon">📱</span>
+        MI QR
+      </a>
+      <a href="comentarios.html" class="menu-item">
+        <span class="menu-item-icon">💬</span>
+        COMENTARIOS
+      </a>
     </div>
+  </div>
 
-    <div
-      id="loading-overlay"
-      style="
+  <div id="toast-notification" class="toast">
+    <span id="toast-message"></span>
+  </div>
+
+  <div id="loading-overlay" style="
         display: flex;
         justify-content: center;
         align-items: center;
@@ -69,11 +59,9 @@
         width: 100%;
         background: #ffd100;
         z-index: 9999;
-      "
-    >
-      <div style="text-align: center">
-        <div
-          style="
+      ">
+    <div style="text-align: center">
+      <div style="
             width: 50px;
             height: 50px;
             border: 4px solid #f3f3f3;
@@ -81,28 +69,26 @@
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 1rem;
-          "
-        ></div>
-        <p style="font-weight: 700; font-size: 1.25rem; color: #1f2937">
-          Cargando Dashboard...
-        </p>
-      </div>
-      <style>
-        @keyframes spin {
-          0% {
-            transform: rotate(0deg);
-          }
-          100% {
-            transform: rotate(360deg);
-          }
-        }
-      </style>
+          "></div>
+      <p style="font-weight: 700; font-size: 1.25rem; color: #1f2937">
+        Cargando Dashboard...
+      </p>
     </div>
-    <div id="main-content">
-      <section id="cards-section">
-        <header
-          class="main-header"
-          style="
+    <style>
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </div>
+  <div id="main-content">
+    <section id="cards-section">
+      <header class="main-header" style="
             background: #ffa600;
             padding: 1rem;
             color: #1f2937;
@@ -110,13 +96,9 @@
             align-items: center;
             justify-content: space-between;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-          "
-        >
-          <div style="display: flex; align-items: center; gap: 1rem; margin-right: 2rem">
-            <button
-              class="menu-btn"
-              onclick="toggleSidebar()"
-              style="
+          ">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-right: 2rem">
+          <button class="menu-btn" onclick="toggleSidebar()" style="
                 background: none;
                 border: none;
                 color: #1f2937;
@@ -125,84 +107,40 @@
                 display: flex;
                 align-items: center;
                 padding: 0 0.25rem;
-              "
-              aria-label="Abrir menú"
-            >
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 28 28"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <circle cx="4" cy="7" r="1.2" fill="#1f2937" />
-                <rect
-                  x="7"
-                  y="6.2"
-                  width="15"
-                  height="1.6"
-                  rx="0.8"
-                  fill="#1f2937"
-                />
-                <circle cx="4" cy="14" r="1.2" fill="#1f2937" />
-                <rect
-                  x="7"
-                  y="13.2"
-                  width="15"
-                  height="1.6"
-                  rx="0.8"
-                  fill="#1f2937"
-                />
-                <circle cx="4" cy="21" r="1.2" fill="#1f2937" />
-                <rect
-                  x="7"
-                  y="20.2"
-                  width="15"
-                  height="1.6"
-                  rx="0.8"
-                  fill="#1f2937"
-                />
-              </svg>
-            </button>
-            <div>
-              <a
-                href="index.html"
-                style="text-decoration: none; color: inherit"
-              >
-                <span style="display: flex; align-items: center; gap: 0.5rem">
-                  <img
-                    src="images/Logo-Almuerzo-Perú.png"
-                    alt="Logo Almuerzos Perú"
-                    style="
+              " aria-label="Abrir menú">
+            <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="4" cy="7" r="1.2" fill="#1f2937" />
+              <rect x="7" y="6.2" width="15" height="1.6" rx="0.8" fill="#1f2937" />
+              <circle cx="4" cy="14" r="1.2" fill="#1f2937" />
+              <rect x="7" y="13.2" width="15" height="1.6" rx="0.8" fill="#1f2937" />
+              <circle cx="4" cy="21" r="1.2" fill="#1f2937" />
+              <rect x="7" y="20.2" width="15" height="1.6" rx="0.8" fill="#1f2937" />
+            </svg>
+          </button>
+          <div>
+            <a href="index.html" style="text-decoration: none; color: inherit">
+              <span style="display: flex; align-items: center; gap: 0.5rem">
+                <img src="images/Logo-Almuerzo-Perú.png" alt="Logo Almuerzos Perú" style="
                       height: 22px;
                       width: auto;
                       margin-right: 0.1rem;
                       vertical-align: middle;
-                    "
-                  />
-                  <h1
-                    style="
+                    " />
+                <h1 style="
                       margin: 0;
                       font-size: 1.5rem;
                       font-weight: 800;
                       cursor: pointer;
                       letter-spacing: -1px;
                       background: none;
-                    "
-                    onmouseover="this.style.opacity='0.8'"
-                    onmouseout="this.style.opacity='1'"
-                  >
-                    <span style="color: #1f2937">Almuerzos</span
-                    ><span style="color: #ffffff">Perú</span>
-                  </h1>
-                </span>
-              </a>
-            </div>
+                    " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                  <span style="color: #1f2937">Almuerzos</span><span style="color: #ffffff">Perú</span>
+                </h1>
+              </span>
+            </a>
           </div>
-          <button
-            class="logout-button"
-            onclick="logout()"
-            style="
+        </div>
+        <button class="logout-button" onclick="logout()" style="
               background: rgba(255, 255, 255, 0.2);
               border: 1px solid rgba(255, 255, 255, 0.3);
               color: white;
@@ -210,177 +148,129 @@
               border-radius: 0.5rem;
               cursor: pointer;
               transition: background 0.2s;
-            "
-          >
-            Cerrar sesión
-          </button>
-        </header>
+            ">
+          Cerrar sesión
+        </button>
+      </header>
 
-        <div class="container">
-          <div id="restaurant-banner" class="restaurant-banner">
-            <div class="restaurant-header">
-              <div class="restaurant-icon">
-                <img
-                  id="restaurant-logo"
-                  src=""
-                  alt="Logo"
-                  style="
+      <div class="container">
+        <div id="restaurant-banner" class="restaurant-banner">
+          <div class="restaurant-header">
+            <div class="restaurant-icon">
+              <img id="restaurant-logo" src="" alt="Logo" style="
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
                     border-radius: 50%;
                     display: none;
-                  "
-                />
-                <svg
-                  id="restaurant-icon-placeholder"
-                  width="40"
-                  height="40"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="M7 13C8.66 13 10 11.66 10 10S8.66 7 7 7 4 8.34 4 10 5.34 13 7 13Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M20 13V6C20 5.45 19.55 5 19 5H14C13.45 5 13 5.45 13 6V13C13 13.55 13.45 14 14 14H19C19.55 14 20 13.55 20 13Z"
-                    fill="currentColor"
-                  />
-                  <path
-                    d="M21 15H3C2.45 15 2 15.45 2 16V18C2 18.55 2.45 19 3 19H21C21.55 19 22 18.55 22 18V16C22 15.45 21.55 15 21 15Z"
-                    fill="currentColor"
-                  />
-                </svg>
-              </div>
-              <div class="restaurant-info">
-                <h2 id="restaurant-name">Cargando...</h2>
-                <div class="restaurant-details">
-                  <div class="restaurant-detail">
-                    <span class="detail-icon">🕐</span>
-                    <span id="restaurant-hours"></span>
-                  </div>
-                  <div class="restaurant-detail">
-                    <span class="detail-icon">❤️</span>
+                  " />
+              <svg id="restaurant-icon-placeholder" width="40" height="40" viewBox="0 0 24 24" fill="none"
+                xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 13C8.66 13 10 11.66 10 10S8.66 7 7 7 4 8.34 4 10 5.34 13 7 13Z" fill="currentColor" />
+                <path
+                  d="M20 13V6C20 5.45 19.55 5 19 5H14C13.45 5 13 5.45 13 6V13C13 13.55 13.45 14 14 14H19C19.55 14 20 13.55 20 13Z"
+                  fill="currentColor" />
+                <path
+                  d="M21 15H3C2.45 15 2 15.45 2 16V18C2 18.55 2.45 19 3 19H21C21.55 19 22 18.55 22 18V16C22 15.45 21.55 15 21 15Z"
+                  fill="currentColor" />
+              </svg>
+            </div>
+            <div class="restaurant-info">
+              <h2 id="restaurant-name">Cargando...</h2>
+              <div class="restaurant-details">
+                <div class="restaurant-detail">
+                  <span class="detail-icon">🕐</span>
+                  <span id="restaurant-hours"></span>
+                </div>
+                <div class="restaurant-detail">
+                  <span class="detail-icon">❤️</span>
 
-                    <span id="restaurant-rating"></span>
-                  </div>
-                  <div class="restaurant-detail">
-                    <span class="detail-icon"><i class="fa-solid fa-location-dot"></i></span>
-                    <a
-                      id="restaurant-location"
-                      class="mapa-badge"
-                      href="#"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style="color: inherit; cursor: pointer"
-                    ></a>
-                  </div>
-                  <div class="restaurant-detail">
-                    <span class="detail-icon" id="restaurant-delivery-icon"
-                      >🚚</span
-                    >
-                    <span id="restaurant-delivery-text">Cargando...</span>
-                  </div>
+                  <span id="restaurant-rating"></span>
+                </div>
+                <div class="restaurant-detail">
+                  <span class="detail-icon"><i class="fa-solid fa-location-dot"></i></span>
+                  <a id="restaurant-location" class="mapa-badge" href="#" target="_blank" rel="noopener noreferrer"
+                    style="color: inherit; cursor: pointer"></a>
+                </div>
+                <div class="restaurant-detail">
+                  <span class="detail-icon" id="restaurant-delivery-icon">🚚</span>
+                  <span id="restaurant-delivery-text">Cargando...</span>
                 </div>
               </div>
             </div>
-            <div class="restaurant-status">
-              <span class="status-badge">ABIERTO</span>
-            </div>
-            <button
-              class="edit-restaurant-btn"
-              onclick="openEditRestaurantModal()"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                ></path>
-                <path
-                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                ></path>
-              </svg>
-            </button>
           </div>
-
-          <div
-            class="dashed-container"
-            style="text-align: center; margin: 2rem 0"
-          >
-            <button class="primary-button" onclick="openModal('newCardModal')">
-              Nueva carta +
-            </button>
+          <div class="restaurant-status">
+            <span class="status-badge">ABIERTO</span>
           </div>
-
-          <div id="cards-list">
-            <p id="loading-cards-message">Cargando cartas...</p>
-          </div>
+          <button class="edit-restaurant-btn" onclick="openEditRestaurantModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
         </div>
-      </section>
 
-      <section id="dishes-section">
-        <header
-          class="main-header"
-          style="
+        <div class="dashed-container" style="text-align: center; margin: 2rem 0">
+          <button class="primary-button" onclick="openModal('newCardModal')">
+            Nueva carta +
+          </button>
+        </div>
+
+        <div id="cards-list">
+          <p id="loading-cards-message">Cargando cartas...</p>
+        </div>
+
+        <!-- Botón para compartir todas las cartas en WhatsApp -->
+        <div id="share-all-cards-container"
+          style="text-align: center; margin: 1.5rem 0; padding: 0 1rem; display: none;">
+          <button id="share-all-cards-btn" onclick="shareAllCardsOnWhatsApp()" class="order-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"
+              class="whatsapp-icon">
+              <path
+                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.821 11.821 0 0020.465 3.488" />
+            </svg>
+            Compartir todas las cartas en WhatsApp
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="dishes-section">
+      <header class="main-header" style="
             background: linear-gradient(135deg, #ff8c00, #ffa500);
             padding: 1rem;
             color: white;
             display: flex;
             align-items: center;
             justify-content: space-between;
-          "
-        >
-          <div style="display: flex; align-items: center; gap: 1rem">
-            <button
-              class="menu-btn"
-              onclick="toggleSidebar()"
-              style="
+          ">
+        <div style="display: flex; align-items: center; gap: 1rem">
+          <button class="menu-btn" onclick="toggleSidebar()" style="
                 background: none;
                 border: none;
                 color: white;
                 font-size: 1.5rem;
                 cursor: pointer;
-              "
-            >
-              ☰
-            </button>
-            <div>
-              <a
-                href="index.html"
-                style="text-decoration: none; color: inherit"
-              >
-                <h1
-                  style="
+              ">
+            ☰
+          </button>
+          <div>
+            <a href="index.html" style="text-decoration: none; color: inherit">
+              <h1 style="
                     margin: 0;
                     font-size: 1.5rem;
                     font-weight: 800;
                     cursor: pointer;
                     transition: opacity 0.2s;
-                  "
-                  onmouseover="this.style.opacity='0.8'"
-                  onmouseout="this.style.opacity='1'"
-                >
-                  Almuerzos Perú
-                </h1>
-              </a>
-              <p style="margin: 0; font-size: 0.9rem; opacity: 0.9">PLATOS</p>
-            </div>
+                  " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                Almuerzos Perú
+              </h1>
+            </a>
+            <p style="margin: 0; font-size: 0.9rem; opacity: 0.9">PLATOS</p>
           </div>
-          <button
-            class="logout-button"
-            onclick="logout()"
-            style="
+        </div>
+        <button class="logout-button" onclick="logout()" style="
               background: rgba(255, 255, 255, 0.2);
               border: 1px solid rgba(255, 255, 255, 0.3);
               color: white;
@@ -388,163 +278,106 @@
               border-radius: 0.5rem;
               cursor: pointer;
               transition: background 0.2s;
-            "
-          >
-            Cerrar sesión
+            ">
+          Cerrar sesión
+        </button>
+      </header>
+      <div class="container">
+        <div class="dishes-header">
+          <button class="back-button" onclick="showCards()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 12H5"></path>
+              <path d="M12 19l-7-7 7-7"></path>
+            </svg>
           </button>
-        </header>
-        <div class="container">
-          <div class="dishes-header">
-            <button class="back-button" onclick="showCards()">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="32"
-                height="32"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M19 12H5"></path>
-                <path d="M12 19l-7-7 7-7"></path>
-              </svg>
-            </button>
-            <!--  <button id="delete-card-button" class="delete-button">
+          <!--  <button id="delete-card-button" class="delete-button">
             <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <polyline points="3 6 5 6 21 6"></polyline>
               <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
             </svg>
           </button> -->
+        </div>
+
+        <div class="dish-list-container">
+          <!-- Botón flotante para compartir carta -->
+          <div class="share-stick">
+            <button class="floating-share-btn" id="floating-share-btn" onclick="shareCardOnWhatsApp()"
+              title="Compartir carta">
+              <img src="images/whatsapplogo.png" alt="Icono celular" />
+            </button>
+          </div>
+          <div class="card-header-wrapper">
+            <div class="card-name-input-wrapper">
+              <input type="text" id="card-name-input" class="card-name-input" maxlength="35" />
+            </div>
+            <div class="character-limit-alert" id="character-limit-alert" style="display: none">
+              <span class="alert-icon">👨‍🍳</span>
+              <span class="alert-text">¡Perfecto! Has usado todos los caracteres disponibles para el
+                nombre de tu carta</span>
+            </div>
+            <button class="whatsapp-share-button" onclick="shareCardOnWhatsApp()">
+              <img src="images/celular.png" alt="Icono" class="whatsapp-icon" />
+              Compartir carta en WhatsApp
+            </button>
           </div>
 
-          <div class="dish-list-container">
-            <!-- Botón flotante para compartir carta -->
-            <div class="share-stick">
-              <button
-                class="floating-share-btn"
-                id="floating-share-btn"
-                onclick="shareCardOnWhatsApp()"
-                title="Compartir carta"
-              >
-                <img src="images/whatsapplogo.png" alt="Icono celular" />
-              </button>
-            </div>
-            <div class="card-header-wrapper">
-              <div class="card-name-input-wrapper">
-                <input
-                  type="text"
-                  id="card-name-input"
-                  class="card-name-input"
-                  maxlength="35"
-                />
-              </div>
-              <div
-                class="character-limit-alert"
-                id="character-limit-alert"
-                style="display: none"
-              >
-                <span class="alert-icon">👨‍🍳</span>
-                <span class="alert-text"
-                  >¡Perfecto! Has usado todos los caracteres disponibles para el
-                  nombre de tu carta</span
-                >
-              </div>
-              <button
-                class="whatsapp-share-button"
-                onclick="shareCardOnWhatsApp()"
-              >
-                <img
-                  src="images/celular.png"
-                  alt="Icono"
-                  class="whatsapp-icon"
-                />
-                Compartir carta en WhatsApp
-              </button>
-            </div>
+          <div class="dashed-container">
+            <button class="primary-button" onclick="openModal('newDishModal')">
+              Nuevo plato +
+            </button>
+          </div>
 
-            <div class="dashed-container">
-              <button
-                class="primary-button"
-                onclick="openModal('newDishModal')"
-              >
-                Nuevo plato +
-              </button>
-            </div>
+          <div id="dishes-list"></div>
 
-            <div id="dishes-list"></div>
-
-            <div style="text-align: center; margin-top: 2rem; display: none">
-              <button
-                id="save-card-changes-btn"
-                class="primary-button dark-button"
-                style="width: 100%"
-                disabled
-              >
-                Guardar cambios
-              </button>
-            </div>
+          <div style="text-align: center; margin-top: 2rem; display: none">
+            <button id="save-card-changes-btn" class="primary-button dark-button" style="width: 100%" disabled>
+              Guardar cambios
+            </button>
           </div>
         </div>
-      </section>
-    </div>
-
-    <!-- Modal: Nueva Carta -->
-    <div id="newCardModal" class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal-content">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <h2>Nueva carta</h2>
-        <form id="new-card-form">
-          <div class="modal-form-group">
-            <input
-              type="text"
-              name="cardName"
-              placeholder="Nombre de la carta"
-              maxlength="35"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            class="primary-button dark-button dashed-container"
-            style="width: 100%; margin-top: 1rem"
-          >
-            Agregar Carta
-          </button>
-        </form>
       </div>
-    </div>
+    </section>
+  </div>
 
-    <!-- Modal: Nuevo Plato -->
-    <div id="newDishModal" class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal-content">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
+  <!-- Modal: Nueva Carta -->
+  <div id="newCardModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>Nueva carta</h2>
+      <form id="new-card-form">
+        <div class="modal-form-group">
+          <input type="text" name="cardName" placeholder="Nombre de la carta" maxlength="35" required />
+        </div>
+        <button type="submit" class="primary-button dark-button dashed-container" style="width: 100%; margin-top: 1rem">
+          Agregar Carta
         </button>
-        <h2>Nuevo plato</h2>
-        <!-- Reemplaza el <form> dentro del div#newDishModal con esto -->
-        <form id="new-dish-form">
-          <div class="modal-form-group">
-            <!-- Contenedor con líneas punteadas que rodea todo -->
-            <div
-              id="image-upload-box"
-              class="image-upload-box"
-              style="
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Nuevo Plato -->
+  <div id="newDishModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>Nuevo plato</h2>
+      <!-- Reemplaza el <form> dentro del div#newDishModal con esto -->
+      <form id="new-dish-form">
+        <div class="modal-form-group">
+          <!-- Contenedor con líneas punteadas que rodea todo -->
+          <div id="image-upload-box" class="image-upload-box" style="
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.75rem;
                 position: relative;
-              "
-            >
-              <!-- Botón eliminar foto posicionado en la esquina superior derecha del contenedor -->
-              <button
-                type="button"
-                id="new-delete-photo-btn"
-                style="
+              ">
+            <!-- Botón eliminar foto posicionado en la esquina superior derecha del contenedor -->
+            <button type="button" id="new-delete-photo-btn" style="
                   position: absolute;
                   top: 8px;
                   right: 8px;
@@ -560,84 +393,53 @@
                   justify-content: center;
                   font-size: 14px;
                   z-index: 10;
-                "
-              >
-                &times;
-              </button>
-              <!-- Área de imagen con preview -->
-              <label
-                for="dish-image-input"
-                style="
+                ">
+              &times;
+            </button>
+            <!-- Área de imagen con preview -->
+            <label for="dish-image-input" style="
                   display: flex;
                   flex-direction: column;
                   align-items: center;
                   justify-content: center;
                   cursor: pointer;
-                "
-              >
-                <img
-                  id="dish-image-preview"
-                  src=""
-                  alt="Previsualización del plato"
-                  style="
+                ">
+              <img id="dish-image-preview" src="" alt="Previsualización del plato" style="
                     display: none;
                     width: 60px;
                     height: 60px;
                     object-fit: cover;
                     border-radius: 0.5rem;
-                  "
-                />
+                  " />
 
-                <!-- Este es el contenedor que se muestra por defecto -->
-                <div
-                  id="image-upload-placeholder"
-                  style="
+              <!-- Este es el contenedor que se muestra por defecto -->
+              <div id="image-upload-placeholder" style="
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     gap: 0.5rem;
                     width: 100%;
-                  "
-                >
-                  <div class="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <rect
-                        x="3"
-                        y="3"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"
-                      ></rect>
-                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                      <polyline points="21 15 16 10 5 21"></polyline>
-                    </svg>
-                  </div>
-                  <span>Foto del plato </span>
+                  ">
+                <div class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
                 </div>
-              </label>
+                <span>Foto del plato </span>
+              </div>
+            </label>
 
-              <!-- Mensaje informativo -->
-              <small style="color: #666; text-align: center">
-                Si no seleccionas una imagen, se usará una imagen por defecto.
-              </small>
+            <!-- Mensaje informativo -->
+            <small style="color: #666; text-align: center">
+              Si no seleccionas una imagen, se usará una imagen por defecto.
+            </small>
 
-              <!-- Botones de cámara y galería -->
-              <div style="display: flex; gap: 0.75rem">
-                <button
-                  type="button"
-                  id="camera-btn"
-                  style="
+            <!-- Botones de cámara y galería -->
+            <div style="display: flex; gap: 0.75rem">
+              <button type="button" id="camera-btn" style="
                     flex: 1;
                     padding: 0.75rem;
                     background-color: #00b44e;
@@ -651,33 +453,18 @@
                     gap: 0.5rem;
                     cursor: pointer;
                     transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#009a42'"
-                  onmouseout="this.style.backgroundColor='#00b44e'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"
-                    />
-                    <circle cx="12" cy="13" r="3" />
-                  </svg>
-                  Tomar foto
-                </button>
+                  " onmouseover="this.style.backgroundColor='#009a42'"
+                onmouseout="this.style.backgroundColor='#00b44e'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
+                Tomar foto
+              </button>
 
-                <button
-                  type="button"
-                  id="gallery-btn"
-                  style="
+              <button type="button" id="gallery-btn" style="
                     flex: 1;
                     padding: 0.75rem;
                     background-color: #2196f3;
@@ -691,112 +478,63 @@
                     gap: 0.5rem;
                     cursor: pointer;
                     transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#1976d2'"
-                  onmouseout="this.style.backgroundColor='#2196f3'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <polyline points="21 15 16 10 5 21" />
-                  </svg>
-                  Galería
-                </button>
-              </div>
+                  " onmouseover="this.style.backgroundColor='#1976d2'"
+                onmouseout="this.style.backgroundColor='#2196f3'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                Galería
+              </button>
             </div>
+          </div>
 
-            <!-- Inputs de archivo ocultos -->
-            <input
-              type="file"
-              id="dish-image-input"
-              name="dishImage"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="camera-input"
-              accept="image/*"
-              capture="environment"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="gallery-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-          </div>
-          <div class="modal-form-group">
-            <input
-              type="text"
-              name="dishName"
-              placeholder="Nombre del plato"
-              required
-            />
-          </div>
-          <div class="modal-form-group">
-            <input
-              type="number"
-              step="0.01"
-              name="dishPrice"
-              placeholder="Precio del plato (S/.)"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            class="primary-button dark-button dashed-container"
-            style="width: 100%; margin-top: 1rem"
-          >
-            Agregar plato
-          </button>
-        </form>
-      </div>
+          <!-- Inputs de archivo ocultos -->
+          <input type="file" id="dish-image-input" name="dishImage" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+          <input type="file" id="camera-input" accept="image/*" capture="environment" style="display: none" />
+          <input type="file" id="gallery-input" accept="image/png, image/jpeg, image/webp" style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <input type="text" name="dishName" placeholder="Nombre del plato" required />
+        </div>
+        <div class="modal-form-group">
+          <input type="number" step="0.01" name="dishPrice" placeholder="Precio del plato (S/.)" required />
+        </div>
+        <button type="submit" class="primary-button dark-button dashed-container" style="width: 100%; margin-top: 1rem">
+          Agregar plato
+        </button>
+      </form>
     </div>
+  </div>
 
-    <div id="editDishModal" class="modal-backdrop" onclick="closeModal(event)">
-      <div class="modal-content">
-        <button id="open-delete-dish-alert-btn" class="delete-icon">
-          <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+  <div id="editDishModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content">
+      <button id="open-delete-dish-alert-btn" class="delete-icon">
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
           stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="3 6 5 6 21 6"></polyline>
           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
         </svg> -->
-        </button>
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <!-- Aquí podría ir un futuro botón de eliminar plato -->
-        <h2>Editar plato</h2>
-        <form id="edit-dish-form">
-          <div class="modal-form-group">
-            <!-- Nueva estructura centrada para editar plato -->
-            <div
-              id="edit-image-upload-box"
-              class="image-upload-box"
-              style="
+      </button>
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <!-- Aquí podría ir un futuro botón de eliminar plato -->
+      <h2>Editar plato</h2>
+      <form id="edit-dish-form">
+        <div class="modal-form-group">
+          <!-- Nueva estructura centrada para editar plato -->
+          <div id="edit-image-upload-box" class="image-upload-box" style="
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.75rem;
                 position: relative;
-              "
-            >
-              <!-- Botón eliminar foto posicionado en la esquina superior derecha del contenedor -->
-              <button
-                type="button"
-                id="edit-delete-photo-btn"
-                style="
+              ">
+            <!-- Botón eliminar foto posicionado en la esquina superior derecha del contenedor -->
+            <button type="button" id="edit-delete-photo-btn" style="
                   position: absolute;
                   top: 8px;
                   right: 8px;
@@ -812,89 +550,55 @@
                   justify-content: center;
                   font-size: 14px;
                   z-index: 10;
-                "
-              >
-                &times;
-              </button>
-              <!-- Área de imagen con preview -->
-              <label
-                for="edit-dish-image-input"
-                style="
+                ">
+              &times;
+            </button>
+            <!-- Área de imagen con preview -->
+            <label for="edit-dish-image-input" style="
                   display: flex;
                   flex-direction: column;
                   align-items: center;
                   justify-content: center;
                   cursor: pointer;
-                "
-              >
-                <!-- Contenedor de imagen con botón de eliminar -->
-                <div
-                  id="edit-image-container"
-                  style="position: relative; display: none"
-                >
-                  <img
-                    id="edit-dish-image-preview"
-                    src=""
-                    alt="Previsualización del plato"
-                    style="
+                ">
+              <!-- Contenedor de imagen con botón de eliminar -->
+              <div id="edit-image-container" style="position: relative; display: none">
+                <img id="edit-dish-image-preview" src="" alt="Previsualización del plato" style="
                       width: 60px;
                       height: 60px;
                       object-fit: cover;
                       border-radius: 0.5rem;
-                    "
-                  />
-                </div>
+                    " />
+              </div>
 
-                <!-- Este es el contenedor que se muestra por defecto -->
-                <div
-                  id="edit-image-upload-placeholder"
-                  style="
+              <!-- Este es el contenedor que se muestra por defecto -->
+              <div id="edit-image-upload-placeholder" style="
                     display: flex;
                     flex-direction: column;
                     align-items: center;
                     gap: 0.5rem;
                     width: 100%;
-                  "
-                >
-                  <div class="icon">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <rect
-                        x="3"
-                        y="3"
-                        width="18"
-                        height="18"
-                        rx="2"
-                        ry="2"
-                      ></rect>
-                      <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                      <polyline points="21 15 16 10 5 21"></polyline>
-                    </svg>
-                  </div>
-                  <span>Foto del plato </span>
+                  ">
+                <div class="icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                    <polyline points="21 15 16 10 5 21"></polyline>
+                  </svg>
                 </div>
-              </label>
+                <span>Foto del plato </span>
+              </div>
+            </label>
 
-              <!-- Mensaje informativo -->
-              <small style="color: #666; text-align: center">
-                Si no seleccionas una imagen, se mantendrá la imagen actual.
-              </small>
+            <!-- Mensaje informativo -->
+            <small style="color: #666; text-align: center">
+              Si no seleccionas una imagen, se mantendrá la imagen actual.
+            </small>
 
-              <!-- Botones de cámara y galería -->
-              <div style="display: flex; gap: 0.75rem">
-                <button
-                  type="button"
-                  id="edit-camera-btn"
-                  style="
+            <!-- Botones de cámara y galería -->
+            <div style="display: flex; gap: 0.75rem">
+              <button type="button" id="edit-camera-btn" style="
                     flex: 1;
                     padding: 0.75rem;
                     background-color: #00b44e;
@@ -908,33 +612,18 @@
                     gap: 0.5rem;
                     cursor: pointer;
                     transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#009a42'"
-                  onmouseout="this.style.backgroundColor='#00b44e'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"
-                    />
-                    <circle cx="12" cy="13" r="3" />
-                  </svg>
-                  Tomar foto
-                </button>
+                  " onmouseover="this.style.backgroundColor='#009a42'"
+                onmouseout="this.style.backgroundColor='#00b44e'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
+                Tomar foto
+              </button>
 
-                <button
-                  type="button"
-                  id="edit-gallery-btn"
-                  style="
+              <button type="button" id="edit-gallery-btn" style="
                     flex: 1;
                     padding: 0.75rem;
                     background-color: #2196f3;
@@ -948,135 +637,77 @@
                     gap: 0.5rem;
                     cursor: pointer;
                     transition: background-color 0.2s;
-                  "
-                  onmouseover="this.style.backgroundColor='#1976d2'"
-                  onmouseout="this.style.backgroundColor='#2196f3'"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                    <circle cx="8.5" cy="8.5" r="1.5" />
-                    <polyline points="21 15 16 10 5 21" />
-                  </svg>
-                  Galería
-                </button>
-              </div>
+                  " onmouseover="this.style.backgroundColor='#1976d2'"
+                onmouseout="this.style.backgroundColor='#2196f3'">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                Galería
+              </button>
             </div>
+          </div>
 
-            <!-- Inputs de archivo ocultos -->
-            <input
-              type="file"
-              id="edit-dish-image-input"
-              name="dishImage"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-camera-input"
-              accept="image/*"
-              capture="environment"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-gallery-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-dish-name">Nombre del plato</label>
-            <input type="text" id="edit-dish-name" name="dishName" required />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-dish-price">Precio del plato (S/.)</label>
-            <input
-              type="number"
-              step="0.01"
-              id="edit-dish-price"
-              name="dishPrice"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            class="auth-button dark-button"
-            style="margin-top: 1rem"
-          >
-            Guardar cambios
-          </button>
-        </form>
-      </div>
+          <!-- Inputs de archivo ocultos -->
+          <input type="file" id="edit-dish-image-input" name="dishImage" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+          <input type="file" id="edit-camera-input" accept="image/*" capture="environment" style="display: none" />
+          <input type="file" id="edit-gallery-input" accept="image/png, image/jpeg, image/webp" style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-dish-name">Nombre del plato</label>
+          <input type="text" id="edit-dish-name" name="dishName" required />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-dish-price">Precio del plato (S/.)</label>
+          <input type="number" step="0.01" id="edit-dish-price" name="dishPrice" required />
+        </div>
+        <button type="submit" class="auth-button dark-button" style="margin-top: 1rem">
+          Guardar cambios
+        </button>
+      </form>
     </div>
+  </div>
 
-    <!-- Alerta: Eliminar Carta -->
-    <div
-      id="deleteCardAlert"
-      class="modal-backdrop"
-      onclick="closeModal(event)"
-    >
-      <div class="modal-content alert-modal">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <h2>¿Segur@ quieres eliminar esta carta?</h2>
-        <p style="margin-bottom: 1.5rem; color: var(--gray-text)">
-          Esta acción no se puede deshacer. Se eliminarán todos los platos de
-          esta carta.
-        </p>
-        <button
-          id="confirm-delete-card-btn"
-          class="primary-button delete-confirm-btn"
-        >
-          Eliminar
-        </button>
-      </div>
+  <!-- Alerta: Eliminar Carta -->
+  <div id="deleteCardAlert" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content alert-modal">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>¿Segur@ quieres eliminar esta carta?</h2>
+      <p style="margin-bottom: 1.5rem; color: var(--gray-text)">
+        Esta acción no se puede deshacer. Se eliminarán todos los platos de
+        esta carta.
+      </p>
+      <button id="confirm-delete-card-btn" class="primary-button delete-confirm-btn">
+        Eliminar
+      </button>
     </div>
+  </div>
 
-    <!-- Añade este nuevo modal en dashboard.html -->
+  <!-- Añade este nuevo modal en dashboard.html -->
 
-    <!-- Modal: Editar Restaurante -->
-    <div
-      id="editRestaurantModal"
-      class="modal-backdrop"
-      onclick="closeModal(event)"
-    >
-      <div
-        class="modal-content"
-        style="max-width: 600px; max-height: 90vh; overflow-y: auto"
-      >
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <h2 style="text-align: center">Editar restaurante</h2>
-        <form id="edit-restaurant-form" novalidate>
-          <div class="modal-form-group">
-            <!-- Contenedor con líneas punteadas que rodea todo -->
-            <div
-              id="edit-restaurant-image-upload-box"
-              class="image-upload-box"
-              style="
+  <!-- Modal: Editar Restaurante -->
+  <div id="editRestaurantModal" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content" style="max-width: 600px; max-height: 90vh; overflow-y: auto">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2 style="text-align: center">Editar restaurante</h2>
+      <form id="edit-restaurant-form" novalidate>
+        <div class="modal-form-group">
+          <!-- Contenedor con líneas punteadas que rodea todo -->
+          <div id="edit-restaurant-image-upload-box" class="image-upload-box" style="
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.75rem;
                 position: relative;
-              "
-            >
-              <!-- Botón eliminar foto del restaurante -->
-              <button
-                type="button"
-                id="edit-restaurant-delete-photo-btn"
-                style="
+              ">
+            <!-- Botón eliminar foto del restaurante -->
+            <button type="button" id="edit-restaurant-delete-photo-btn" style="
                   position: absolute;
                   top: 8px;
                   right: 8px;
@@ -1095,74 +726,42 @@
                   z-index: 100;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
                   transition: background-color 0.2s;
-                "
-                onmouseover="this.style.backgroundColor='#b02a37'"
-                onmouseout="this.style.backgroundColor='#dc3545'"
-              >
-                &times;
-              </button>
+                " onmouseover="this.style.backgroundColor='#b02a37'" onmouseout="this.style.backgroundColor='#dc3545'">
+              &times;
+            </button>
 
-              <!-- Preview de la imagen -->
-              <img
-                id="edit-restaurant-image-preview"
-                src=""
-                alt="Previsualización del local"
-                style="
+            <!-- Preview de la imagen -->
+            <img id="edit-restaurant-image-preview" src="" alt="Previsualización del local" style="
                   display: none;
                   width: 100%;
                   height: 120px;
                   object-fit: cover;
                   border-radius: 0.5rem;
-                "
-              />
+                " />
 
-              <!-- Placeholder cuando no hay imagen -->
-              <div
-                id="edit-restaurant-image-placeholder"
-                style="
+            <!-- Placeholder cuando no hay imagen -->
+            <div id="edit-restaurant-image-placeholder" style="
                   display: flex;
                   flex-direction: column;
                   align-items: center;
                   gap: 0.5rem;
                   padding: 1rem;
                   text-align: center;
-                "
-              >
-                <div class="icon" style="color: #9ca3af">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <rect
-                      x="3"
-                      y="3"
-                      width="18"
-                      height="18"
-                      rx="2"
-                      ry="2"
-                    ></rect>
-                    <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                    <polyline points="21 15 16 10 5 21"></polyline>
-                  </svg>
-                </div>
-                <span style="color: #6b7280; font-weight: 500"
-                  >Foto del local</span
-                >
+                ">
+              <div class="icon" style="color: #9ca3af">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                  <polyline points="21 15 16 10 5 21"></polyline>
+                </svg>
               </div>
+              <span style="color: #6b7280; font-weight: 500">Foto del local</span>
+            </div>
 
-              <!-- Botones de cámara y galería -->
-              <div style="display: flex; gap: 0.5rem">
-                <button
-                  type="button"
-                  id="edit-restaurant-camera-btn"
-                  style="
+            <!-- Botones de cámara y galería -->
+            <div style="display: flex; gap: 0.5rem">
+              <button type="button" id="edit-restaurant-camera-btn" style="
                     flex: 1;
                     padding: 0.5rem;
                     background-color: #3b82f6;
@@ -1177,14 +776,10 @@
                     justify-content: center;
                     gap: 0.5rem;
                     transition: background-color 0.2s;
-                  "
-                >
-                  📸 Cámara
-                </button>
-                <button
-                  type="button"
-                  id="edit-restaurant-gallery-btn"
-                  style="
+                  ">
+                📸 Cámara
+              </button>
+              <button type="button" id="edit-restaurant-gallery-btn" style="
                     flex: 1;
                     padding: 0.5rem;
                     background-color: #10b981;
@@ -1199,52 +794,30 @@
                     justify-content: center;
                     gap: 0.5rem;
                     transition: background-color 0.2s;
-                  "
-                >
-                  🖼️ Galería
-                </button>
-              </div>
+                  ">
+                🖼️ Galería
+              </button>
             </div>
-
-            <!-- Inputs de archivo ocultos -->
-            <input
-              type="file"
-              id="edit-restaurant-image-input"
-              name="restaurantImage"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-restaurant-camera-input"
-              accept="image/*"
-              capture="environment"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-restaurant-gallery-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
           </div>
-          <div class="modal-form-group">
-            <!-- Contenedor con líneas punteadas que rodea todo -->
-            <div
-              id="edit-restaurant-logo-upload-box"
-              class="image-upload-box"
-              style="
+
+          <!-- Inputs de archivo ocultos -->
+          <input type="file" id="edit-restaurant-image-input" name="restaurantImage"
+            accept="image/png, image/jpeg, image/webp" style="display: none" />
+          <input type="file" id="edit-restaurant-camera-input" accept="image/*" capture="environment"
+            style="display: none" />
+          <input type="file" id="edit-restaurant-gallery-input" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <!-- Contenedor con líneas punteadas que rodea todo -->
+          <div id="edit-restaurant-logo-upload-box" class="image-upload-box" style="
                 flex-direction: column;
                 align-items: stretch;
                 gap: 0.75rem;
                 position: relative;
-              "
-            >
-              <!-- Botón eliminar logo del restaurante -->
-              <button
-                type="button"
-                id="edit-restaurant-delete-logo-btn"
-                style="
+              ">
+            <!-- Botón eliminar logo del restaurante -->
+            <button type="button" id="edit-restaurant-delete-logo-btn" style="
                   position: absolute;
                   top: 8px;
                   right: 8px;
@@ -1263,69 +836,42 @@
                   z-index: 100;
                   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
                   transition: background-color 0.2s;
-                "
-                onmouseover="this.style.backgroundColor='#b02a37'"
-                onmouseout="this.style.backgroundColor='#dc3545'"
-              >
-                &times;
-              </button>
+                " onmouseover="this.style.backgroundColor='#b02a37'" onmouseout="this.style.backgroundColor='#dc3545'">
+              &times;
+            </button>
 
-              <!-- Preview del logo -->
-              <img
-                id="edit-restaurant-logo-preview"
-                src=""
-                alt="Logo del restaurante"
-                style="
+            <!-- Preview del logo -->
+            <img id="edit-restaurant-logo-preview" src="" alt="Logo del restaurante" style="
                   display: none;
                   width: 100%;
                   height: 120px;
                   object-fit: cover;
                   border-radius: 0.5rem;
-                "
-              />
+                " />
 
-              <!-- Placeholder cuando no hay logo -->
-              <div
-                id="edit-restaurant-logo-placeholder"
-                class="image-placeholder"
-                style="
+            <!-- Placeholder cuando no hay logo -->
+            <div id="edit-restaurant-logo-placeholder" class="image-placeholder" style="
                   display: flex;
                   flex-direction: column;
                   align-items: center;
                   gap: 0.5rem;
                   padding: 1rem;
                   text-align: center;
-                "
-              >
-                <div class="icon" style="color: #9ca3af">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="32"
-                    height="32"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path
-                      d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z"
-                    />
-                    <circle cx="12" cy="13" r="3" />
-                  </svg>
-                </div>
-                <span style="color: #6b7280; font-weight: 500"
-                  >Logo del restaurante</span
-                >
+                ">
+              <div class="icon" style="color: #9ca3af">
+                <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path
+                    d="M20 7h-3V4c0-1.1-.9-2-2-2H9c-1.1 0-2 .9-2 2v3H4c-1.1 0-2 .9-2 2v9c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zM9 4h6v3H9V4zm11 14H4V9h5c0 1.1.9 2 2 2h2c1.1 0 2-.9 2-2h5v9z" />
+                  <circle cx="12" cy="13" r="3" />
+                </svg>
               </div>
+              <span style="color: #6b7280; font-weight: 500">Logo del restaurante</span>
+            </div>
 
-              <!-- Botones de cámara y galería -->
-              <div style="display: flex; gap: 0.5rem">
-                <button
-                  type="button"
-                  id="edit-restaurant-logo-camera-btn"
-                  style="
+            <!-- Botones de cámara y galería -->
+            <div style="display: flex; gap: 0.5rem">
+              <button type="button" id="edit-restaurant-logo-camera-btn" style="
                     flex: 1;
                     padding: 0.5rem;
                     background-color: #3b82f6;
@@ -1340,14 +886,10 @@
                     justify-content: center;
                     gap: 0.5rem;
                     transition: background-color 0.2s;
-                  "
-                >
-                  📸 Cámara
-                </button>
-                <button
-                  type="button"
-                  id="edit-restaurant-logo-gallery-btn"
-                  style="
+                  ">
+                📸 Cámara
+              </button>
+              <button type="button" id="edit-restaurant-logo-gallery-btn" style="
                     flex: 1;
                     padding: 0.5rem;
                     background-color: #10b981;
@@ -1362,509 +904,301 @@
                     justify-content: center;
                     gap: 0.5rem;
                     transition: background-color 0.2s;
-                  "
-                >
-                  🖼️ Galería
-                </button>
-              </div>
+                  ">
+                🖼️ Galería
+              </button>
             </div>
-
-            <!-- Inputs de archivo ocultos -->
-            <input
-              type="file"
-              id="edit-restaurant-logo-input"
-              name="restaurantLogo"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-restaurant-logo-camera-input"
-              accept="image/*"
-              capture="environment"
-              style="display: none"
-            />
-            <input
-              type="file"
-              id="edit-restaurant-logo-gallery-input"
-              accept="image/png, image/jpeg, image/webp"
-              style="display: none"
-            />
           </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-name"
-              >Nombre del restaurante <span style="color: red">*</span></label
-            >
-            <input
-              type="text"
-              id="edit-restaurant-name"
-              name="restaurantName"
-              placeholder="Nombre del restaurante"
-              required
-              style="
+
+          <!-- Inputs de archivo ocultos -->
+          <input type="file" id="edit-restaurant-logo-input" name="restaurantLogo"
+            accept="image/png, image/jpeg, image/webp" style="display: none" />
+          <input type="file" id="edit-restaurant-logo-camera-input" accept="image/*" capture="environment"
+            style="display: none" />
+          <input type="file" id="edit-restaurant-logo-gallery-input" accept="image/png, image/jpeg, image/webp"
+            style="display: none" />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-name">Nombre del restaurante <span style="color: red">*</span></label>
+          <input type="text" id="edit-restaurant-name" name="restaurantName" placeholder="Nombre del restaurante"
+            required style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
-              "
-            />
-            <div id="restaurantName-error" class="field-error-message"></div>
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-description"
-              >Descripción del restaurante</label
-            >
-            <textarea
-              id="edit-restaurant-description"
-              name="restaurantDescription"
-              rows="3"
-              maxlength="300"
-              placeholder="Descripción del restaurante"
-              style="
+              " />
+          <div id="restaurantName-error" class="field-error-message"></div>
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-description">Descripción del restaurante</label>
+          <textarea id="edit-restaurant-description" name="restaurantDescription" rows="3" maxlength="300"
+            placeholder="Descripción del restaurante" style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
                 resize: vertical;
-              "
-            ></textarea>
-            <div
-              id="restaurantDescription-error"
-              class="field-error-message"
-            ></div>
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-ruc">RUC </label>
-            <input
-              type="text"
-              id="edit-restaurant-ruc"
-              name="restaurantRuc"
-              pattern="[0-9]{11}"
-              placeholder="RUC del restaurante (opcional)"
-              style="
+              "></textarea>
+          <div id="restaurantDescription-error" class="field-error-message"></div>
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-ruc">RUC </label>
+          <input type="text" id="edit-restaurant-ruc" name="restaurantRuc" pattern="[0-9]{11}"
+            placeholder="RUC del restaurante (opcional)" style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
-              "
-            />
-          </div>
+              " />
+        </div>
 
-          <div class="modal-form-group">
-            <label for="edit-restaurant-district"
-              >Distrito del restaurante<span style="color: red">*</span></label
-            >
-            <select
-              id="edit-restaurant-district"
-              name="restaurantDistrict"
-              required
-              style="
+        <div class="modal-form-group">
+          <label for="edit-restaurant-district">Distrito del restaurante<span style="color: red">*</span></label>
+          <select id="edit-restaurant-district" name="restaurantDistrict" required style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
-              "
-            >
-              <option value="">Selecciona un distrito</option>
-              <option value="Ate">Ate</option>
-              <option value="Barranco">Barranco</option>
-              <option value="Breña">Breña</option>
-              <option value="Carabayllo">Carabayllo</option>
-              <option value="Cercado de Lima">Cercado de Lima</option>
-              <option value="Chaclacayo">Chaclacayo</option>
-              <option value="Chorrillos">Chorrillos</option>
-              <option value="Cieneguilla">Cieneguilla</option>
-              <option value="Comas">Comas</option>
-              <option value="El Agustino">El Agustino</option>
-              <option value="Independencia">Independencia</option>
-              <option value="Jesús María">Jesús María</option>
-              <option value="La Molina">La Molina</option>
-              <option value="La Victoria">La Victoria</option>
-              <option value="Lince">Lince</option>
-              <option value="Los Olivos">Los Olivos</option>
-              <option value="Lurigancho (Chosica)">Lurigancho (Chosica)</option>
-              <option value="Lurín">Lurín</option>
-              <option value="Magdalena del Mar">Magdalena del Mar</option>
-              <option value="Pueblo Libre">Pueblo Libre</option>
-              <option value="Miraflores">Miraflores</option>
-              <option value="Pachacámac">Pachacámac</option>
-              <option value="Puente Piedra">Puente Piedra</option>
-              <option value="Rímac">Rímac</option>
-              <option value="San Bartolo">San Bartolo</option>
-              <option value="San Borja">San Borja</option>
-              <option value="San Isidro">San Isidro</option>
-              <option value="San Juan de Lurigancho">
-                San Juan de Lurigancho
-              </option>
-              <option value="San Juan de miraflores">
-                San Juan de miraflores
-              </option>
-              <option value="San Luis">San Luis</option>
-              <option value="San Martín de Porres">San Martín de Porres</option>
-              <option value="San Miguel">San Miguel</option>
-              <option value="Santa Anita">Santa Anita</option>
-              <option value="Santa María del Mar">Santa María del Mar</option>
-              <option value="Santa Rosa">Santa Rosa</option>
-              <option value="Santiago de Surco">Santiago de Surco</option>
-              <option value="Surquillo">Surquillo</option>
-              <option value="Villa El Salvador">Villa El Salvador</option>
-              <option value="Villa María del Triunfo">
-                Villa María del Triunfo
-              </option>
-              <option value="Bellavista">Bellavista</option>
-              <option value="Callao">Callao</option>
-              <option value="Carmen de la Legua Reynoso">
-                Carmen de la Legua Reynoso
-              </option>
-              <option value="La Perla">La Perla</option>
-              <option value="La Punta">La Punta</option>
-              <option value="Mi Perú">Mi Perú</option>
-              <option value="Ventanilla">Ventanilla</option>
-            </select>
-            <div
-              id="restaurantDistrict-error"
-              class="field-error-message"
-            ></div>
-          </div>
+              ">
+            <option value="">Selecciona un distrito</option>
+            <option value="Ate">Ate</option>
+            <option value="Barranco">Barranco</option>
+            <option value="Breña">Breña</option>
+            <option value="Carabayllo">Carabayllo</option>
+            <option value="Cercado de Lima">Cercado de Lima</option>
+            <option value="Chaclacayo">Chaclacayo</option>
+            <option value="Chorrillos">Chorrillos</option>
+            <option value="Cieneguilla">Cieneguilla</option>
+            <option value="Comas">Comas</option>
+            <option value="El Agustino">El Agustino</option>
+            <option value="Independencia">Independencia</option>
+            <option value="Jesús María">Jesús María</option>
+            <option value="La Molina">La Molina</option>
+            <option value="La Victoria">La Victoria</option>
+            <option value="Lince">Lince</option>
+            <option value="Los Olivos">Los Olivos</option>
+            <option value="Lurigancho (Chosica)">Lurigancho (Chosica)</option>
+            <option value="Lurín">Lurín</option>
+            <option value="Magdalena del Mar">Magdalena del Mar</option>
+            <option value="Pueblo Libre">Pueblo Libre</option>
+            <option value="Miraflores">Miraflores</option>
+            <option value="Pachacámac">Pachacámac</option>
+            <option value="Puente Piedra">Puente Piedra</option>
+            <option value="Rímac">Rímac</option>
+            <option value="San Bartolo">San Bartolo</option>
+            <option value="San Borja">San Borja</option>
+            <option value="San Isidro">San Isidro</option>
+            <option value="San Juan de Lurigancho">
+              San Juan de Lurigancho
+            </option>
+            <option value="San Juan de miraflores">
+              San Juan de miraflores
+            </option>
+            <option value="San Luis">San Luis</option>
+            <option value="San Martín de Porres">San Martín de Porres</option>
+            <option value="San Miguel">San Miguel</option>
+            <option value="Santa Anita">Santa Anita</option>
+            <option value="Santa María del Mar">Santa María del Mar</option>
+            <option value="Santa Rosa">Santa Rosa</option>
+            <option value="Santiago de Surco">Santiago de Surco</option>
+            <option value="Surquillo">Surquillo</option>
+            <option value="Villa El Salvador">Villa El Salvador</option>
+            <option value="Villa María del Triunfo">
+              Villa María del Triunfo
+            </option>
+            <option value="Bellavista">Bellavista</option>
+            <option value="Callao">Callao</option>
+            <option value="Carmen de la Legua Reynoso">
+              Carmen de la Legua Reynoso
+            </option>
+            <option value="La Perla">La Perla</option>
+            <option value="La Punta">La Punta</option>
+            <option value="Mi Perú">Mi Perú</option>
+            <option value="Ventanilla">Ventanilla</option>
+          </select>
+          <div id="restaurantDistrict-error" class="field-error-message"></div>
+        </div>
 
-          <div class="modal-form-group">
-            <label for="edit-restaurant-whatsapp"
-              >Whatsapp para Pedidos de Clientes
-              <span style="color: red">*</span></label
-            >
-            <input
-              type="tel"
-              id="edit-restaurant-whatsapp"
-              name="restaurantWhatsapp"
-              required
-              placeholder="Número de WhatsApp para pedidos"
-              title="El número debe contener 9 dígitos."
-              style="
+        <div class="modal-form-group">
+          <label for="edit-restaurant-whatsapp">Whatsapp para Pedidos de Clientes
+            <span style="color: red">*</span></label>
+          <input type="tel" id="edit-restaurant-whatsapp" name="restaurantWhatsapp" required
+            placeholder="Número de WhatsApp para pedidos" title="El número debe contener 9 dígitos." style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
-              "
-            />
-            <div
-              id="restaurantWhatsapp-error"
-              class="field-error-message"
-            ></div>
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-yape">Yape </label>
-            <input
-              type="tel"
-              id="edit-restaurant-yape"
-              name="restaurantYape"
-              placeholder="Número de Yape (opcional)"
-              style="
+              " />
+          <div id="restaurantWhatsapp-error" class="field-error-message"></div>
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-yape">Yape </label>
+          <input type="tel" id="edit-restaurant-yape" name="restaurantYape" placeholder="Número de Yape (opcional)"
+            style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
-              "
-            />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-phone">Teléfono para llamadas </label>
-            <input
-              type="tel"
-              id="edit-restaurant-phone"
-              name="restaurantPhone"
-              placeholder="Teléfono fijo o celular (opcional)"
-              style="
+              " />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-phone">Teléfono para llamadas </label>
+          <input type="tel" id="edit-restaurant-phone" name="restaurantPhone"
+            placeholder="Teléfono fijo o celular (opcional)" style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
-              "
-            />
-          </div>
-          <div class="modal-form-group">
-            <label for="edit-restaurant-location">Link de ubicación </label>
-            <input
-              type="url"
-              id="edit-restaurant-location"
-              name="restaurantLocation"
-              placeholder="https://maps.google.com/... (opcional)"
-              style="
+              " />
+        </div>
+        <div class="modal-form-group">
+          <label for="edit-restaurant-location">Link de ubicación </label>
+          <input type="url" id="edit-restaurant-location" name="restaurantLocation"
+            placeholder="https://maps.google.com/... (opcional)" style="
                 width: 100%;
                 padding: 0.75rem;
                 border: 1px solid #ddd;
                 border-radius: 0.5rem;
-              "
-            />
-          </div>
-          <div class="modal-form-group">
-            <div
-              style="
+              " />
+        </div>
+        <div class="modal-form-group">
+          <div style="
                 display: flex;
                 gap: 2rem;
                 align-items: center;
                 justify-content: space-between;
-              "
-            >
-              <div style="flex: 1">
-                <label class="switch-label">
-                  <span class="switch-text">¿Haces delivery?</span>
-                  <label class="switch">
-                    <input
-                      type="checkbox"
-                      id="edit-restaurant-delivery"
-                      name="restaurantDelivery"
-                    />
-                    <span class="slider round"></span>
-                  </label>
+              ">
+            <div style="flex: 1">
+              <label class="switch-label">
+                <span class="switch-text">¿Haces delivery?</span>
+                <label class="switch">
+                  <input type="checkbox" id="edit-restaurant-delivery" name="restaurantDelivery" />
+                  <span class="slider round"></span>
                 </label>
-              </div>
-              <div style="flex: 1">
-                <label class="switch-label">
-                  <span class="switch-text">¿Atiendes en el local?</span>
-                  <label class="switch">
-                    <input
-                      type="checkbox"
-                      id="edit-restaurant-localService"
-                      name="restaurantLocalService"
-                    />
-                    <span class="slider round"></span>
-                  </label>
+              </label>
+            </div>
+            <div style="flex: 1">
+              <label class="switch-label">
+                <span class="switch-text">¿Atiendes en el local?</span>
+                <label class="switch">
+                  <input type="checkbox" id="edit-restaurant-localService" name="restaurantLocalService" />
+                  <span class="slider round"></span>
                 </label>
-              </div>
+              </label>
             </div>
           </div>
-          <div class="modal-form-group">
-            <div
-              style="
+        </div>
+        <div class="modal-form-group">
+          <div style="
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 1rem;
-              "
-            >
-              <p style="font-weight: bold">Horario de atención</p>
-              <button
-                type="button"
-                class="sync-button"
-                onclick="syncScheduleWithMonday()"
-                title="Sincronizar todos los horarios con el Lunes"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2"
-                  />
-                </svg>
-                <span>Sincronizar horarios</span>
-              </button>
+              ">
+            <p style="font-weight: bold">Horario de atención</p>
+            <button type="button" class="sync-button" onclick="syncScheduleWithMonday()"
+              title="Sincronizar todos los horarios con el Lunes">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path
+                  d="M21.5 2v6h-6M2.5 22v-6h6M2 12c0-2.8 1.2-5.2 3.2-7.2C7.2 2.8 9.6 1.6 12.4 1.6M21.9 12c0 2.8-1.2 5.2-3.2 7.2-2 2-4.4 3.2-7.2 3.2" />
+              </svg>
+              <span>Sincronizar horarios</span>
+            </button>
+          </div>
+          <div class="schedule-container">
+            <div class="schedule-row">
+              <span>Lunes <span class="required-asterisk">*</span></span>
+              <input type="time" id="edit-monday-from" name="mondayFrom" required />
+              <input type="time" id="edit-monday-to" name="mondayTo" required />
             </div>
-            <div class="schedule-container">
-              <div class="schedule-row">
-                <span>Lunes <span class="required-asterisk">*</span></span>
-                <input
-                  type="time"
-                  id="edit-monday-from"
-                  name="mondayFrom"
-                  required
-                />
-                <input
-                  type="time"
-                  id="edit-monday-to"
-                  name="mondayTo"
-                  required
-                />
-              </div>
-              <div class="schedule-row">
-                <span>Martes <span class="required-asterisk">*</span></span>
-                <input
-                  type="time"
-                  id="edit-tuesday-from"
-                  name="tuesdayFrom"
-                  required
-                />
-                <input
-                  type="time"
-                  id="edit-tuesday-to"
-                  name="tuesdayTo"
-                  required
-                />
-              </div>
-              <div class="schedule-row">
-                <span>Miércoles <span class="required-asterisk">*</span></span>
-                <input
-                  type="time"
-                  id="edit-wednesday-from"
-                  name="wednesdayFrom"
-                  required
-                />
-                <input
-                  type="time"
-                  id="edit-wednesday-to"
-                  name="wednesdayTo"
-                  required
-                />
-              </div>
-              <div class="schedule-row">
-                <span>Jueves <span class="required-asterisk">*</span></span>
-                <input
-                  type="time"
-                  id="edit-thursday-from"
-                  name="thursdayFrom"
-                  required
-                />
-                <input
-                  type="time"
-                  id="edit-thursday-to"
-                  name="thursdayTo"
-                  required
-                />
-              </div>
-              <div class="schedule-row">
-                <span>Viernes <span class="required-asterisk">*</span></span>
-                <input
-                  type="time"
-                  id="edit-friday-from"
-                  name="fridayFrom"
-                  required
-                />
-                <input
-                  type="time"
-                  id="edit-friday-to"
-                  name="fridayTo"
-                  required
-                />
-              </div>
-              <div class="schedule-row">
-                <span>Sábado <span class="required-asterisk">*</span></span>
-                <input
-                  type="time"
-                  id="edit-saturday-from"
-                  name="saturdayFrom"
-                  required
-                />
-                <input
-                  type="time"
-                  id="edit-saturday-to"
-                  name="saturdayTo"
-                  required
-                />
-              </div>
-              <div class="schedule-row">
-                <span>Domingo <span class="required-asterisk">*</span></span>
-                <input
-                  type="time"
-                  id="edit-sunday-from"
-                  name="sundayFrom"
-                  required
-                />
-                <input
-                  type="time"
-                  id="edit-sunday-to"
-                  name="sundayTo"
-                  required
-                />
-              </div>
+            <div class="schedule-row">
+              <span>Martes <span class="required-asterisk">*</span></span>
+              <input type="time" id="edit-tuesday-from" name="tuesdayFrom" required />
+              <input type="time" id="edit-tuesday-to" name="tuesdayTo" required />
+            </div>
+            <div class="schedule-row">
+              <span>Miércoles <span class="required-asterisk">*</span></span>
+              <input type="time" id="edit-wednesday-from" name="wednesdayFrom" required />
+              <input type="time" id="edit-wednesday-to" name="wednesdayTo" required />
+            </div>
+            <div class="schedule-row">
+              <span>Jueves <span class="required-asterisk">*</span></span>
+              <input type="time" id="edit-thursday-from" name="thursdayFrom" required />
+              <input type="time" id="edit-thursday-to" name="thursdayTo" required />
+            </div>
+            <div class="schedule-row">
+              <span>Viernes <span class="required-asterisk">*</span></span>
+              <input type="time" id="edit-friday-from" name="fridayFrom" required />
+              <input type="time" id="edit-friday-to" name="fridayTo" required />
+            </div>
+            <div class="schedule-row">
+              <span>Sábado <span class="required-asterisk">*</span></span>
+              <input type="time" id="edit-saturday-from" name="saturdayFrom" required />
+              <input type="time" id="edit-saturday-to" name="saturdayTo" required />
+            </div>
+            <div class="schedule-row">
+              <span>Domingo <span class="required-asterisk">*</span></span>
+              <input type="time" id="edit-sunday-from" name="sundayFrom" required />
+              <input type="time" id="edit-sunday-to" name="sundayTo" required />
             </div>
           </div>
-          <button
-            type="submit"
-            class="auth-button dark-button"
-            style="margin-top: 1rem"
-          >
-            Guardar cambios
-          </button>
-        </form>
-      </div>
-    </div>
-
-    <div
-      id="deleteDishAlert"
-      class="modal-backdrop"
-      onclick="closeModal(event)"
-    >
-      <div class="modal-content alert-modal">
-        <button class="modal-close-btn" onclick="closeModal(event)">
-          &times;
-        </button>
-        <h2>¿Segur@ quieres eliminar este plato?</h2>
-        <button
-          id="confirm-delete-dish-btn"
-          class="primary-button delete-confirm-btn"
-        >
-          Eliminar
-        </button>
-      </div>
-    </div>
-
-    <!-- Modal: Recorte de Imagen -->
-    <div
-      id="cropperModal"
-      class="modal-backdrop"
-      style="z-index: 2000; display: none"
-    >
-      <div
-        class="modal-content"
-        style="max-width: 90%; max-height: 90%; padding: 1.5rem"
-      >
-        <h2 style="margin-bottom: 1rem; text-align: center">Recortar imagen</h2>
-        <div
-          id="cropper-container"
-          style="max-height: 400px; margin-bottom: 1rem"
-        >
-          <img id="cropper-image" style="max-width: 100%; display: block" />
         </div>
-        <div
-          style="
+        <button type="submit" class="auth-button dark-button" style="margin-top: 1rem">
+          Guardar cambios
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div id="deleteDishAlert" class="modal-backdrop" onclick="closeModal(event)">
+    <div class="modal-content alert-modal">
+      <button class="modal-close-btn" onclick="closeModal(event)">
+        &times;
+      </button>
+      <h2>¿Segur@ quieres eliminar este plato?</h2>
+      <button id="confirm-delete-dish-btn" class="primary-button delete-confirm-btn">
+        Eliminar
+      </button>
+    </div>
+  </div>
+
+  <!-- Modal: Recorte de Imagen -->
+  <div id="cropperModal" class="modal-backdrop" style="z-index: 2000; display: none">
+    <div class="modal-content" style="max-width: 90%; max-height: 90%; padding: 1.5rem">
+      <h2 style="margin-bottom: 1rem; text-align: center">Recortar imagen</h2>
+      <div id="cropper-container" style="max-height: 400px; margin-bottom: 1rem">
+        <img id="cropper-image" style="max-width: 100%; display: block" />
+      </div>
+      <div style="
             display: flex;
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
-          "
-        >
-          <button
-            id="cancel-crop-btn"
-            class="primary-button"
-            style="min-width: 100px"
-          >
-            Cancelar
-          </button>
-          <button
-            id="save-crop-btn"
-            class="primary-button dark-button"
-            style="min-width: 100px"
-          >
-            Guardar
-          </button>
-        </div>
+          ">
+        <button id="cancel-crop-btn" class="primary-button" style="min-width: 100px">
+          Cancelar
+        </button>
+        <button id="save-crop-btn" class="primary-button dark-button" style="min-width: 100px">
+          Guardar
+        </button>
       </div>
     </div>
+  </div>
 
-    <!-- Firebase scripts must load before our scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
-    <!-- Cropper.js JavaScript -->
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"
-      defer
-    ></script>
-    <!-- Browser Image Compression -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"
-      defer
-    ></script>
+  <!-- Firebase scripts must load before our scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+  <!-- Cropper.js JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js" defer></script>
+  <!-- Browser Image Compression -->
+  <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"
+    defer></script>
 
-    <script src="js/sidebar.js" defer></script>
-    <script src="js/dashboard.js" defer></script>
-  </body>
+  <script src="js/sidebar.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+</body>
+
 </html>
