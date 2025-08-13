@@ -932,7 +932,7 @@ async function initializeApp() {
           const secondsElapsed = (now - likeTime) / 1000;
 
           //86400
-          if (secondsElapsed < 10) {
+          if (secondsElapsed < 86400) {
             const remainingTime = Math.ceil(1000 - secondsElapsed);
             showToast(
               `Ya diste like. Inténtalo en ${remainingTime} segundos`,
@@ -979,7 +979,7 @@ async function initializeApp() {
         button.innerHTML = "🤍";
         button.classList.remove("liked");
       }
-  }, 10000);
+  }, 86400000);
 
       if (likesCountEl) likesCountEl.innerText = `${result.likesCount} me gusta`;
 
@@ -1547,7 +1547,7 @@ async function initializeApp() {
 
               // ✅ Solo mostrar corazón rojo segun el  tiemo
               //86400
-              if (secondsElapsed < 10) {
+              if (secondsElapsed < 86400) {
                 showAsLiked = true;
                 
                 setTimeout(() => {
@@ -1555,7 +1555,7 @@ async function initializeApp() {
                     button.innerHTML = "🤍";
                     button.classList.remove("liked");
                   }
-                }, 10000);
+                }, 86400000);
               }
             }
           }
