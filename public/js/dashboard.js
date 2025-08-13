@@ -3744,9 +3744,9 @@ async function buildShareMessageAllCards(restaurant) {
   } catch (e) {
     console.warn("No se pudieron obtener las cartas:", e);
   }
-  
-  let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en ${name} 🍽\n\n`;
-  
+
+  let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en *${name}* 🍽️\n\n`;
+
   if (link) {
     message += `📌 Puedes ver nuestra carta aquí: 👉 ${link}\n\n`;
   }
@@ -3767,7 +3767,7 @@ async function buildShareMessageAllCards(restaurant) {
       console.warn(`No se pudieron cargar los platos de la carta ${card.name}:`, e);
     }
     
-    message += `🍽 [${card.name}]\n`;
+    message += `🍽️ *${card.name}*\n`;
     
     if (dishes.length === 0) {
       message += `(No hay platos disponibles)\n`;
@@ -3784,8 +3784,8 @@ async function buildShareMessageAllCards(restaurant) {
     message += `\n`;
   }
   
-  message += `🕒 Horario de atención (hoy):\n${from} – ${to}\n`;
-  message += `📱 Yape: ${yape}\n\n`;
+  message += `🕒 *Horario de atención (hoy)*:\n${from} – ${to}\n`;
+  message += `📱 *Yape*: ${yape}\n\n`;
   message += `📥 ¿Quieres separar tu plato? Escríbenos por aquí y te lo dejamos listo 🤗\n\n`;
   message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
   
