@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -18,7 +19,7 @@
             --white: #ffffff;
             --border-color: #e5e7eb;
         }
-        
+
         body {
             margin: 0;
             padding: 0;
@@ -28,13 +29,13 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
-        
+
         .map-container {
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
-        
+
         #map {
             flex: 1;
             width: 100%;
@@ -42,7 +43,7 @@
             overflow: hidden;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        
+
         .map-header {
             background: linear-gradient(135deg, var(--brand-yellow) 0%, #FFE55C 100%);
             padding: 20px 24px;
@@ -52,7 +53,7 @@
             justify-content: space-between;
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
         }
-        
+
         .back-btn {
             background: linear-gradient(135deg, var(--brand-dark) 0%, #374151 100%);
             color: var(--white);
@@ -70,22 +71,22 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         .back-btn:hover {
             background: linear-gradient(135deg, #111827 0%, var(--brand-dark) 100%);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(31, 41, 55, 0.4);
         }
-        
+
         .map-title {
             font-size: 24px;
             font-weight: 900;
             color: var(--brand-dark);
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
-        
 
-        
+
+
         /* Estilos personalizados para los popups de Leaflet */
         .leaflet-popup-content-wrapper {
             background: linear-gradient(135deg, var(--white) 0%, var(--gray-light) 100%) !important;
@@ -93,19 +94,19 @@
             box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
             border: 2px solid rgba(255, 209, 0, 0.2) !important;
         }
-        
+
         .leaflet-popup-content {
             margin: 16px !important;
             font-family: 'Nunito', sans-serif !important;
         }
-        
+
         .leaflet-popup-tip {
             background: var(--white) !important;
             border: 2px solid rgba(255, 209, 0, 0.2) !important;
             border-top: none !important;
             border-right: none !important;
         }
-        
+
         .popup-restaurant-name {
             color: var(--brand-dark) !important;
             font-weight: 800 !important;
@@ -113,27 +114,27 @@
             margin: 0 0 8px 0 !important;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
         }
-        
+
         .popup-restaurant-district {
             color: var(--gray-text) !important;
             font-weight: 600 !important;
             font-size: 14px !important;
             margin: 0 0 8px 0 !important;
         }
-        
+
         .popup-restaurant-description {
             color: var(--gray-text) !important;
             font-size: 13px !important;
             margin: 0 0 12px 0 !important;
             line-height: 1.4 !important;
         }
-        
+
         .popup-buttons {
             display: flex !important;
             gap: 8px !important;
             margin-top: 12px !important;
         }
-        
+
         .popup-btn {
             padding: 8px 12px !important;
             border-radius: 8px !important;
@@ -146,29 +147,29 @@
             cursor: pointer !important;
             text-align: center !important;
         }
-        
+
         .popup-btn-menu {
             background: linear-gradient(135deg, var(--brand-green) 0%, var(--brand-green-dark) 100%) !important;
             color: var(--white) !important;
             box-shadow: 0 2px 6px rgba(0, 180, 78, 0.3) !important;
         }
-        
+
         .popup-btn-menu:hover {
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4) !important;
         }
-        
+
         .popup-btn-maps {
             background: linear-gradient(135deg, var(--brand-yellow) 0%, #FFE55C 100%) !important;
             color: var(--brand-dark) !important;
             box-shadow: 0 2px 6px rgba(255, 209, 0, 0.3) !important;
         }
-        
+
         .popup-btn-maps:hover {
             transform: translateY(-1px) !important;
             box-shadow: 0 4px 12px rgba(255, 209, 0, 0.4) !important;
         }
-        
+
         /* Marcador de usuario personalizado */
         .user-location-marker {
             background: radial-gradient(circle, var(--brand-green) 0%, var(--brand-green-dark) 100%) !important;
@@ -177,29 +178,31 @@
             box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4) !important;
             animation: pulse 2s infinite !important;
         }
-        
+
         @keyframes pulse {
             0% {
                 box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4), 0 0 0 0 rgba(0, 180, 78, 0.7);
             }
+
             70% {
                 box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4), 0 0 0 10px rgba(0, 180, 78, 0);
             }
+
             100% {
                 box-shadow: 0 4px 12px rgba(0, 180, 78, 0.4), 0 0 0 0 rgba(0, 180, 78, 0);
             }
         }
-        
+
         /* Responsive */
         @media (max-width: 640px) {
             .map-header {
                 padding: 16px 20px;
             }
-            
+
             .map-title {
                 font-size: 20px;
             }
-            
+
             .back-btn {
                 padding: 10px 16px;
                 font-size: 13px;
@@ -207,6 +210,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="map-container">
         <div class="map-header">
@@ -232,31 +236,66 @@
 
         // Función para extraer coordenadas de un link de Google Maps
         function extractCoordinatesFromGoogleMapsUrl(url) {
-            if (!url) return null;
-            
+            if (!url) {
+                console.log(`URL es null/undefined`);
+                return null;
+            }
+
+            // Verificar que url sea un string
+            if (typeof url !== 'string') {
+                console.log(`URL no es un string, es tipo: ${typeof url}, valor:`, url);
+                return null;
+            }
+
+            console.log(`Intentando extraer coordenadas de: ${url}`);
+
             // Patrones para diferentes formatos de URLs de Google Maps
             const patterns = [
-                /@(-?\d+\.\d+),(-?\d+\.\d+)/,  // @lat,lng
-                /q=(-?\d+\.\d+),(-?\d+\.\d+)/,  // q=lat,lng
-                /ll=(-?\d+\.\d+),(-?\d+\.\d+)/, // ll=lat,lng
-                /!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/ // !3dlat!4dlng
+                /@(-?\d+\.?\d*),(-?\d+\.?\d*)/, // @lat,lng
+                /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/, // q=lat,lng
+                /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/, // ll=lat,lng
+                /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/, // !3dlat!4dlng
+                /place\/.*@(-?\d+\.?\d*),(-?\d+\.?\d*)/, // place/@lat,lng
+                /maps\/place\/.*\/(-?\d+\.?\d*),(-?\d+\.?\d*)/, // maps/place/.../lat,lng
+                /\?q=(-?\d+\.?\d*),(-?\d+\.?\d*)/, // ?q=lat,lng
+                /\/(-?\d+\.?\d*),(-?\d+\.?\d*)/ // simple /lat,lng
             ];
-            
-            for (const pattern of patterns) {
+
+            for (let i = 0; i < patterns.length; i++) {
+                const pattern = patterns[i];
                 const match = url.match(pattern);
                 if (match) {
-                    return {
+                    const coords = {
                         lat: parseFloat(match[1]),
                         lng: parseFloat(match[2])
                     };
+                    console.log(`Coordenadas encontradas con patrón ${i + 1}: lat=${coords.lat}, lng=${coords.lng}`);
+
+                    // Validar que las coordenadas son válidas para Perú (aproximadamente)
+                    if (coords.lat >= -18.5 && coords.lat <= -0.5 && coords.lng >= -81.5 && coords.lng <= -68.5) {
+                        return coords;
+                    } else {
+                        console.log(`Coordenadas fuera del rango de Perú: lat=${coords.lat}, lng=${coords.lng}`);
+                    }
                 }
             }
-            
+
+            console.log(`No se pudieron extraer coordenadas válidas de: ${url}`);
             return null;
         }
 
+        // Array para almacenar todos los marcadores
+        let allMarkers = [];
+
         // Función para añadir marcadores de restaurantes
         function addRestaurantMarker(lat, lng, restaurant) {
+            console.log(`🎯 AÑADIENDO MARCADOR:`);
+            console.log(`   - Restaurante: ${restaurant.name}`);
+            console.log(`   - Distrito: ${restaurant.district}`);
+            console.log(`   - Latitud: ${lat}`);
+            console.log(`   - Longitud: ${lng}`);
+            console.log(`   - ID: ${restaurant.id}`);
+
             // Crear icono amarillo personalizado
             const yellowIcon = L.divIcon({
                 className: 'custom-marker',
@@ -264,9 +303,21 @@
                 iconSize: [25, 25],
                 iconAnchor: [12, 24]
             });
-            
-            const marker = L.marker([lat, lng], { icon: yellowIcon }).addTo(map);
-            
+
+            const marker = L.marker([lat, lng], {
+                icon: yellowIcon
+            }).addTo(map);
+
+            // Almacenar el marcador en el array
+            allMarkers.push({
+                marker: marker,
+                restaurant: restaurant,
+                coordinates: {
+                    lat,
+                    lng
+                }
+            });
+
             const popupContent = `
                 <div>
                     <h3 class="popup-restaurant-name">${restaurant.name}</h3>
@@ -281,33 +332,91 @@
                     </div>
                 </div>
             `;
-            
+
             marker.bindPopup(popupContent);
+            console.log(`✅ Marcador añadido exitosamente al mapa`);
             return marker;
         }
 
         // Función para cargar restaurantes desde la base de datos
         async function loadRestaurantsFromDatabase() {
             try {
-                const response = await fetch('/api/restaurants-paginated?limit=100');
+                console.log(`🔄 Cargando restaurantes desde Firebase...`);
+                const response = await fetch('/api/restaurants-paginated?limit=1000');
                 const data = await response.json();
-                
+
+                console.log(`📦 DATOS COMPLETOS DESDE FIREBASE:`, data);
+                console.log(`📊 Estructura de la respuesta:`, Object.keys(data));
+
                 if (data.restaurants && data.restaurants.length > 0) {
                     let validRestaurants = 0;
-                    
-                    data.restaurants.forEach(restaurant => {
-                        if (restaurant.location) {
-                            const coordinates = extractCoordinatesFromGoogleMapsUrl(restaurant.location);
-                            
-                            if (coordinates) {
-                                addRestaurantMarker(coordinates.lat, coordinates.lng, restaurant);
-                                validRestaurants++;
+                    let totalRestaurants = data.restaurants.length;
+                    let restaurantsWithLocation = 0;
+                    let restaurantsWithValidCoords = 0;
+
+                    console.log(`Total de restaurantes recibidos: ${totalRestaurants}`);
+
+                    // Mostrar todos los restaurantes recibidos de Firebase
+                    console.log(`\n📋 LISTA COMPLETA DE RESTAURANTES DESDE FIREBASE:`);
+                    data.restaurants.forEach((restaurant, index) => {
+                        console.log(`${index + 1}. ${restaurant.name || 'SIN NOMBRE'}`);
+                        console.log(`   - ID: ${restaurant.id || 'SIN ID'}`);
+                        console.log(`   - Distrito: ${restaurant.district || 'SIN DISTRITO'}`);
+                        console.log(`   - Ubicación: ${restaurant.location || 'SIN UBICACIÓN'}`);
+                        console.log(`   - Descripción: ${restaurant.description || 'SIN DESCRIPCIÓN'}`);
+                        console.log(`   ---`);
+                    });
+                    console.log(`\n`);
+
+                    data.restaurants.forEach((restaurant, index) => {
+                        try {
+                            console.log(`Procesando restaurante ${index + 1}: ${restaurant.name}`);
+
+                            if (restaurant.location) {
+                                restaurantsWithLocation++;
+                                console.log(
+                                    `- Tiene ubicación (tipo: ${typeof restaurant.location}): ${restaurant.location}`
+                                    );
+
+                                const coordinates = extractCoordinatesFromGoogleMapsUrl(restaurant
+                                .location);
+
+                                if (coordinates) {
+                                    restaurantsWithValidCoords++;
+                                    console.log(
+                                        `- Coordenadas extraídas: lat=${coordinates.lat}, lng=${coordinates.lng}`
+                                        );
+                                    addRestaurantMarker(coordinates.lat, coordinates.lng, restaurant);
+                                    validRestaurants++;
+                                } else {
+                                    console.log(
+                                        `- No se pudieron extraer coordenadas de: ${restaurant.location}`
+                                        );
+                                }
+                            } else {
+                                console.log(
+                                `- No tiene ubicación definida (valor: ${restaurant.location})`);
                             }
+                        } catch (error) {
+                            console.error(`Error procesando restaurante ${restaurant.name}:`, error);
                         }
                     });
-                    
-                    console.log(`Se cargaron ${validRestaurants} restaurantes con ubicación válida`);
-                    
+
+                    console.log(`RESUMEN:`);
+                    console.log(`- Total restaurantes: ${totalRestaurants}`);
+                    console.log(`- Con ubicación: ${restaurantsWithLocation}`);
+                    console.log(`- Con coordenadas válidas: ${restaurantsWithValidCoords}`);
+                    console.log(`- Marcadores añadidos: ${validRestaurants}`);
+
+                    // Mostrar resumen de todos los marcadores
+                    console.log(`\n📍 LISTA COMPLETA DE MARCADORES EN EL MAPA:`);
+                    allMarkers.forEach((item, index) => {
+                        console.log(
+                            `${index + 1}. ${item.restaurant.name} (${item.restaurant.district}) - [${item.coordinates.lat}, ${item.coordinates.lng}]`
+                            );
+                    });
+                    console.log(`\n🗺️ Total de marcadores visibles en el mapa: ${allMarkers.length}`);
+
                 } else {
                     console.log('No se encontraron restaurantes');
                 }
@@ -320,33 +429,37 @@
 
         // Función fallback con restaurantes de ejemplo
         function loadExampleRestaurants() {
-            const exampleRestaurants = [
-                { 
+            const exampleRestaurants = [{
                     id: 'example1',
-                    name: "Restaurante Central", 
+                    name: "Restaurante Central",
                     district: "Miraflores",
                     description: "Cocina peruana contemporánea",
                     location: "https://maps.google.com"
                 },
-                { 
+                {
                     id: 'example2',
-                    name: "Maido", 
+                    name: "Maido",
                     district: "San Isidro",
                     description: "Cocina nikkei",
                     location: "https://maps.google.com"
                 }
             ];
-            
-            const exampleCoordinates = [
-                { lat: -12.0464, lng: -77.0428 },
-                { lat: -12.1000, lng: -77.0500 }
+
+            const exampleCoordinates = [{
+                    lat: -12.0464,
+                    lng: -77.0428
+                },
+                {
+                    lat: -12.1000,
+                    lng: -77.0500
+                }
             ];
-            
+
             exampleRestaurants.forEach((restaurant, index) => {
                 if (exampleCoordinates[index]) {
                     addRestaurantMarker(
-                        exampleCoordinates[index].lat, 
-                        exampleCoordinates[index].lng, 
+                        exampleCoordinates[index].lat,
+                        exampleCoordinates[index].lng,
                         restaurant
                     );
                 }
@@ -360,10 +473,10 @@
                     (position) => {
                         const userLat = position.coords.latitude;
                         const userLng = position.coords.longitude;
-                        
+
                         // Centrar el mapa en la ubicación del usuario
                         map.setView([userLat, userLng], 15);
-                        
+
                         // Añadir marcador de ubicación del usuario
                         const userIcon = L.divIcon({
                             className: 'user-location-marker',
@@ -371,10 +484,14 @@
                             iconSize: [22, 22],
                             iconAnchor: [11, 11]
                         });
-                        
-                        L.marker([userLat, userLng], { icon: userIcon })
+
+                        L.marker([userLat, userLng], {
+                                icon: userIcon
+                            })
                             .addTo(map)
-                            .bindPopup('<div style="font-family: Nunito, sans-serif; font-weight: 700; color: var(--brand-dark);">📍 Tu ubicación</div>');
+                            .bindPopup(
+                                '<div style="font-family: Nunito, sans-serif; font-weight: 700; color: var(--brand-dark);">📍 Tu ubicación</div>'
+                                );
                     },
                     (error) => {
                         console.error('Error obteniendo ubicación:', error);
@@ -390,4 +507,5 @@
         });
     </script>
 </body>
+
 </html>
