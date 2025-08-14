@@ -296,12 +296,10 @@ app.post("/api/users/upsert", async (req, res) => {
       finalCollection = "users";
       finalRole = "owner";
 
-      // CAMBIO CRÍTICO: NO eliminar de invited cuando se convierte en owner
-      // Un usuario puede ser TANTO comensal como dueño de restaurante
       if (existingUserInInvited.exists) {
-        // Mantener el documento en invited para que pueda seguir comentando
-        console.log(`User ${uid} ya existe en 'invited' - manteniendo ambos roles.`);
-        message += "User maintains both customer and owner roles. ";
+        await userDocRefInInvited.delete();
+        message += "Migrated from invited to users. ";
+        console.log(`User ${uid} migrated from 'invited' to 'users'.`);
       }
 
       await userDocRefInUsers.set(
@@ -325,16 +323,19 @@ app.post("/api/users/upsert", async (req, res) => {
       finalCollection = "invited";
       finalRole = "customer";
 
-      // CAMBIO CRÍTICO: Permitir que un owner también sea customer
-      // Un usuario puede ser TANTO dueño como comensal
       if (
         existingUserInUsers.exists &&
         existingUserInUsers.data().role === "owner"
       ) {
-        console.log(
-          `User ${uid} is already an owner but also wants customer role - allowing both roles.`
+        console.warn(
+          `Attempt to upsert owner ${uid} as customer. Ignoring role change.`
         );
-        message += "User maintains both owner and customer roles. ";
+        return res
+          .status(200)
+          .json({
+            message: "Owner user already exists, ignored customer upsert.",
+            user: existingUserInUsers.data(),
+          });
       }
 
       await userDocRefInInvited.set(
@@ -410,6 +411,8 @@ function blobToFile(blob, filename) {
 }
  */
 
+
+//FALTA
 app.get('/api/qr', async (req, res) => {
     console.log("este es el request", req);
     
@@ -503,7 +506,10 @@ app.post("/api/restaurants", authenticateAndAuthorize, async (req, res) => {
       ruc,
       yape,
       phone,
-      hasDelivery,
+er
+    
+
+    y,
       hasLocalService,
       location,
       qr,
@@ -575,85 +581,6 @@ app.get(
   }
 );
 
-// Endpoint para obtener el total de restaurantes con 5 o más platos
-app.get("/api/restaurants-count", async (req, res) => {
-  console.log("Count endpoint called with query:", req.query);
-  try {
-    const { district, search, dish } = req.query;
-    let query = db.collection("restaurants");
-
-    if (district && district !== "Todos") {
-      query = query.where("district", "==", district);
-    }
-
-    const snapshot = await query.get();
-    console.log(`Found ${snapshot.size} restaurants total`);
-    let validRestaurantsCount = 0;
-
-    const countPromises = snapshot.docs.map(async (doc) => {
-      const restaurantData = { id: doc.id, ...doc.data() };
-      let totalDishes = 0;
-
-      const cardsSnapshot = await db
-        .collection("cards")
-        .where("restaurantId", "==", restaurantData.id)
-        .get();
-
-      for (const cardDoc of cardsSnapshot.docs) {
-        const dishesSnapshot = await db
-          .collection("dishes")
-          .where("cardId", "==", cardDoc.id)
-          .get();
-
-        totalDishes += dishesSnapshot.size;
-      }
-
-      console.log(`Restaurant ${restaurantData.name}: ${totalDishes} dishes`);
-
-      // Solo contar restaurantes con 5 o más platos
-      if (totalDishes >= 5) {
-        // Aplicar filtros de búsqueda si existen
-        if (search && search.trim() !== '') {
-          const searchTerm = search.toLowerCase().trim();
-          if (restaurantData.name && restaurantData.name.toLowerCase().includes(searchTerm)) {
-            return 1;
-          }
-          return 0;
-        } else if (dish && dish.trim() !== '') {
-          // Verificar si el restaurante tiene el platillo buscado
-          const dishTerm = dish.toLowerCase().trim();
-          for (const cardDoc of cardsSnapshot.docs) {
-            const dishesSnapshot = await db
-              .collection("dishes")
-              .where("cardId", "==", cardDoc.id)
-              .get();
-            
-            for (const dishDoc of dishesSnapshot.docs) {
-              const dishData = dishDoc.data();
-              if (dishData.name && dishData.name.toLowerCase().includes(dishTerm)) {
-                return 1;
-              }
-            }
-          }
-          return 0;
-        } else {
-          return 1;
-        }
-      }
-      return 0;
-    });
-
-    const counts = await Promise.all(countPromises);
-    validRestaurantsCount = counts.reduce((sum, count) => sum + count, 0);
-
-    console.log(`Valid restaurants with 5+ dishes: ${validRestaurantsCount}`);
-    res.status(200).json({ count: validRestaurantsCount });
-  } catch (error) {
-    console.error("Error counting restaurants with 5+ dishes:", error);
-    res.status(500).json({ error: "An error occurred on the server." });
-  }
-});
-
 app.get("/api/restaurants/:restaurantId", async (req, res) => {
   try {
     const { restaurantId } = req.params;
@@ -669,9 +596,8 @@ app.get("/api/restaurants/:restaurantId", async (req, res) => {
 });
 
 app.get("/api/restaurants-paginated", async (req, res) => {
-  console.log("API restaurants-paginated called with query:", req.query);
   try {
-    const { limit = 12, lastDocId, district, search, dish, includeCount = 'false' } = req.query;
+    const { limit = 12, lastDocId, district, search, dish } = req.query;
     let query = db.collection("restaurants").orderBy("createdAt", "desc");
 
     if (district && district !== "Todos") {
@@ -694,7 +620,6 @@ app.get("/api/restaurants-paginated", async (req, res) => {
     const restaurantPromises = snapshot.docs.map(async (doc) => {
       const restaurantData = { id: doc.id, ...doc.data() };
       let totalLikes = 0;
-      let totalDishes = 0;
 
       const cardsSnapshot = await db
         .collection("cards")
@@ -709,34 +634,25 @@ app.get("/api/restaurants-paginated", async (req, res) => {
 
         dishesSnapshot.forEach((dishDoc) => {
           totalLikes += dishDoc.data().likesCount || 0;
-          totalDishes++;
         });
       }
 
       restaurantData.totalLikes = totalLikes;
-      restaurantData.totalDishes = totalDishes;
-      
-      // Incluir todos los restaurantes (temporal para debug)
       return restaurantData;
     });
 
     const restaurantsWithLikes = await Promise.all(restaurantPromises);
-    console.log("Restaurants after processing:", restaurantsWithLikes.length);
-    
-    // Filtrar restaurantes nulos (con menos de 5 platos)
-    const validRestaurants = restaurantsWithLikes.filter(restaurant => restaurant !== null);
-    console.log("Valid restaurants after filtering nulls:", validRestaurants.length);
 
     // Filtrar por búsqueda si se proporciona el parámetro search
     if (search && search.trim() !== '') {
       const searchTerm = search.toLowerCase().trim();
-      restaurants = validRestaurants.filter(restaurant => 
+      restaurants = restaurantsWithLikes.filter(restaurant => 
         restaurant.name && restaurant.name.toLowerCase().includes(searchTerm)
       );
     } else if (dish && dish.trim() !== '') {
       // Filtrar por platillo si se proporciona el parámetro dish
       const dishTerm = dish.toLowerCase().trim();
-      const restaurantPromises = validRestaurants.map(async (restaurant) => {
+      const restaurantPromises = restaurantsWithLikes.map(async (restaurant) => {
         const cardsSnapshot = await db
           .collection("cards")
           .where("restaurantId", "==", restaurant.id)
@@ -761,126 +677,16 @@ app.get("/api/restaurants-paginated", async (req, res) => {
       const filteredResults = await Promise.all(restaurantPromises);
       restaurants = filteredResults.filter(restaurant => restaurant !== null);
     } else {
-      restaurants = validRestaurants;
+      restaurants = restaurantsWithLikes;
     }
-    
-    console.log("Final restaurants to return:", restaurants.length);
 
     const lastVisible = snapshot.docs[snapshot.docs.length - 1];
-    
-    // Si se solicita incluir el contador, calcularlo
-    let totalCount = null;
-    if (includeCount === 'true' && !lastDocId) {
-      // Solo calcular en la primera página
-      let countQuery = db.collection("restaurants");
-      if (district && district !== "Todos") {
-        countQuery = countQuery.where("district", "==", district);
-      }
-      
-      const allSnapshot = await countQuery.get();
-      const countPromises = allSnapshot.docs.map(async (doc) => {
-        const restaurantData = { id: doc.id, ...doc.data() };
-        let totalDishes = 0;
-
-        const cardsSnapshot = await db
-          .collection("cards")
-          .where("restaurantId", "==", restaurantData.id)
-          .get();
-
-        for (const cardDoc of cardsSnapshot.docs) {
-          const dishesSnapshot = await db
-            .collection("dishes")
-            .where("cardId", "==", cardDoc.id)
-            .get();
-
-          totalDishes += dishesSnapshot.size;
-        }
-
-        // Solo contar restaurantes con 1 o más platos que cumplan los filtros (temporal para debug)
-        if (totalDishes >= 1) {
-          if (search && search.trim() !== '') {
-            const searchTerm = search.toLowerCase().trim();
-            if (restaurantData.name && restaurantData.name.toLowerCase().includes(searchTerm)) {
-              return 1;
-            }
-            return 0;
-          } else if (dish && dish.trim() !== '') {
-            const dishTerm = dish.toLowerCase().trim();
-            for (const cardDoc of cardsSnapshot.docs) {
-              const dishesSnapshot = await db
-                .collection("dishes")
-                .where("cardId", "==", cardDoc.id)
-                .get();
-              
-              for (const dishDoc of dishesSnapshot.docs) {
-                const dishData = dishDoc.data();
-                if (dishData.name && dishData.name.toLowerCase().includes(dishTerm)) {
-                  return 1;
-                }
-              }
-            }
-            return 0;
-          } else {
-            return 1;
-          }
-        }
-        return 0;
-      });
-      
-      const counts = await Promise.all(countPromises);
-      totalCount = counts.reduce((sum, count) => sum + count, 0);
-    }
-
-    const response = {
+    res.status(200).json({
       restaurants: restaurants,
       lastDocId: lastVisible ? lastVisible.id : null,
-    };
-    
-    if (totalCount !== null) {
-      response.totalCount = totalCount;
-    }
-    
-    res.status(200).json(response);
+    });
   } catch (error) {
     console.error("Error fetching paginated restaurants with likes:", error);
-    res.status(500).json({ error: "An error occurred on the server." });
-  }
-});
-
-// Endpoint temporal para debug - ver platos por restaurante
-app.get("/api/debug/restaurants-dishes", async (req, res) => {
-  try {
-    const snapshot = await db.collection("restaurants").get();
-    const restaurantsDishes = [];
-
-    for (const doc of snapshot.docs) {
-      const restaurantData = { id: doc.id, ...doc.data() };
-      let totalDishes = 0;
-
-      const cardsSnapshot = await db
-        .collection("cards")
-        .where("restaurantId", "==", restaurantData.id)
-        .get();
-
-      for (const cardDoc of cardsSnapshot.docs) {
-        const dishesSnapshot = await db
-          .collection("dishes")
-          .where("cardId", "==", cardDoc.id)
-          .get();
-
-        totalDishes += dishesSnapshot.size;
-      }
-
-      restaurantsDishes.push({
-        name: restaurantData.name,
-        id: restaurantData.id,
-        dishes: totalDishes
-      });
-    }
-
-    res.status(200).json(restaurantsDishes);
-  } catch (error) {
-    console.error("Error debugging restaurants dishes:", error);
     res.status(500).json({ error: "An error occurred on the server." });
   }
 });
@@ -1062,27 +868,6 @@ app.put(
         location,
         qr,
       } = req.body;
-      
-      // Log detallado para debug
-      console.log('📋 DATOS RECIBIDOS COMPLETOS:', req.body);
-      console.log('📋 Datos recibidos para actualizar restaurante:', {
-        restaurantId,
-        name,
-        description,
-        district,
-        whatsapp,
-        photoUrl: photoUrl ? 'Sí tiene imagen' : 'No tiene imagen',
-        logoUrl: logoUrl ? 'Sí tiene logo' : 'No tiene logo',
-        ruc,
-        yape,
-        phone,
-        hasDelivery,
-        hasLocalService,
-        schedule,
-        location,
-        qr
-      });
-      
       const restaurantDoc = await db
         .collection("restaurants")
         .doc(restaurantId)
@@ -1128,16 +913,7 @@ app.put(
         },
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       };
-      
-      console.log('📋 Datos que se van a guardar en Firestore:', updatedData);
-      
       await restaurantRef.update(updatedData);
-      
-      console.log('✅ Restaurante actualizado exitosamente en Firestore');
-      
-      // Verificar los datos guardados
-      const updatedDoc = await restaurantRef.get();
-      console.log('📋 Datos verificados en Firestore después de actualización:', updatedDoc.data());
 
       if (photoUrl && oldPhotoUrl && photoUrl !== oldPhotoUrl) {
         try {
@@ -1587,7 +1363,46 @@ app.delete('/api/dishes/:dishId', authenticateAndAuthorize, async (req, res) => 
 });
 
 
+app.post('/api/dishes/:dishId/like', async (req, res) => {
+    try {
+      const { dishId } = req.params;
+      const { isActive } = req.body;
 
+      const dishDoc = await db.collection("dishes").doc(dishId).get();
+      if (!dishDoc.exists) {
+        return res.status(404).json({ error: "Dish not found." });
+      }
+      const cardIdOfDish = dishDoc.data().cardId;
+      const cardDoc = await db.collection("cards").doc(cardIdOfDish).get();
+      if (!cardDoc.exists) {
+        return res.status(500).json({ error: "Associated card not found." });
+      }
+      const restaurantIdOfCard = cardDoc.data().restaurantId;
+      const restaurantDoc = await db
+        .collection("restaurants")
+        .doc(restaurantIdOfCard)
+        .get();
+      if (
+        !restaurantDoc.exists ||
+        restaurantDoc.data().ownerId !== req.user.uid
+      ) {
+        return res
+          .status(403)
+          .json({
+            error: "Forbidden: You do not own this dish's card or restaurant.",
+          });
+      }
+
+      await db.collection("dishes").doc(dishId).update({ isActive });
+      res
+        .status(200)
+        .json({ message: `Dish ${dishId} updated to ${isActive}` });
+    } catch (error) {
+      console.error("Error updating dish:", error);
+      res.status(500).json({ error: "An error occurred on the server." });
+    }
+  }
+);
 
 app.delete(
   "/api/dishes/:dishId",
@@ -1742,92 +1557,49 @@ app.post("/api/dishes/:dishId/like", async (req, res) => {
 
 app.post("/api/comments", async (req, res) => {
   try {
-    const { invitedId, dishId, content, restaurantId } = req.body;
-
-    console.log("📝 Recibiendo comentario:", { invitedId, dishId, content, restaurantId });
+    const { invitedId, dishId, content } = req.body;
 
     // Validaciones básicas
-    if (!content || !dishId || !invitedId) {
-      console.error("❌ Faltan campos requeridos:", { content: !!content, dishId: !!dishId, invitedId: !!invitedId });
+    if (!content) {
       return res
         .status(400)
-        .json({ error: "dishId, invitedId y content son requeridos." });
+        .json({ error: "restaurantId y content son requeridos." });
     }
 
-    // Validar que el plato existe y obtener información del restaurante
-    const dishDoc = await db.collection("dishes").doc(dishId).get();
-    if (!dishDoc.exists) {
-      console.error("❌ Plato no encontrado:", dishId);
-      return res
-        .status(404)
-        .json({ error: "El plato especificado no existe." });
+    // Opcional: validar si el plato existe (si se envía dishId)
+    if (dishId) {
+      const dishDoc = await db.collection("dishes").doc(dishId).get();
+      if (!dishDoc.exists) {
+        return res
+          .status(404)
+          .json({ error: "El plato especificado no existe." });
+      }
     }
-
-    const dishData = dishDoc.data();
-    let actualRestaurantId = restaurantId;
-
-    // Si no se proporcionó restaurantId, obtenerlo desde el plato (OBLIGATORIO)
-    if (!actualRestaurantId) {
-      console.log('⚠️ No se proporcionó restaurantId, obteniendo desde el plato...');
-      const cardDoc = await db.collection("cards").doc(dishData.cardId).get();
-      if (cardDoc.exists) {
-        actualRestaurantId = cardDoc.data().restaurantId;
-        console.log('🔍 RestaurantId obtenido de la carta:', actualRestaurantId);
-      } else {
-        console.error('❌ Carta no encontrada:', dishData.cardId);
+    if (invitedId) {
+      const invitedDoc = await db.collection("invited").doc(invitedId).get();
+      if (!invitedDoc.exists) {
+        return res
+          .status(404)
+          .json({ error: "El plato especificado no existe." });
       }
     }
 
-    // Validar que tenemos un restaurantId válido (CRÍTICO)
-    if (!actualRestaurantId) {
-      console.error('❌ No se pudo determinar el restaurantId para el comentario');
-      console.error('❌ Datos del plato:', dishData);
-      return res
-        .status(400)
-        .json({ error: "No se pudo determinar el restaurante del plato. El comentario no puede ser guardado sin esta información." });
-    }
-
-    // Validar que el usuario invitado existe
-    const invitedDoc = await db.collection("invited").doc(invitedId).get();
-    if (!invitedDoc.exists) {
-      console.error("❌ Usuario invitado no encontrado:", invitedId);
-      return res
-        .status(404)
-        .json({ error: "El usuario especificado no existe." });
-    }
-
-    // Validar que el restaurante existe
-    const restaurantDoc = await db.collection("restaurants").doc(actualRestaurantId).get();
-    if (!restaurantDoc.exists) {
-      console.error("❌ Restaurante no encontrado:", actualRestaurantId);
-      return res
-        .status(404)
-        .json({ error: "El restaurante especificado no existe." });
-    }
-
-    // Crear el comentario con toda la información necesaria
+    // Crear el comentario
     const commentData = {
       invitedId: invitedId,
       dishId,
-      restaurantId: actualRestaurantId, // GARANTIZAR que siempre esté presente
       content,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
     };
-
-    console.log("💾 Guardando comentario con datos completos:", commentData);
     const commentRef = await db.collection("comments_dishes").add(commentData);
-
-    console.log("✅ Comentario guardado exitosamente con ID:", commentRef.id);
-    console.log("🏪 Asociado al restaurante:", actualRestaurantId);
 
     res.status(201).json({
       message: "Comentario guardado exitosamente.",
       commentId: commentRef.id,
-      restaurantId: actualRestaurantId,
       data: commentData,
     });
   } catch (error) {
-    console.error("❌ Error al guardar comentario:", error);
+    console.error("Error al guardar comentario:", error);
     res.status(500).json({ error: "Ocurrió un error en el servidor." });
   }
 });
@@ -1841,12 +1613,10 @@ app.post("/api/comments", async (req, res) => {
 app.get("/api/restaurants/:restaurantId/comments", authenticateAndAuthorize, async (req, res) => {
   try {
     const { restaurantId } = req.params;
-    console.log("🔍 Buscando comentarios para restaurante:", restaurantId);
 
     // Verificar que el usuario es dueño del restaurante
     const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
     if (!restaurantDoc.exists || restaurantDoc.data().ownerId !== req.user.uid) {
-      console.log("❌ Usuario no es dueño del restaurante");
       return res.status(403).json({ 
         error: "Forbidden: You do not own this restaurant." 
       });
@@ -1857,16 +1627,12 @@ app.get("/api/restaurants/:restaurantId/comments", authenticateAndAuthorize, asy
       .where("restaurantId", "==", restaurantId)
       .get();
 
-    console.log("🗂️ Cards encontradas:", cardsSnapshot.size);
-
     if (cardsSnapshot.empty) {
       return res.status(200).json({ comments: [] });
     }
 
     // 2. Obtener todos los dishes de esas cards
     const cardIds = cardsSnapshot.docs.map(doc => doc.id);
-    console.log("🍽️ IDs de cartas:", cardIds);
-    
     const dishesPromises = cardIds.map(cardId => 
       db.collection("dishes").where("cardId", "==", cardId).get()
     );
@@ -1880,8 +1646,6 @@ app.get("/api/restaurants/:restaurantId/comments", authenticateAndAuthorize, asy
     });
 
     const dishIds = Object.keys(dishes);
-    console.log("🥘 Platos encontrados:", dishIds.length);
-    
     if (dishIds.length === 0) {
       return res.status(200).json({ comments: [] });
     }
@@ -1908,9 +1672,6 @@ app.get("/api/restaurants/:restaurantId/comments", authenticateAndAuthorize, asy
       });
     });
 
-    console.log("💬 Comentarios encontrados:", comments.length);
-    console.log("👥 Usuarios únicos:", userIds.size);
-
     // 4. Obtener información de usuarios (invited)
     const users = {};
     if (userIds.size > 0) {
@@ -1925,8 +1686,6 @@ app.get("/api/restaurants/:restaurantId/comments", authenticateAndAuthorize, asy
         }
       });
     }
-
-    console.log("👤 Información de usuarios obtenida:", Object.keys(users).length);
 
     // 5. Combinar toda la información
     const enrichedComments = comments.map(comment => ({
@@ -1952,570 +1711,24 @@ app.get("/api/restaurants/:restaurantId/comments", authenticateAndAuthorize, asy
       return b.createdAt.toDate() - a.createdAt.toDate();
     });
 
-    console.log("✅ Comentarios enriquecidos y ordenados:", enrichedComments.length);
-
     res.status(200).json({ 
       comments: enrichedComments,
       total: enrichedComments.length 
     });
 
   } catch (error) {
-    console.error("❌ Error al obtener comentarios:", error);
+    console.error("Error al obtener comentarios:", error);
     res.status(500).json({ error: "Ocurrió un error en el servidor." });
   }
 });
 
 
-// Endpoint de debug para comentarios
-app.get("/api/debug/comments", authenticateAndAuthorize, async (req, res) => {
-  try {
-    console.log("🔍 DEBUG: Obteniendo todos los comentarios");
-    
-    const commentsSnapshot = await db.collection("comments_dishes").get();
-    const allComments = [];
-    
-    commentsSnapshot.docs.forEach(doc => {
-      allComments.push({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate?.() || 'Sin fecha'
-      });
-    });
-    
-    console.log("📄 Total de comentarios en la base de datos:", allComments.length);
-    
-    res.status(200).json({
-      total: allComments.length,
-      comments: allComments
-    });
-    
-  } catch (error) {
-    console.error("❌ Error en debug de comentarios:", error);
-    res.status(500).json({ error: "Error en el servidor" });
-  }
-});
 
 
 
 
-// Endpoint temporal para corregir comentarios sin restaurantId
-app.post("/api/fix-comments", async (req, res) => {
-  try {
-    console.log('🔧 Iniciando corrección de comentarios sin restaurantId...');
-    
-    // Obtener todos los comentarios y verificar cuáles necesitan corrección
-    const commentsSnapshot = await db.collection("comments_dishes").get();
-    const commentsToFix = [];
-    
-    commentsSnapshot.docs.forEach(doc => {
-      const data = doc.data();
-      if (!data.restaurantId) {
-        commentsToFix.push({ id: doc.id, data });
-      }
-    });
-    
-    if (commentsToFix.length === 0) {
-      return res.json({ message: "No hay comentarios que corregir", fixed: 0 });
-    }
-    
-    console.log(`📝 Encontrados ${commentsToFix.length} comentarios para corregir`);
-    
-    let fixed = 0;
-    for (const comment of commentsToFix) {
-      try {
-        // Obtener el plato
-        const dishDoc = await db.collection("dishes").doc(comment.data.dishId).get();
-        if (!dishDoc.exists) continue;
-        
-        // Obtener la carta
-        const cardDoc = await db.collection("cards").doc(dishDoc.data().cardId).get();
-        if (!cardDoc.exists) continue;
-        
-        const restaurantId = cardDoc.data().restaurantId;
-        if (restaurantId) {
-          await db.collection("comments_dishes").doc(comment.id).update({
-            restaurantId: restaurantId
-          });
-          console.log(`✅ Comentario ${comment.id} corregido con restaurantId: ${restaurantId}`);
-          fixed++;
-        }
-      } catch (error) {
-        console.error(`❌ Error corrigiendo comentario ${comment.id}:`, error);
-      }
-    }
-    
-    res.json({ 
-      message: `Comentarios corregidos exitosamente`, 
-      fixed: fixed,
-      total: commentsToFix.length 
-    });
-    
-  } catch (error) {
-    console.error("❌ Error corrigiendo comentarios:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
-  }
-});
 
-// ===== ANALYTICS ENDPOINTS =====
 
-// Endpoint para registrar eventos de analytics
-// Endpoint para tracking de analytics con documento único por tipo
-app.post("/api/analytics/track", async (req, res) => {
-  try {
-    const { eventType, restaurantId, cardId, metadata = {} } = req.body;
-
-    // Mapear eventos en inglés a español y sus subcolecciones
-    const eventTypeMapping = {
-      'restaurant_share': {
-        spanish: 'compartir_restaurante',
-        subcollection: 'compartir_normal'
-      },
-      'share_restaurant_whatsapp': {
-        spanish: 'compartir_restaurante',
-        subcollection: 'compartir_normal'
-      },
-      'share_card_whatsapp': {
-        spanish: 'compartir_carta_whatsapp',
-        subcollection: 'compartir_whatsapp'
-      },
-      'order_button_click': {
-        spanish: 'hacer_pedido',
-        subcollection: 'hacer_pedido'
-      }
-    };
-
-    // Solo permitir los 3 tipos de eventos específicos
-    const validEventTypes = [
-      'restaurant_share',
-      'share_restaurant_whatsapp',
-      'share_card_whatsapp',
-      'order_button_click'
-    ];
-
-    if (!validEventTypes.includes(eventType)) {
-      return res.status(400).json({ 
-        error: "Tipo de evento inválido. Solo se permiten eventos de los 3 botones específicos",
-        eventosPermitidos: [
-          "restaurant_share (Compartir Restaurante)",
-          "share_restaurant_whatsapp (Compartir Restaurante)",
-          "share_card_whatsapp (Compartir Carta por WhatsApp)",
-          "order_button_click (Hacer Pedido)"
-        ]
-      });
-    }
-
-    // Validar que restaurantId esté presente
-    if (!restaurantId) {
-      return res.status(400).json({ error: "restaurantId es requerido" });
-    }
-
-    // Obtener configuración del evento
-    const eventConfig = eventTypeMapping[eventType];
-    const eventoEnEspanol = eventConfig.spanish;
-    const subcollectionName = eventConfig.subcollection;
-
-    // Referencia directa al documento por tipo de evento
-    const docRef = db.collection('analytics')
-      .doc(subcollectionName); // Contador directo por tipo de evento
-
-    // Obtener el documento actual o crear uno nuevo
-    const doc = await docRef.get();
-    
-    let contadorClics = 1;
-    if (doc.exists) {
-      // Si existe, incrementar el contador
-      contadorClics = (doc.data().contadorClics || 0) + 1;
-    }
-
-    // Datos a actualizar/crear
-    const analyticsData = {
-      eventType: eventoEnEspanol,
-      ultimoTimestamp: admin.firestore.FieldValue.serverTimestamp(),
-      contadorClics: contadorClics,
-      descripcionContador: `${contadorClics} ${contadorClics === 1 ? 'clic' : 'clics'} en ${eventoEnEspanol.replace('_', ' ')}`,
-      ultimoRestauranteId: restaurantId // Mantener registro del último restaurante
-    };
-
-    // Actualizar o crear el documento único
-    await docRef.set(analyticsData, { merge: true });
-
-    console.log(`📊 Contador actualizado: ${eventoEnEspanol} = ${contadorClics} clics`);
-    
-    res.status(201).json({ 
-      exito: true,
-      success: true, // Mantener para compatibilidad
-      eventoRegistrado: eventoEnEspanol,
-      subcoleccion: subcollectionName,
-      contadorActual: contadorClics,
-      mensaje: "Contador actualizado exitosamente" 
-    });
-
-  } catch (error) {
-    console.error("❌ Error registrando evento de analytics:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
-  }
-});
-
-// Endpoint para obtener estadísticas de un restaurante (requiere autenticación)
-app.get("/api/analytics/restaurant/:restaurantId", authenticateAndAuthorize, async (req, res) => {
-  try {
-    const { restaurantId } = req.params;
-    const { startDate, endDate, eventType } = req.query;
-
-    // Verificar que el usuario sea dueño del restaurante
-    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
-    if (!restaurantDoc.exists) {
-      return res.status(404).json({ error: "Restaurante no encontrado" });
-    }
-
-    const restaurantData = restaurantDoc.data();
-    if (restaurantData.userId !== req.user.uid) {
-      return res.status(403).json({ error: "No tienes permisos para ver estas estadísticas" });
-    }
-
-    // Construir la consulta
-    let query = db.collection("analytics").where("restaurantId", "==", restaurantId);
-
-    // Filtros opcionales
-    if (eventType) {
-      query = query.where("eventType", "==", eventType);
-    }
-
-    if (startDate) {
-      query = query.where("date", ">=", startDate);
-    }
-
-    if (endDate) {
-      query = query.where("date", "<=", endDate);
-    }
-
-    // Ordenar por timestamp descendente
-    query = query.orderBy("timestamp", "desc");
-
-    const snapshot = await query.get();
-    const events = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data(),
-      timestamp: doc.data().timestamp?.toDate?.() || doc.data().timestamp
-    }));
-
-    // Calcular estadísticas resumidas
-    const stats = {
-      total: events.length,
-      byEventType: {},
-      byDate: {},
-      byCard: {}
-    };
-
-    events.forEach(event => {
-      // Por tipo de evento
-      stats.byEventType[event.eventType] = (stats.byEventType[event.eventType] || 0) + 1;
-      
-      // Por fecha
-      stats.byDate[event.date] = (stats.byDate[event.date] || 0) + 1;
-      
-      // Por carta (si aplica)
-      if (event.cardId) {
-        stats.byCard[event.cardId] = (stats.byCard[event.cardId] || 0) + 1;
-      }
-    });
-
-    res.json({
-      restaurantId,
-      stats,
-      events: events.slice(0, 100) // Limitar a los últimos 100 eventos
-    });
-
-  } catch (error) {
-    console.error("❌ Error getting analytics:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
-  }
-});
-
-// Endpoint para obtener contadores específicos de analytics por categorías (3 botones específicos)
-app.get("/api/analytics/contadores/:restaurantId", authenticateAndAuthorize, async (req, res) => {
-  try {
-    const { restaurantId } = req.params;
-    const { fechaInicio, fechaFin } = req.query;
-
-    // Verificar que el usuario sea dueño del restaurante
-    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
-    if (!restaurantDoc.exists) {
-      return res.status(404).json({ error: "Restaurante no encontrado" });
-    }
-
-    const restaurantData = restaurantDoc.data();
-    if (restaurantData.userId !== req.user.uid) {
-      return res.status(403).json({ error: "No tienes permisos para ver estas estadísticas" });
-    }
-
-    // Construir la consulta base
-    let query = db.collection("analytics").where("restaurantId", "==", restaurantId);
-
-    // Filtros opcionales por fecha
-    if (fechaInicio) {
-      query = query.where("date", ">=", fechaInicio);
-    }
-
-    if (fechaFin) {
-      query = query.where("date", "<=", fechaFin);
-    }
-
-    const snapshot = await query.get();
-    const eventos = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    // Contadores específicos para los 3 botones únicamente
-    const contadores = {
-      boton_compartir_restaurante: 0,
-      boton_compartir_carta_whatsapp: 0,
-      boton_hacer_pedido: 0
-    };
-
-    // Contar solo los eventos específicos de los 3 botones (usando campos en español)
-    eventos.forEach(evento => {
-      // Priorizar campos en español, usar inglés como fallback
-      const tipoEvento = evento.eventoTipo || evento.tipoEvento || evento.eventType;
-      
-      switch (tipoEvento) {
-        case 'compartir_restaurante':
-        case 'restaurant_share':
-        case 'share_restaurant_whatsapp':
-          contadores.boton_compartir_restaurante++;
-          break;
-        case 'compartir_carta_whatsapp':
-        case 'share_card_whatsapp':
-          contadores.boton_compartir_carta_whatsapp++;
-          break;
-        case 'hacer_pedido':
-        case 'order_button_click':
-          contadores.boton_hacer_pedido++;
-          break;
-        // Ignorar cualquier otro tipo de evento
-      }
-    });
-
-    console.log(`📊 Contadores calculados para restaurante ${restaurantId}:`, {
-      compartir_restaurante: contadores.boton_compartir_restaurante,
-      compartir_carta_whatsapp: contadores.boton_compartir_carta_whatsapp,
-      hacer_pedido: contadores.boton_hacer_pedido
-    });
-
-    // Respuesta limpia y segmentada para los 3 botones específicos
-    res.json({
-      restauranteId: restaurantId,
-      periodo: {
-        fechaInicio: fechaInicio || null,
-        fechaFin: fechaFin || null
-      },
-      botones: {
-        compartir_restaurante: {
-          nombre: "Compartir Restaurante",
-          clics: contadores.boton_compartir_restaurante,
-          descripcion: "Clics en el botón de compartir restaurante"
-        },
-        compartir_carta_whatsapp: {
-          nombre: "Compartir Carta por WhatsApp",
-          clics: contadores.boton_compartir_carta_whatsapp,
-          descripcion: "Clics en el botón de compartir carta por WhatsApp"
-        },
-        hacer_pedido: {
-          nombre: "Hacer Pedido",
-          clics: contadores.boton_hacer_pedido,
-          descripcion: "Clics en el botón de hacer pedido"
-        }
-      },
-      resumen: {
-        totalClicsContabilizados: contadores.boton_compartir_restaurante + contadores.boton_compartir_carta_whatsapp + contadores.boton_hacer_pedido,
-        ultimaActualizacion: new Date().toLocaleString('es-ES', {
-          timeZone: 'America/Lima',
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      },
-      estado: "exitoso",
-      mensaje: "Contadores de botones obtenidos correctamente"
-    });
-
-  } catch (error) {
-    console.error("❌ Error obteniendo contadores de botones:", error);
-    res.status(500).json({ 
-      error: "Error interno del servidor",
-      mensaje: "No se pudieron obtener los contadores de botones" 
-    });
-  }
-});
-
-// Endpoint para obtener resumen simplificado de 3 botones con contadores
-app.get("/api/analytics/resumen/:restaurantId", authenticateAndAuthorize, async (req, res) => {
-  try {
-    const { restaurantId } = req.params;
-    const { fechaInicio, fechaFin } = req.query;
-
-    // Verificar que el usuario sea dueño del restaurante
-    const restaurantDoc = await db.collection("restaurants").doc(restaurantId).get();
-    if (!restaurantDoc.exists) {
-      return res.status(404).json({ error: "Restaurante no encontrado" });
-    }
-
-    const restaurantData = restaurantDoc.data();
-    if (restaurantData.userId !== req.user.uid) {
-      return res.status(403).json({ error: "No tienes permisos para ver estas estadísticas" });
-    }
-
-    // Construir la consulta base
-    let query = db.collection("analytics").where("restaurantId", "==", restaurantId);
-
-    // Filtros opcionales por fecha
-    if (fechaInicio) {
-      query = query.where("date", ">=", fechaInicio);
-    }
-
-    if (fechaFin) {
-      query = query.where("date", "<=", fechaFin);
-    }
-
-    const snapshot = await query.get();
-    const eventos = snapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-
-    // Contadores para los 3 botones
-    let compartirRestaurante = 0;
-    let compartirCartaWhatsapp = 0;
-    let hacerPedido = 0;
-
-    // Contar eventos
-    eventos.forEach(evento => {
-      const tipoEvento = evento.eventoTipo || evento.tipoEvento || evento.eventType;
-      
-      switch (tipoEvento) {
-        case 'compartir_restaurante':
-        case 'restaurant_share':
-        case 'share_restaurant_whatsapp':
-          compartirRestaurante++;
-          break;
-        case 'compartir_carta_whatsapp':
-        case 'share_card_whatsapp':
-          compartirCartaWhatsapp++;
-          break;
-        case 'hacer_pedido':
-        case 'order_button_click':
-          hacerPedido++;
-          break;
-      }
-    });
-
-    // Respuesta con exactamente 3 registros
-    const resumen = [
-      {
-        id: 1,
-        boton: "Compartir Restaurante",
-        clics: compartirRestaurante,
-        descripcion: "Botón para compartir el restaurante"
-      },
-      {
-        id: 2,
-        boton: "Compartir Carta por WhatsApp",
-        clics: compartirCartaWhatsapp,
-        descripcion: "Botón para compartir carta por WhatsApp"
-      },
-      {
-        id: 3,
-        boton: "Hacer Pedido",
-        clics: hacerPedido,
-        descripcion: "Botón para realizar pedidos"
-      }
-    ];
-
-    res.json({
-      restauranteId: restaurantId,
-      totalRegistros: 3,
-      periodo: {
-        fechaInicio: fechaInicio || null,
-        fechaFin: fechaFin || null
-      },
-      resumen: resumen,
-      totalClicsGeneral: compartirRestaurante + compartirCartaWhatsapp + hacerPedido,
-      ultimaActualizacion: new Date().toLocaleString('es-ES', {
-        timeZone: 'America/Lima'
-      })
-    });
-
-  } catch (error) {
-    console.error("❌ Error obteniendo resumen de botones:", error);
-    res.status(500).json({ 
-      error: "Error interno del servidor",
-      mensaje: "No se pudo obtener el resumen de botones" 
-    });
-  }
-});
-
-// Endpoint para obtener estadísticas globales (solo para administradores)
-app.get("/api/analytics/global", authenticateAndAuthorize, async (req, res) => {
-  try {
-    // Verificar que el usuario sea administrador (opcional - puedes ajustar esto)
-    const userDoc = await db.collection("users").doc(req.user.uid).get();
-    const userData = userDoc.data();
-    
-    if (userData.role !== "admin" && userData.role !== "owner") {
-      return res.status(403).json({ error: "No tienes permisos para ver estadísticas globales" });
-    }
-
-    const { startDate, endDate, eventType } = req.query;
-
-    // Construir la consulta
-    let query = db.collection("analytics");
-
-    if (eventType) {
-      query = query.where("eventType", "==", eventType);
-    }
-
-    if (startDate) {
-      query = query.where("date", ">=", startDate);
-    }
-
-    if (endDate) {
-      query = query.where("date", "<=", endDate);
-    }
-
-    const snapshot = await query.get();
-    const events = snapshot.docs.map(doc => doc.data());
-
-    // Calcular estadísticas globales
-    const globalStats = {
-      total: events.length,
-      byEventType: {},
-      byRestaurant: {},
-      byDate: {}
-    };
-
-    events.forEach(event => {
-      // Por tipo de evento
-      globalStats.byEventType[event.eventType] = (globalStats.byEventType[event.eventType] || 0) + 1;
-      
-      // Por restaurante
-      globalStats.byRestaurant[event.restaurantId] = (globalStats.byRestaurant[event.restaurantId] || 0) + 1;
-      
-      // Por fecha
-      globalStats.byDate[event.date] = (globalStats.byDate[event.date] || 0) + 1;
-    });
-
-    res.json(globalStats);
-
-  } catch (error) {
-    console.error("❌ Error getting global analytics:", error);
-    res.status(500).json({ error: "Error interno del servidor" });
-  }
-});
-
-// ===== FIN ANALYTICS ENDPOINTS =====
 
 
 
