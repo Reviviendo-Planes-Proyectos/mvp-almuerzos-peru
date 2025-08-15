@@ -3,6 +3,13 @@
 
 <head>
   <meta charset="UTF-8" />
+  <style>
+    @media (max-width: 640px) {
+      .logout-button {
+        display: none !important;
+      }
+    }
+  </style>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mi perfil - Almuerzos Perú</title>
 
@@ -121,21 +128,22 @@
             <a href="index.html" style="text-decoration: none; color: inherit">
               <span style="display: flex; align-items: center; gap: 0.5rem">
                 <img src="images/Logo-Almuerzo-Perú.png" alt="Logo Almuerzos Perú" style="
-                      height: 22px;
-                      width: auto;
-                      margin-right: 0.1rem;
-                      vertical-align: middle;
+                        height: 56px;
+                        width: auto;
+                        margin-right: 0.1rem;
+                        vertical-align: middle;
                     " />
-                <h1 style="
-                      margin: 0;
-                      font-size: 1.5rem;
-                      font-weight: 800;
-                      cursor: pointer;
-                      letter-spacing: -1px;
-                      background: none;
-                    " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                  <span style="color: #1f2937">Almuerzos</span><span style="color: #ffffff">Perú</span>
-                </h1>
+                  <h1 style="
+                        margin: 0;
+                        font-size: 2.2rem;
+                        font-weight: 900;
+                        cursor: pointer;
+                        letter-spacing: -1px;
+                        background: none;
+                        line-height: 1;
+                      " onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                    <span style="color: #1f2937">Almuerzos</span><span style="color: #ff8c00">Perú</span>
+                  </h1>
               </span>
             </a>
           </div>
@@ -318,7 +326,12 @@
                 nombre de tu carta</span>
             </div>
             <button class="whatsapp-share-button" onclick="shareCardOnWhatsApp()">
-              <img src="images/celular.png" alt="Icono" class="whatsapp-icon" />
+              <span style="display: flex; align-items: center; justify-content: center; background: var(--brand-green); border-radius: 50%; width: 32px; height: 32px; margin-right: 8px;">
+                <svg class="whatsapp-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C6.477 2 2 6.477 2 12c0 1.85.504 3.59 1.38 5.09L2 22l5.09-1.38A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2Z" stroke="#fff" stroke-width="2" fill="none"/>
+                  <path d="M17.472 15.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.472-.148-.67.15-.198.297-.767.967-.94 1.166-.173.198-.347.223-.644.075-.297-.149-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.447-.52.149-.174.198-.298.298-.497.099-.198.05-.372-.025-.521-.075-.149-.67-1.617-.917-2.217-.242-.58-.487-.501-.67-.511l-.57-.011c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.877 1.213 3.075.149.198 2.099 3.205 5.077 4.367.71.306 1.263.489 1.695.625.713.227 1.362.195 1.875.118.572-.085 1.758-.719 2.007-1.413.248-.694.248-1.288.173-1.413-.074-.124-.272-.198-.57-.347Z" stroke="#fff" stroke-width="1.5" fill="none"/>
+                </svg>
+              </span>
               Compartir carta en WhatsApp
             </button>
           </div>

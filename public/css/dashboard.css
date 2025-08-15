@@ -542,6 +542,79 @@ input:checked + .slider:before {
   font-weight: bold !important;
   white-space: normal !important;
 }
+/* --- Animated Comment Icon --- */
+
+.comment-icon {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  font-size: 1.6rem;
+  background: #fffbe6;
+  border-radius: 50%;
+  box-shadow: 0 0 18px 6px #ffd100, 0 0 0 4px #ffd100, 0 2px 12px #f7bd00;
+  border: 2.5px solid #ffd100;
+  cursor: pointer;
+  transition: box-shadow 0.2s, transform 0.2s;
+  z-index: 1;
+  animation: comment-pulse 1.2s infinite;
+  will-change: transform, box-shadow;
+}
+.comment-icon::before {
+  content: "";
+  position: absolute;
+  inset: -12px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #ffe066 0%, #ffd100 30%, #fffbe6 60%, #ffd100 100%);
+  filter: blur(6px);
+  z-index: 0;
+  opacity: 0.85;
+  animation: comment-aura-spin 1.4s linear infinite;
+  pointer-events: none;
+}
+.comment-icon::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: 0 0 24px 8px #ffd100cc, 0 0 0 3px #ffd10088;
+  z-index: 0;
+  pointer-events: none;
+}
+.comment-icon span, .comment-icon svg {
+  position: relative;
+  z-index: 1;
+  color: #ffd100;
+  text-shadow: 0 0 4px #fffbe6, 0 0 12px #ffd100, 0 0 2px #fffbe6;
+}
+@keyframes comment-aura-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+@keyframes comment-pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 18px 6px #ffd100, 0 0 0 4px #ffd100, 0 2px 12px #f7bd00; }
+  50% { transform: scale(1.13); box-shadow: 0 0 32px 12px #ffd100, 0 0 0 8px #ffd100, 0 4px 24px #f7bd00; }
+}
+.comment-icon.mobile-animate {
+  animation: comment-mobile-grow 0.38s cubic-bezier(.36,.07,.19,.97) 1;
+}
+@keyframes comment-mobile-grow {
+  0% { transform: scale(1) rotate(0deg); }
+  15% { transform: scale(1.6) rotate(12deg); }
+  30% { transform: scale(1.45) rotate(-8deg); }
+  50% { transform: scale(1.6) rotate(12deg); }
+  70% { transform: scale(1.4) rotate(-12deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+@media (max-width: 600px) {
+  .comment-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 1.25rem;
+  }
+}
 
 .modal-backdrop {
   position: fixed;
@@ -1273,7 +1346,7 @@ input:checked + .slider:before {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: linear-gradient(90deg, #00c853, #00bfa5);
+  background: var(--brand-green-dark);
     color: white;
     font-weight: bold;
     border: none;

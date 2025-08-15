@@ -17,11 +17,35 @@
     <link rel="stylesheet" href="css/favorites.css">
 </head>
 <body>
+    <!-- Modal de carga -->
+    <div id="loading-modal" class="loading-modal">
+        <div class="loading-content">
+            <img src="images/Logo-Almuerzo-Perú.png" alt="Logo Almuerzos Perú" class="loading-logo">
+            <div class="loading-text">Cargando tus favoritos</div>
+            <div class="loading-subtext">Preparando la mejor experiencia para ti</div>
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
     <header class="main-header">
         <div class="container header-content">
-            <a href="index.html">
-                <img style="width: 250px" src="images/logo.png" alt="Almuerzos Perú Logo" loading="eager" />
-            </a>
+                            <a href="index.html" style="text-decoration: none; color: inherit">
+                                <span style="display: flex; align-items: center; gap: 0.5rem; margin: 1.5rem;">
+                                    <img
+                                        src="images/Logo-Almuerzo-Perú.png"
+                                        alt="Logo Almuerzos Perú"
+                                        style="height: 56px; width: auto; margin-right: 0.1rem; vertical-align: middle;"
+                                        loading="eager"
+                                    />
+                                    <h1
+                                        style="margin: 0; font-size: 2.2rem; font-weight: 900; cursor: pointer; letter-spacing: -1px; background: none; line-height: 1;"
+                                        onmouseover="this.style.opacity='0.8'"
+                                        onmouseout="this.style.opacity='1'"
+                                    >
+                                        <span style="color: #1f2937">Almuerzos</span><span style="color: #ff8c00">Perú</span>
+                                    </h1>
+                                </span>
+                            </a>
             <div style="display: flex; align-items: center; justify-content: center; flex-direction: row; ">
                 <div style="background-color: #ffffff; border-radius: 10px; padding-right: 15px; margin-right: 10px; padding-left: 15px; display: flex; align-items: center;">
                     <button id="my-account-btn" class="header-button">
@@ -34,12 +58,14 @@
     </header>
 
     <main class="favorites-container">
-        <h1>Mis Platos Favoritos</h1>
-        <div id="favorite-dishes-list">
-            <p class="no-favorites-message">Cargando tus platos favoritos...</p>
+        <h1>🍽️ Mis Platos Favoritos</h1>
+        <div id="favorite-dishes-list" class="favorites-grid">
+            <!-- Los platos favoritos se cargarán aquí dinámicamente -->
         </div>
         <div class="back-button-container">
-            <button id="back-to-home-btn" class="back-button">Retroceder a la página principal</button>
+            <button id="back-to-home-btn" class="back-button">
+                ← Volver al inicio
+            </button>
         </div>
     </main>
 
