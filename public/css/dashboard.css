@@ -39,6 +39,7 @@
   --brand-yellow: #ffd100;
   --brand-yellow-light: #fffbeb;
   --brand-green: #00b44e;
+  --brand-green-dark: #009a42;
   --brand-red: #ef4444;
   --brand-dark: #1f2937;
   --gray-text: #4b5563;
@@ -1737,4 +1738,82 @@ input:checked + .slider:before {
 
 .slider.round:before {
   border-radius: 50%;
+}
+
+/* Estilos específicos para el botón de compartir todas las cartas */
+#share-all-cards-container {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive para el botón de compartir todas las cartas */
+@media (max-width: 768px) {
+  #share-all-cards-container button {
+    font-size: 0.875rem !important;
+    padding: 0.75rem 1.25rem !important;
+    gap: 0.5rem !important;
+  }
+  
+  #share-all-cards-container svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  #share-all-cards-container {
+    padding: 0 0.5rem !important;
+  }
+  
+  #share-all-cards-container button {
+    font-size: 0.8rem !important;
+    padding: 0.675rem 1rem !important;
+    max-width: 100% !important;
+  }
+}
+
+
+.order-button {
+  background-color: var(--brand-green);
+  color: var(--white);
+  border: none;
+  padding: 1rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  
+  /* Estilos para posición fija */
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 40px);
+  max-width: 400px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.whatsapp-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.order-button:hover {
+  background-color: var(--brand-green-dark);
 }

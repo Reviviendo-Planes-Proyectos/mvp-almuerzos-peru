@@ -489,6 +489,9 @@ async function loadRestaurantCards() {
     cardsListDiv.innerHTML = "";
     cardsListDiv.appendChild(fragment);
     
+    // Mostrar/ocultar botón de compartir todas las cartas según cartas activas
+    addShareAllCardsButton(cards);
+    
     // Configurar event listeners después del render
     requestAnimationFrame(() => {
       document.querySelectorAll(".card-toggle").forEach((toggle) => {
@@ -778,6 +781,10 @@ async function handleToggleCard(event) {
     const result = await response.json();
     console.log('Toggle card success:', result);
     showToast(isActive ? "Carta activada" : "Carta desactivada", "success");
+    
+    // Actualizar el botón de compartir todas las cartas
+    await updateShareAllCardsButton();
+    
   } catch (error) {
     console.error("Error al actualizar la carta:", error);
     showToast("No se pudo actualizar el estado de la carta.", "error");
@@ -3625,6 +3632,183 @@ async function buildShareMessageWithoutAllCards(restaurant, cardId) {
   message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
 
   return message;
+}
+
+// Función para mostrar/ocultar el botón de compartir todas las cartas
+function addShareAllCardsButton(cards) {
+  // Filtrar solo cartas activas
+  const activeCards = cards.filter(card => card.isActive);
+  
+  const shareContainer = document.getElementById("share-all-cards-container");
+  if (!shareContainer) return;
+  
+  // Solo mostrar el botón si hay al menos 1 carta activa
+  if (activeCards.length === 0) {
+    shareContainer.style.display = "none";
+  } else {
+    shareContainer.style.display = "block";
+  }
+}
+
+// Función para compartir todas las cartas en WhatsApp
+async function shareAllCardsOnWhatsApp() {
+  if (!currentRestaurant) {
+    showToast("Falta información del restaurante para compartir.", "warning");
+    return;
+  }
+  
+  // Obtener referencia al botón
+  const shareButton = document.querySelector('#share-all-cards-container button');
+  const buttonOriginalHTML = shareButton ? shareButton.innerHTML : '';
+  
+  try {
+    // Mostrar estado de carga en el botón
+    if (shareButton) {
+      shareButton.disabled = true;
+      shareButton.innerHTML = `
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="animation: spin 1s linear infinite; margin-right: 8px;">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" stroke-opacity="0.3"/>
+          <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="4"/>
+        </svg>
+        Generando mensaje...
+      `;
+      
+      // Agregar estilos de animación si no existen
+      if (!document.getElementById('spin-animation-style')) {
+        const style = document.createElement('style');
+        style.id = 'spin-animation-style';
+        style.textContent = `
+          @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+          }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+    
+    const message = await buildShareMessageAllCards(currentRestaurant);
+    
+    // Registrar evento de analytics para compartir todas las cartas
+    await trackAnalyticsEvent('share_all_cards_whatsapp', currentRestaurant.id, null, {
+      restaurantName: currentRestaurant.name,
+      shareMethod: 'whatsapp_web'
+    });
+    
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+    
+  } catch (e) {
+    console.error("No se pudo generar el mensaje para compartir todas las cartas:", e);
+    showToast("No se pudo generar el mensaje de WhatsApp.", "error");
+  } finally {
+    // Restaurar el botón a su estado original
+    if (shareButton) {
+      shareButton.disabled = false;
+      shareButton.innerHTML = buttonOriginalHTML;
+    }
+  }
+}
+
+// Función para construir el mensaje con todas las cartas
+async function buildShareMessageAllCards(restaurant) {
+  const name = restaurant?.name || "";
+  
+  // Generar link del menú general (sin cardId específico)
+  const longUrl = `https://mvp-almuerzos-peru.vercel.app/menu.html?restaurantId=${restaurant.id}`;
+  let link = longUrl;
+  try {
+    const shortUrl = await tryShorten(longUrl);
+    if (shortUrl) link = shortUrl;
+  } catch {}
+  
+  const yape = restaurant?.yape || "No disponible";
+  const today = new Date()
+    .toLocaleDateString("en-US", { weekday: "long" })
+    .toLowerCase();
+  const todayHours = restaurant?.schedule?.[today] || {};
+  const from = todayHours?.from || "—";
+  const to = todayHours?.to || "—";
+  
+  // Obtener todas las cartas activas
+  let cards = [];
+  try {
+    const idToken = await currentUser.getIdToken();
+    const cardsRes = await fetch(`/api/restaurants/${restaurant.id}/cards`, {
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    if (cardsRes.ok) {
+      const allCards = await cardsRes.json();
+      cards = Array.isArray(allCards) ? allCards.filter(c => c.isActive) : [];
+    }
+  } catch (e) {
+    console.warn("No se pudieron obtener las cartas:", e);
+  }
+
+  let message = `👋 ¡Hola! Hoy tenemos platos caseros recién hechos en *${name}* 🍽️\n\n`;
+
+  if (link) {
+    message += `📌 Puedes ver nuestra carta aquí: 👉 ${link}\n\n`;
+  }
+  
+  // Agregar cada carta con sus platos
+  for (const card of cards) {
+    let dishes = [];
+    try {
+      const idToken = await currentUser.getIdToken();
+      const dishesRes = await fetch(`/api/cards/${card.id}/dishes`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+      if (dishesRes.ok) {
+        const allDishes = await dishesRes.json();
+        dishes = Array.isArray(allDishes) ? allDishes.filter(d => d?.isActive) : [];
+      }
+    } catch (e) {
+      console.warn(`No se pudieron cargar los platos de la carta ${card.name}:`, e);
+    }
+    
+    message += `🍽️ *${card.name}*\n`;
+    
+    if (dishes.length === 0) {
+      message += `(No hay platos disponibles)\n`;
+    } else {
+      dishes.forEach((dish) => {
+        const priceNum = Number(dish?.price);
+        const priceStr = Number.isFinite(priceNum)
+          ? priceNum.toFixed(2)
+          : `${dish?.price ?? ""}`;
+        message += `❤ ${dish?.name ?? "Plato"} – S/ ${priceStr}\n`;
+      });
+    }
+    
+    message += `\n`;
+  }
+  
+  message += `🕒 *Horario de atención (hoy)*:\n${from} – ${to}\n`;
+  message += `📱 *Yape*: ${yape}\n\n`;
+  message += `📥 ¿Quieres separar tu plato? Escríbenos por aquí y te lo dejamos listo 🤗\n\n`;
+  message += `✨ ¡Gracias por preferirnos! ¡Buen provecho! ✨`;
+  
+  return message;
+}
+
+// Función para actualizar el botón de compartir todas las cartas
+async function updateShareAllCardsButton() {
+  if (!currentRestaurant) return;
+  
+  try {
+    const idToken = await currentUser.getIdToken(false);
+    const cardsResponse = await fetch(`/api/restaurants/${currentRestaurant.id}/cards`, {
+      headers: { Authorization: `Bearer ${idToken}` },
+    });
+    
+    if (cardsResponse.ok) {
+      const cards = await cardsResponse.json();
+      addShareAllCardsButton(cards);
+    }
+  } catch (error) {
+    console.error("Error actualizando botón de compartir todas las cartas:", error);
+  }
 }
 
 let shareObserver = null;
