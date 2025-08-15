@@ -68,15 +68,16 @@ body {
 .container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 0 1.5rem 100px 1.5rem;
+  padding: 0 1.5rem 80px 1.5rem;
   /* Optimización de contenedor principal */
   contain: layout style paint;
 }
 .main-header {
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem 0.25rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-height: 60px;
 }
 .header-content {
   display: flex;
@@ -162,7 +163,7 @@ body {
   gap: 1.25rem;
   color: white;
   min-height: 90px;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
   overflow: hidden;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
@@ -369,7 +370,7 @@ body {
   text-align: center;
   font-size: 1rem;
   color: var(--brand-dark);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   padding: 0 1rem;
 }
 .cards-nav {
@@ -380,7 +381,7 @@ body {
   background-color: var(--brand-dark);
   border-radius: 5px;
   padding: 0.75rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   max-height: 120px; /* Limitar a 2 filas aprox */
   overflow-y: auto;
   scrollbar-width: none;
@@ -603,6 +604,9 @@ body {
     border-radius: 10px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2), 0 3px 8px rgba(255, 209, 0, 0.4);
   }
+  .main-header {
+     padding: 0.25rem 1.5rem 0.1rem 1.5rem;
+   }
   .header-content {
     flex-direction: column;
     align-items: center;
@@ -749,6 +753,41 @@ body {
   }
   .cards-nav {
     max-height: 150px; /* Permitir más altura para tabs apilados */
+  }
+}
+
+/* Espaciado optimizado para móvil */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 1.5rem 60px 1.5rem;
+  }
+  
+  .main-header {
+    padding: 1rem 1.5rem 0rem 1.5rem;
+    min-height: 50px;
+  }
+  
+  .menu-banner {
+    margin-bottom: 0.25rem;
+  }
+  
+  .restaurant-description {
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Espaciado optimizado para PC/Tablet */
+@media (min-width: 769px) {
+  .container {
+    padding: 0 1.5rem 80px 1.5rem;
+  }
+  
+  .menu-banner {
+    margin-bottom: 0.5rem;
+  }
+  
+  .restaurant-description {
+    margin-bottom: 0.75rem;
   }
 }
 .dish-image-wrapper {
