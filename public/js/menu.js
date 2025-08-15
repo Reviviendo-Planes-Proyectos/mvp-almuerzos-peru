@@ -546,17 +546,28 @@ async function initializeApp() {
             commentContainer &&
             !commentContainer.querySelector(".comment-icon")
           ) {
-            const commentIcon = document.createElement("span");
-            commentIcon.className = "comment-icon";
-            commentIcon.innerHTML = "🗨️";
-            commentIcon.setAttribute("data-dish-id", dishId);
-            commentIcon.style.cursor = "pointer";
+              const commentIcon = document.createElement("span");
+              commentIcon.className = "comment-icon";
+              commentIcon.setAttribute("data-dish-id", dishId);
+              commentIcon.style.cursor = "pointer";
+              // Use inner span for emoji to allow advanced CSS
+              const emojiSpan = document.createElement("span");
+              emojiSpan.textContent = "🗨️";
+              commentIcon.appendChild(emojiSpan);
 
-            commentIcon.addEventListener("click", () => {
-              openCommentModal(dishId);
-            });
+              commentIcon.addEventListener("click", function(e) {
+                if (isMobileDevice()) {
+                  commentIcon.classList.add("mobile-animate");
+                  setTimeout(() => {
+                    commentIcon.classList.remove("mobile-animate");
+                    openCommentModal(dishId);
+                  }, 300);
+                } else {
+                  openCommentModal(dishId);
+                }
+              });
 
-            commentContainer.appendChild(commentIcon);
+              commentContainer.appendChild(commentIcon);
           }
 
           // Agregar a set (evita duplicados)

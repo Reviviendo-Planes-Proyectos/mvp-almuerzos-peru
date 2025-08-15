@@ -2,7 +2,14 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
+        <meta charset="UTF-8">
+        <style>
+            @media (max-width: 640px) {
+                .logout-button {
+                    display: none !important;
+                }
+            }
+        </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comentarios - Almuerzos Perú</title>
     
@@ -47,9 +54,10 @@
             <button class="menu-btn" onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">☰</button>
             <div>
                 <a href="index.html" style="text-decoration: none; color: inherit;">
-                    <h1 style="margin: 0; font-size: 1.5rem; font-weight: 800; cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">Almuerzos Perú</h1>
+                                            <h1 style="margin: 0; font-size: 2.2rem; font-weight: 900; cursor: pointer; letter-spacing: -1px; background: none; line-height: 1; transition: opacity 0.2s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                                                <span style="color: #1f2937">Almuerzos</span><span style="color: #ff8c00">Perú</span>
+                                            </h1>
                 </a>
-                <p style="margin: 0; font-size: 0.9rem; opacity: 0.9;">COMENTARIOS</p>
             </div>
         </div>
         <button class="logout-button" onclick="logout()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; cursor: pointer; transition: background 0.2s;">
